@@ -1,0 +1,408 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-terra: #4e342e;
+  --color-verde-suave: #4caf50;
+  --color-verde-claro: #81c784;
+  --color-dourado-claro: #fbc02d;
+  --color-amarelo-suave: #ffeb3b;
+  --color-vermelho-suave: #e57373;
+  --color-bege-claro: #fff8e1;
+  --color-cinza-chumbo: #424242;
+
+  /* Tons complementares para gradientes */
+  --color-verde-muito-suave: #e8f5e8;
+  --color-dourado-muito-claro: #fffde7;
+  --color-vermelho-muito-suave: #ffebee;
+
+  /* Mapeamento semântico */
+  --color-primary: var(--color-verde-suave);
+  --color-secondary: var(--color-dourado-claro);
+  --color-accent: var(--color-vermelho-suave); /* Destaques */
+  --color-background: var(--color-bege-claro); /* Fundo principal */
+  --color-text: var(--color-cinza-chumbo);
+
+  /* Fontes mantidas */
+  --font-family-rye: "Rye", serif;
+  --font-family-baloo: "Baloo 2", cursive;
+  --font-family-roboto-slab: "Roboto Slab", serif;
+  --font-family-inter: "Inter", sans-serif;
+  --font-family-roboto: "Roboto", sans-serif;
+
+  /* Bordas arredondadas para acessibilidade */
+  --radius-festival: 1.5rem;
+  --radius-button: 2rem;
+
+  /* Sombras muito suaves */
+  --shadow-festival: 0 4px 6px -1px rgb(76 175 80 / 0.06),
+    0 2px 4px -1px rgb(76 175 80 / 0.03);
+  --shadow-button: 0 2px 8px -2px rgb(76 175 80 / 0.15);
+
+  /* 🌈 Gradientes suaves */
+  --gradient-hero: linear-gradient(
+    135deg,
+    var(--color-bege-claro) 0%,
+    var(--color-verde-muito-suave) 50%,
+    var(--color-dourado-muito-claro) 100%
+  );
+}
+
+body {
+  font-family: var(--font-family-inter);
+  line-height: 1.6;
+}
+
+@layer utilities {
+  /* 🖼️ Cards com estética leve */
+  .festival-card {
+    background: var(--color-stone-50);
+    border: 1px solid rgb(76 175 80 / 0.1);
+    border-radius: var(--radius-festival);
+    box-shadow: var(--shadow-festival);
+    backdrop-filter: blur(10px);
+  }
+
+  /* ✨ Botão Principal - Dourado (CTA) */
+  .festival-button {
+    background-color: var(--color-dourado-claro);
+    color: var(--color-terra);
+    font-weight: 600;
+    padding: 1rem 2rem;
+    border-radius: var(--radius-button);
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-button);
+  }
+
+  .festival-button:hover {
+    background-color: var(--color-amarelo-suave);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px -4px rgb(251 192 45 / 0.3);
+  }
+
+  /* 🌿 Botão Secundário - Verde */
+  .festival-button-secondary {
+    background-color: var(--color-verde-suave);
+    color: white;
+    font-weight: 600;
+    padding: 1rem 2rem;
+    border-radius: var(--radius-button);
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-button);
+  }
+
+  .festival-button-secondary:hover {
+    background-color: var(--color-verde-claro);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px -4px rgb(76 175 80 / 0.3);
+  }
+
+  /* 📝 Tipografia com nova paleta */
+  .festival-title {
+    font-family: var(--font-family-rye);
+    color: var(--color-verde-suave);
+    text-shadow: 0 2px 4px rgb(76 175 80 / 0.1);
+  }
+
+  .festival-subtitle {
+    font-family: var(--font-family-roboto-slab);
+    color: var(--color-verde-suave);
+  }
+
+  .festival-text {
+    font-family: var(--font-family-inter);
+    color: var(--color-cinza-chumbo);
+  }
+
+  /* 🏆 Medalhas renovadas */
+  .medal-gold {
+    background: linear-gradient(135deg, #fbc02d, #ffeb3b);
+    color: var(--color-verde-suave);
+    border-radius: var(--radius-festival);
+  }
+
+  .medal-silver {
+    background: linear-gradient(135deg, #e0e0e0, #f5f5f5);
+    color: var(--color-cinza-chumbo);
+    border-radius: var(--radius-festival);
+  }
+
+  .medal-bronze {
+    background: linear-gradient(135deg, #bcaaa4, #d7ccc8);
+    color: var(--color-cinza-chumbo);
+    border-radius: var(--radius-festival);
+  }
+
+  /* 🎨 Classes utilitárias para a nova paleta */
+  .bg-verde-suave {
+    background-color: var(--color-verde-suave);
+  }
+  .bg-verde-claro {
+    background-color: var(--color-verde-claro);
+  }
+  .bg-dourado-claro {
+    background-color: var(--color-dourado-claro);
+  }
+  .bg-vermelho-suave {
+    background-color: var(--color-vermelho-suave);
+  }
+  .bg-bege-claro {
+    background-color: var(--color-bege-claro);
+  }
+
+  .text-verde-suave {
+    color: var(--color-verde-suave);
+  }
+  .text-dourado-claro {
+    color: var(--color-dourado-claro);
+  }
+  .text-cinza-chumbo {
+    color: var(--color-cinza-chumbo);
+  }
+
+  /* 🌟 Estado ativo com vermelho suave */
+  .status-active {
+    background-color: var(--color-vermelho-suave);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-button);
+    font-weight: 500;
+  }
+
+  /* ✨ Header com fundo verde médio */
+  .header-festival {
+    background-color: var(--color-verde-suave);
+    color: white;
+    box-shadow: 0 2px 10px -2px rgb(76 175 80 / 0.2);
+  }
+}
+
+/* Animações personalizadas para a seção de apoiadores */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.8s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.6s ease-out;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Hover effects melhorados */
+.festival-card:hover {
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}
+
+/* Animações de Marquee para Apoiadores */
+@keyframes marquee-left {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes marquee-right {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+.marquee-container {
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+}
+
+.marquee-content {
+  display: inline-flex;
+  animation: marquee-left 30s linear infinite;
+  gap: 3rem;
+}
+
+.marquee-content:hover {
+  animation-play-state: paused;
+}
+
+.marquee-reverse .marquee-content {
+  animation: marquee-right 25s linear infinite;
+}
+
+/* Gradiente nas bordas para efeito fade */
+.marquee-container::before,
+.marquee-container::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 100px;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.marquee-container::before {
+  left: 0;
+  background: linear-gradient(to right, var(--color-slate-50), transparent);
+}
+
+.marquee-container::after {
+  right: 0;
+  background: linear-gradient(to left, var(--color-slate-50), transparent);
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.147 0.004 49.25);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.147 0.004 49.25);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.147 0.004 49.25);
+  --primary: oklch(0.216 0.006 56.043);
+  --primary-foreground: oklch(0.985 0.001 106.423);
+  --secondary: oklch(0.97 0.001 106.424);
+  --secondary-foreground: oklch(0.216 0.006 56.043);
+  --muted: oklch(0.97 0.001 106.424);
+  --muted-foreground: oklch(0.553 0.013 58.071);
+  --accent: oklch(0.97 0.001 106.424);
+  --accent-foreground: oklch(0.216 0.006 56.043);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.923 0.003 48.717);
+  --input: oklch(0.923 0.003 48.717);
+  --ring: oklch(0.709 0.01 56.259);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0.001 106.423);
+  --sidebar-foreground: oklch(0.147 0.004 49.25);
+  --sidebar-primary: oklch(0.216 0.006 56.043);
+  --sidebar-primary-foreground: oklch(0.985 0.001 106.423);
+  --sidebar-accent: oklch(0.97 0.001 106.424);
+  --sidebar-accent-foreground: oklch(0.216 0.006 56.043);
+  --sidebar-border: oklch(0.923 0.003 48.717);
+  --sidebar-ring: oklch(0.709 0.01 56.259);
+}
+
+.dark {
+  --background: oklch(0.147 0.004 49.25);
+  --foreground: oklch(0.985 0.001 106.423);
+  --card: oklch(0.216 0.006 56.043);
+  --card-foreground: oklch(0.985 0.001 106.423);
+  --popover: oklch(0.216 0.006 56.043);
+  --popover-foreground: oklch(0.985 0.001 106.423);
+  --primary: oklch(0.923 0.003 48.717);
+  --primary-foreground: oklch(0.216 0.006 56.043);
+  --secondary: oklch(0.268 0.007 34.298);
+  --secondary-foreground: oklch(0.985 0.001 106.423);
+  --muted: oklch(0.268 0.007 34.298);
+  --muted-foreground: oklch(0.709 0.01 56.259);
+  --accent: oklch(0.268 0.007 34.298);
+  --accent-foreground: oklch(0.985 0.001 106.423);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.553 0.013 58.071);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.216 0.006 56.043);
+  --sidebar-foreground: oklch(0.985 0.001 106.423);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0.001 106.423);
+  --sidebar-accent: oklch(0.268 0.007 34.298);
+  --sidebar-accent-foreground: oklch(0.985 0.001 106.423);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.553 0.013 58.071);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
