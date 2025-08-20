@@ -37,8 +37,8 @@
   --radius-button: 2rem;
 
   /* Sombras muito suaves */
-  --shadow-festival: 0 4px 6px -1px rgb(76 175 80 / 0.06),
-    0 2px 4px -1px rgb(76 175 80 / 0.03);
+  --shadow-festival:
+    0 4px 6px -1px rgb(76 175 80 / 0.06), 0 2px 4px -1px rgb(76 175 80 / 0.03);
   --shadow-button: 0 2px 8px -2px rgb(76 175 80 / 0.15);
 
   /* 🌈 Gradientes suaves */
@@ -48,11 +48,23 @@
     var(--color-verde-muito-suave) 50%,
     var(--color-dourado-muito-claro) 100%
   );
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --animate-marquee: marquee var(--duration) infinite linear;
+  --animate-marquee-vertical: marquee-vertical var(--duration) linear infinite;
 }
 
 body {
   font-family: var(--font-family-inter);
   line-height: 1.6;
+}
+
+/** Smooth scroll **/
+html {
+  scroll-behavior: smooth;
 }
 
 @layer utilities {
@@ -212,22 +224,22 @@ body {
   }
 }
 
-.animate-fade-in {
-  animation: fade-in 0.8s ease-out;
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-100% - var(--gap)));
+  }
 }
 
-.animate-slide-up {
-  animation: slide-up 0.6s ease-out;
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-
-/* Hover effects melhorados */
-.festival-card:hover {
-  transform: translateY(-2px);
-  transition: all 0.3s ease;
+@keyframes marquee-vertical {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(calc(-100% - var(--gap)));
+  }
 }
 
 /* Animações de Marquee para Apoiadores */
@@ -247,6 +259,24 @@ body {
   100% {
     transform: translateX(0%);
   }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.8s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.6s ease-out;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Hover effects melhorados */
+.festival-card:hover {
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
 }
 
 .marquee-container {
@@ -404,5 +434,36 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/** Custom Scrollbar **/
+@layer base {
+  ::-webkit-scrollbar {
+    width: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--input);
+    border-radius: 5px;
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--input) transparent;
+  }
+}
+
+/** Custom Container **/
+@utility container {
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+  @media (width >= --theme(--breakpoint-sm)) {
+    max-width: none;
+  }
+  @media (width >= 1440px) {
+    padding-inline: 2rem;
+    max-width: 1440px;
   }
 }

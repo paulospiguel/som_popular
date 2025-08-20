@@ -1,13 +1,11 @@
 "use client";
 
-import { signOut, useSession } from "@/lib/auth-client";
+import { useSession } from "@/lib/auth-client";
 import {
   AlertTriangle,
   BarChart3,
   Calendar,
   FileText,
-  Home,
-  LogOut,
   Mail,
   Music,
   Settings,
@@ -30,11 +28,6 @@ export default function AdminDashboard() {
     }
   }, [session, isPending, router]);
 
-  const handleLogout = async () => {
-    await signOut();
-    router.push("/");
-  };
-
   if (isPending) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-bege-claro via-verde-muito-suave to-dourado-muito-claro flex items-center justify-center">
@@ -54,44 +47,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-bege-claro via-verde-muito-suave to-dourado-muito-claro">
-      {/* Header Administrativo */}
-      <header className="bg-white/90 backdrop-blur-sm border-b border-verde-suave/20 sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3">
-                <Music className="w-8 h-8 text-verde-suave" />
-                <div>
-                  <h1 className="festival-title text-xl">Som Popular</h1>
-                  <p className="text-xs text-cinza-chumbo/70 flex items-center">
-                    <Shield className="w-3 h-3 mr-1" />
-                    Painel Administrativo
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <span className="text-cinza-chumbo font-medium block">
-                  {session.user.name}
-                </span>
-                <span className="text-xs text-cinza-chumbo/70">
-                  Administrador
-                </span>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="flex items-center space-x-2 text-cinza-chumbo hover:text-vermelho-suave transition-colors p-2 rounded-lg hover:bg-vermelho-suave/10"
-              >
-                <LogOut className="w-5 h-5" />
-                <span className="hidden sm:block">Sair</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
       {/* Conteúdo Principal */}
       <main className="container mx-auto px-4 py-8">
         {/* Boas-vindas Administrativas */}
@@ -310,17 +265,6 @@ export default function AdminDashboard() {
               <span className="text-xs text-cinza-chumbo/70">ontem</span>
             </div>
           </div>
-        </div>
-
-        {/* Link para voltar ao site */}
-        <div className="text-center">
-          <Link
-            href="/"
-            className="inline-flex items-center space-x-2 text-cinza-chumbo/70 hover:text-cinza-chumbo transition-colors p-3 rounded-lg hover:bg-white/50"
-          >
-            <Home className="w-4 h-4" />
-            <span>Voltar ao site principal</span>
-          </Link>
         </div>
       </main>
     </div>
