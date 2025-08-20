@@ -1,10 +1,10 @@
 "use client";
 
-import { signIn } from "@/lib/auth-client";
+import { signIn, useSession } from "@/lib/auth-client";
 import { Eye, EyeOff, Loader2, Lock, Mail, Music } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -13,6 +13,31 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { data: session, isPending } = useSession();
+
+  // Redirecionar se já estiver autenticado
+  useEffect(() => {
+    if (session?.user && !isPending) {
+      router.push("/dashboard");
+    }
+  }, [session, isPending, router]);
+
+  // Mostrar loading enquanto verifica a sessão
+  if (isPending) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-bege-claro via-verde-muito-suave to-dourado-muito-claro flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="animate-spin w-8 h-8 text-verde-suave mx-auto mb-4" />
+          <p className="text-cinza-chumbo">A verificar sessão...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Não renderizar o formulário se já estiver autenticado
+  if (session?.user) {
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

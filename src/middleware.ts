@@ -1,11 +1,8 @@
-// middleware.ts
 import { getSessionCookie } from "better-auth/cookies";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 /**
  * Decide se a rota é API privada (para responder 401 em JSON)
- * Ajuste os prefixos conforme o teu projeto.
  */
 function isPrivateApiPath(pathname: string) {
   return pathname.startsWith("/api/private/");
@@ -16,9 +13,10 @@ function isPrivateApiPath(pathname: string) {
  */
 function isPublicPath(pathname: string) {
   return (
-    pathname.startsWith("/sign-in") ||
-    pathname.startsWith("/sign-in-otp") ||
-    pathname.startsWith("/reset-password-otp") ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/register") ||
+    pathname.startsWith("/forgot-password") ||
+    pathname.startsWith("/reset-password") ||
     pathname.startsWith("/api/auth/") || // endpoints do Better Auth
     pathname.startsWith("/_next/") ||
     pathname.startsWith("/favicon") ||
@@ -26,8 +24,21 @@ function isPublicPath(pathname: string) {
   );
 }
 
-export function middleware(req: NextRequest) {
-  const { pathname, search } = req.nextUrl;
+/**
+ * Helper para extrair informações do request para logs
+ */
+function getRequestInfo(request: NextRequest) {
+  return {
+    ipAddress:
+      request.headers.get("x-forwarded-for") ||
+      request.headers.get("x-real-ip") ||
+      "unknown",
+    userAgent: request.headers.get("user-agent") || "unknown",
+  };
+}
+
+export function middleware(request: NextRequest) {
+  const { pathname, search } = request.nextUrl;
 
   // Deixa passar o que for explicitamente público
   if (isPublicPath(pathname)) {
@@ -35,21 +46,34 @@ export function middleware(req: NextRequest) {
   }
 
   // Verificação rápida: só presença do cookie de sessão
-  const hasCookie = Boolean(getSessionCookie(req as unknown as Request));
-  if (hasCookie) return NextResponse.next();
+  const hasCookie = Boolean(getSessionCookie(request as unknown as Request));
 
-  // Não autenticado:
-  if (isPrivateApiPath(pathname)) {
-    // Para APIs privadas, responder 401 JSON (sem redirect)
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (hasCookie) {
+    return NextResponse.next();
   }
 
-  // Para páginas, redirecionar para login OTP e preservar redirectTo
-  const url = req.nextUrl.clone();
-  url.pathname = "/sign-in-otp";
-  const current = pathname + (search ?? "");
-  url.searchParams.set("redirectTo", current);
-  return NextResponse.redirect(url);
+  // Não autenticado - log da tentativa de acesso não autorizado
+  const requestInfo = getRequestInfo(request);
+
+  // Como não podemos fazer logs assíncronos no middleware,
+  // vamos adicionar headers para que possam ser processados depois
+  const response = isPrivateApiPath(pathname)
+    ? NextResponse.json({ error: "unauthorized" }, { status: 401 })
+    : (() => {
+        const url = request.nextUrl.clone();
+        url.pathname = "/login";
+        const current = pathname + (search ?? "");
+        url.searchParams.set("redirectTo", current);
+        return NextResponse.redirect(url);
+      })();
+
+  // Adicionar headers para logging posterior
+  response.headers.set("x-unauthorized-access", "true");
+  response.headers.set("x-attempted-path", pathname);
+  response.headers.set("x-client-ip", requestInfo.ipAddress);
+  response.headers.set("x-user-agent", requestInfo.userAgent);
+
+  return response;
 }
 
 /**
@@ -62,6 +86,7 @@ export const config = {
     "/dashboard/:path*",
     "/settings/:path*",
     "/events/:path*",
+    "/profile/:path*",
 
     // APIs privadas
     "/api/private/:path*",

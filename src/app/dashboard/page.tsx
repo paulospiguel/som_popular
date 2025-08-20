@@ -1,12 +1,26 @@
 "use client";
 
 import { signOut, useSession } from "@/lib/auth-client";
-import { LogOut, Settings, Home, Trophy, Star, Music, Users, Calendar } from "lucide-react";
+import {
+  AlertTriangle,
+  BarChart3,
+  Calendar,
+  FileText,
+  Home,
+  LogOut,
+  Mail,
+  Music,
+  Settings,
+  Shield,
+  Trophy,
+  UserCheck,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-export default function DashboardPage() {
+export default function AdminDashboard() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
 
@@ -26,7 +40,9 @@ export default function DashboardPage() {
       <div className="min-h-screen bg-gradient-to-br from-bege-claro via-verde-muito-suave to-dourado-muito-claro flex items-center justify-center">
         <div className="text-center">
           <Music className="w-12 h-12 text-verde-suave mx-auto mb-4 animate-pulse" />
-          <p className="text-cinza-chumbo">A carregar...</p>
+          <p className="text-cinza-chumbo">
+            A carregar painel administrativo...
+          </p>
         </div>
       </div>
     );
@@ -38,23 +54,38 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-bege-claro via-verde-muito-suave to-dourado-muito-claro">
-      {/* Header do Dashboard */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-verde-suave/10 sticky top-0 z-50">
+      {/* Header Administrativo */}
+      <header className="bg-white/90 backdrop-blur-sm border-b border-verde-suave/20 sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Music className="w-8 h-8 text-verde-suave" />
-              <h1 className="festival-title text-xl">Som Popular</h1>
-            </div>
-            
             <div className="flex items-center space-x-4">
-              <span className="text-cinza-chumbo font-medium">Olá, {session.user.name}!</span>
+              <div className="flex items-center space-x-3">
+                <Music className="w-8 h-8 text-verde-suave" />
+                <div>
+                  <h1 className="festival-title text-xl">Som Popular</h1>
+                  <p className="text-xs text-cinza-chumbo/70 flex items-center">
+                    <Shield className="w-3 h-3 mr-1" />
+                    Painel Administrativo
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-4">
+              <div className="text-right">
+                <span className="text-cinza-chumbo font-medium block">
+                  {session.user.name}
+                </span>
+                <span className="text-xs text-cinza-chumbo/70">
+                  Administrador
+                </span>
+              </div>
               <button
                 onClick={handleLogout}
-                className="flex items-center space-x-2 text-cinza-chumbo hover:text-vermelho-suave transition-colors"
+                className="flex items-center space-x-2 text-cinza-chumbo hover:text-vermelho-suave transition-colors p-2 rounded-lg hover:bg-vermelho-suave/10"
               >
                 <LogOut className="w-5 h-5" />
-                <span>Sair</span>
+                <span className="hidden sm:block">Sair</span>
               </button>
             </div>
           </div>
@@ -63,81 +94,230 @@ export default function DashboardPage() {
 
       {/* Conteúdo Principal */}
       <main className="container mx-auto px-4 py-8">
-        {/* Boas-vindas */}
-        <div className="festival-card p-6 mb-8">
-          <h2 className="festival-subtitle text-2xl mb-2">Bem-vindo ao Dashboard!</h2>
-          <p className="text-cinza-chumbo/70">Gere a tua participação no Festival Som Popular</p>
+        {/* Boas-vindas Administrativas */}
+        <div className="festival-card p-6 mb-8 border-l-4 border-verde-suave">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="festival-subtitle text-2xl mb-2 flex items-center">
+                <Shield className="w-6 h-6 mr-2 text-verde-suave" />
+                Painel de Administração
+              </h2>
+              <p className="text-cinza-chumbo/70">
+                Gere todos os aspetos do Festival Som Popular
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-cinza-chumbo/70">Última atualização</p>
+              <p className="font-semibold text-verde-suave">
+                {new Date().toLocaleDateString("pt-PT")}
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Estatísticas Rápidas */}
+        {/* Estatísticas Administrativas */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="festival-card p-6 text-center">
-            <Trophy className="w-8 h-8 text-dourado-claro mx-auto mb-3" />
-            <h3 className="font-semibold text-cinza-chumbo mb-1">Posição</h3>
-            <p className="text-2xl font-bold text-verde-suave">-</p>
+          <div className="festival-card p-6 text-center hover:shadow-lg transition-shadow">
+            <Users className="w-10 h-10 text-verde-suave mx-auto mb-3" />
+            <h3 className="font-semibold text-cinza-chumbo mb-1">
+              Total Participantes
+            </h3>
+            <p className="text-3xl font-bold text-verde-suave mb-1">156</p>
+            <p className="text-xs text-cinza-chumbo/70">+12 esta semana</p>
           </div>
-          
-          <div className="festival-card p-6 text-center">
-            <Star className="w-8 h-8 text-amarelo-suave mx-auto mb-3" />
-            <h3 className="font-semibold text-cinza-chumbo mb-1">Pontuação</h3>
-            <p className="text-2xl font-bold text-verde-suave">0</p>
+
+          <div className="festival-card p-6 text-center hover:shadow-lg transition-shadow">
+            <Calendar className="w-10 h-10 text-dourado-claro mx-auto mb-3" />
+            <h3 className="font-semibold text-cinza-chumbo mb-1">
+              Eventos Ativos
+            </h3>
+            <p className="text-3xl font-bold text-dourado-claro mb-1">8</p>
+            <p className="text-xs text-cinza-chumbo/70">3 pendentes</p>
           </div>
-          
-          <div className="festival-card p-6 text-center">
-            <Users className="w-8 h-8 text-verde-suave mx-auto mb-3" />
-            <h3 className="font-semibold text-cinza-chumbo mb-1">Participantes</h3>
-            <p className="text-2xl font-bold text-verde-suave">156</p>
+
+          <div className="festival-card p-6 text-center hover:shadow-lg transition-shadow">
+            <Trophy className="w-10 h-10 text-amarelo-suave mx-auto mb-3" />
+            <h3 className="font-semibold text-cinza-chumbo mb-1">
+              Classificações
+            </h3>
+            <p className="text-3xl font-bold text-amarelo-suave mb-1">45</p>
+            <p className="text-xs text-cinza-chumbo/70">avaliadas</p>
           </div>
-          
-          <div className="festival-card p-6 text-center">
-            <Calendar className="w-8 h-8 text-vermelho-suave mx-auto mb-3" />
-            <h3 className="font-semibold text-cinza-chumbo mb-1">Próximo Evento</h3>
-            <p className="text-sm font-bold text-verde-suave">15 Jan</p>
+
+          <div className="festival-card p-6 text-center hover:shadow-lg transition-shadow">
+            <AlertTriangle className="w-10 h-10 text-vermelho-suave mx-auto mb-3" />
+            <h3 className="font-semibold text-cinza-chumbo mb-1">Pendências</h3>
+            <p className="text-3xl font-bold text-vermelho-suave mb-1">7</p>
+            <p className="text-xs text-cinza-chumbo/70">requer atenção</p>
           </div>
         </div>
 
-        {/* Ações Rápidas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Link href="/dashboard/inscricao" className="festival-card p-6 hover:scale-105 transition-transform">
+        {/* Ações Administrativas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {/* Gestão de Participantes */}
+          <Link
+            href="/dashboard/participantes"
+            className="festival-card p-6 hover:scale-105 transition-all hover:shadow-lg group"
+          >
             <div className="flex items-center space-x-4">
-              <div className="bg-verde-suave/10 p-3 rounded-xl">
-                <Music className="w-6 h-6 text-verde-suave" />
+              <div className="bg-verde-suave/10 p-4 rounded-xl group-hover:bg-verde-suave/20 transition-colors">
+                <Users className="w-8 h-8 text-verde-suave" />
               </div>
-              <div>
-                <h3 className="font-semibold text-cinza-chumbo mb-1">Minha Inscrição</h3>
-                <p className="text-sm text-cinza-chumbo/70">Ver e editar dados</p>
+              <div className="flex-1">
+                <h3 className="font-semibold text-cinza-chumbo mb-1">
+                  Gestão de Participantes
+                </h3>
+                <p className="text-sm text-cinza-chumbo/70">
+                  Aprovar, editar e gerir inscrições
+                </p>
               </div>
             </div>
           </Link>
-          
-          <Link href="/ranking" className="festival-card p-6 hover:scale-105 transition-transform">
+
+          {/* Gestão de Eventos */}
+          <Link
+            href="/dashboard/eventos"
+            className="festival-card p-6 hover:scale-105 transition-all hover:shadow-lg group"
+          >
             <div className="flex items-center space-x-4">
-              <div className="bg-dourado-claro/10 p-3 rounded-xl">
-                <Trophy className="w-6 h-6 text-dourado-claro" />
+              <div className="bg-dourado-claro/10 p-4 rounded-xl group-hover:bg-dourado-claro/20 transition-colors">
+                <Calendar className="w-8 h-8 text-dourado-claro" />
               </div>
-              <div>
-                <h3 className="font-semibold text-cinza-chumbo mb-1">Ranking</h3>
-                <p className="text-sm text-cinza-chumbo/70">Ver classificação</p>
+              <div className="flex-1">
+                <h3 className="font-semibold text-cinza-chumbo mb-1">
+                  Gestão de Eventos
+                </h3>
+                <p className="text-sm text-cinza-chumbo/70">
+                  Criar, editar e programar eventos
+                </p>
               </div>
             </div>
           </Link>
-          
-          <Link href="/dashboard/configuracoes" className="festival-card p-6 hover:scale-105 transition-transform">
+
+          {/* Sistema de Classificações */}
+          <Link
+            href="/dashboard/classificacoes"
+            className="festival-card p-6 hover:scale-105 transition-all hover:shadow-lg group"
+          >
             <div className="flex items-center space-x-4">
-              <div className="bg-cinza-chumbo/10 p-3 rounded-xl">
-                <Settings className="w-6 h-6 text-cinza-chumbo" />
+              <div className="bg-amarelo-suave/10 p-4 rounded-xl group-hover:bg-amarelo-suave/20 transition-colors">
+                <Trophy className="w-8 h-8 text-amarelo-suave" />
               </div>
-              <div>
-                <h3 className="font-semibold text-cinza-chumbo mb-1">Configurações</h3>
-                <p className="text-sm text-cinza-chumbo/70">Gerir conta</p>
+              <div className="flex-1">
+                <h3 className="font-semibold text-cinza-chumbo mb-1">
+                  Sistema de Classificações
+                </h3>
+                <p className="text-sm text-cinza-chumbo/70">
+                  Avaliar e gerir pontuações
+                </p>
               </div>
             </div>
           </Link>
+
+          {/* Relatórios e Estatísticas */}
+          <Link
+            href="/dashboard/relatorios"
+            className="festival-card p-6 hover:scale-105 transition-all hover:shadow-lg group"
+          >
+            <div className="flex items-center space-x-4">
+              <div className="bg-blue-500/10 p-4 rounded-xl group-hover:bg-blue-500/20 transition-colors">
+                <BarChart3 className="w-8 h-8 text-blue-500" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-cinza-chumbo mb-1">
+                  Relatórios e Estatísticas
+                </h3>
+                <p className="text-sm text-cinza-chumbo/70">
+                  Análises e dados do festival
+                </p>
+              </div>
+            </div>
+          </Link>
+
+          {/* Comunicações */}
+          <Link
+            href="/dashboard/comunicacoes"
+            className="festival-card p-6 hover:scale-105 transition-all hover:shadow-lg group"
+          >
+            <div className="flex items-center space-x-4">
+              <div className="bg-purple-500/10 p-4 rounded-xl group-hover:bg-purple-500/20 transition-colors">
+                <Mail className="w-8 h-8 text-purple-500" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-cinza-chumbo mb-1">
+                  Comunicações
+                </h3>
+                <p className="text-sm text-cinza-chumbo/70">
+                  Enviar emails e notificações
+                </p>
+              </div>
+            </div>
+          </Link>
+
+          {/* Configurações do Sistema */}
+          <Link
+            href="/dashboard/configuracoes"
+            className="festival-card p-6 hover:scale-105 transition-all hover:shadow-lg group"
+          >
+            <div className="flex items-center space-x-4">
+              <div className="bg-cinza-chumbo/10 p-4 rounded-xl group-hover:bg-cinza-chumbo/20 transition-colors">
+                <Settings className="w-8 h-8 text-cinza-chumbo" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-cinza-chumbo mb-1">
+                  Configurações do Sistema
+                </h3>
+                <p className="text-sm text-cinza-chumbo/70">
+                  Gerir definições gerais
+                </p>
+              </div>
+            </div>
+          </Link>
+        </div>
+
+        {/* Atividade Recente */}
+        <div className="festival-card p-6 mb-8">
+          <h3 className="festival-subtitle text-lg mb-4 flex items-center">
+            <FileText className="w-5 h-5 mr-2 text-verde-suave" />
+            Atividade Recente
+          </h3>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 bg-verde-suave/5 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <UserCheck className="w-5 h-5 text-verde-suave" />
+                <span className="text-sm text-cinza-chumbo">
+                  Nova inscrição aprovada: João Silva
+                </span>
+              </div>
+              <span className="text-xs text-cinza-chumbo/70">há 2 horas</span>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-dourado-claro/5 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <Calendar className="w-5 h-5 text-dourado-claro" />
+                <span className="text-sm text-cinza-chumbo">
+                  Evento "Concurso de Fado" criado
+                </span>
+              </div>
+              <span className="text-xs text-cinza-chumbo/70">há 4 horas</span>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-amarelo-suave/5 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <Trophy className="w-5 h-5 text-amarelo-suave" />
+                <span className="text-sm text-cinza-chumbo">
+                  Classificações atualizadas para "Concurso de Guitarra"
+                </span>
+              </div>
+              <span className="text-xs text-cinza-chumbo/70">ontem</span>
+            </div>
+          </div>
         </div>
 
         {/* Link para voltar ao site */}
-        <div className="text-center mt-8">
-          <Link href="/" className="inline-flex items-center space-x-2 text-cinza-chumbo/70 hover:text-cinza-chumbo transition-colors">
+        <div className="text-center">
+          <Link
+            href="/"
+            className="inline-flex items-center space-x-2 text-cinza-chumbo/70 hover:text-cinza-chumbo transition-colors p-3 rounded-lg hover:bg-white/50"
+          >
             <Home className="w-4 h-4" />
             <span>Voltar ao site principal</span>
           </Link>
