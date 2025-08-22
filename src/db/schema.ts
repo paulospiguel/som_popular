@@ -36,10 +36,14 @@ export const participants = sqliteTable("participants", {
   experience: text("experience").notNull(), // "iniciante", "intermedio", "avancado"
   biography: text("biography"),
   status: text("status").notNull().default("pending"), // "pending", "approved", "rejected"
-  acceptsEmailNotifications: integer("accepts_email_notifications", { mode: "boolean" }).notNull().default(false), // Novo campo
-  registrationDate: integer("registration_date", { mode: "timestamp" }).$defaultFn(
-    () => new Date()
-  ),
+  acceptsEmailNotifications: integer("accepts_email_notifications", {
+    mode: "boolean",
+  })
+    .notNull()
+    .default(false), // Novo campo
+  registrationDate: integer("registration_date", {
+    mode: "timestamp",
+  }).$defaultFn(() => new Date()),
   approvedAt: integer("approved_at", { mode: "timestamp" }),
   approvedBy: text("approved_by"), // ID do admin que aprovou
   notes: text("notes"), // Notas administrativas

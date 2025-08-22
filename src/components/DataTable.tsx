@@ -25,6 +25,12 @@ interface DataTableProps<T> {
   tableClassName?: string;
   maxHeight?: string;
   showSearch?: boolean;
+  orderBy?:
+    | (keyof T)[]
+    | {
+        field: keyof T;
+        direction?: "asc" | "desc";
+      }[];
 }
 
 export function DataTable<T extends Record<string, any>>({
@@ -39,6 +45,7 @@ export function DataTable<T extends Record<string, any>>({
   tableClassName = "",
   maxHeight = "500px",
   showSearch = true,
+  orderBy = [],
 }: DataTableProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
@@ -46,7 +53,7 @@ export function DataTable<T extends Record<string, any>>({
     {}
   );
 
-  // Filtrar dados baseado na pesquisa e filtros de coluna
+  // Aplicar filtros primeiro
   const filteredData = useMemo(() => {
     let filtered = data;
 
@@ -85,11 +92,90 @@ export function DataTable<T extends Record<string, any>>({
     return filtered;
   }, [data, searchTerm, searchFields, columnFilters]);
 
-  // Calcular paginação
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  // Aplicar ordenação aos dados filtrados
+  const sortedAndFilteredData = useMemo(() => {
+    let sorted = [...filteredData];
+
+    // Aplicar ordenação hierárquica correta
+    sorted.sort((a, b) => {
+      // Iterar por cada critério de ordenação
+      for (const orderConfig of orderBy) {
+        const field =
+          typeof orderConfig === "string"
+            ? orderConfig
+            : typeof orderConfig === "object" && "field" in orderConfig
+              ? orderConfig.field
+              : orderConfig;
+        let direction =
+          typeof orderConfig === "string"
+            ? "asc"
+            : typeof orderConfig === "object" && "direction" in orderConfig
+              ? orderConfig.direction
+              : "asc";
+
+        // Para o campo status, assumir sempre ordem ascendente se não especificado
+        if (
+          field === "status" &&
+          typeof orderConfig === "object" &&
+          !orderConfig.direction
+        ) {
+          direction = "asc";
+        }
+
+        const valueA = a[field] as string | number | Date | null | undefined;
+        const valueB = b[field] as string | number | Date | null | undefined;
+
+        // Tratar valores null/undefined
+        if (valueA == null && valueB == null) continue;
+        if (valueA == null) return direction === "asc" ? 1 : -1;
+        if (valueB == null) return direction === "asc" ? -1 : 1;
+
+        let comparison = 0;
+
+        // Ordenação especial para o campo status
+        if (field === "status") {
+          const statusOrder = {
+            pending: 1,
+            approved: 2,
+            rejected: 3,
+          };
+
+          const orderA = statusOrder[valueA as keyof typeof statusOrder] || 999;
+          const orderB = statusOrder[valueB as keyof typeof statusOrder] || 999;
+
+          comparison = orderA - orderB;
+        }
+        // Tratar datas especificamente
+        else if (valueA instanceof Date && valueB instanceof Date) {
+          comparison = valueA.getTime() - valueB.getTime();
+        }
+        // Ordenação normal para strings e números
+        else {
+          if (valueA < valueB) comparison = -1;
+          else if (valueA > valueB) comparison = 1;
+          else comparison = 0;
+        }
+
+        // Se há diferença, aplicar direção e retornar
+        if (comparison !== 0) {
+          return direction === "asc" ? comparison : -comparison;
+        }
+        
+        // Se são iguais, continuar para o próximo critério
+      }
+      
+      // Se todos os critérios são iguais
+      return 0;
+    });
+
+    return sorted;
+  }, [filteredData, orderBy]);
+
+  // Calcular paginação com dados ordenados
+  const totalPages = Math.ceil(sortedAndFilteredData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentData = filteredData.slice(startIndex, endIndex);
+  const currentData = sortedAndFilteredData.slice(startIndex, endIndex);
 
   // Reset página quando dados mudam
   useMemo(() => {
@@ -150,17 +236,13 @@ export function DataTable<T extends Record<string, any>>({
 
   return (
     <div className={`festival-card flex flex-col ${className}`}>
-      {/* Header da Tabela com Pesquisa */}
       <div className="p-6 pb-4 flex-shrink-0 border-b border-verde-suave/10">
-        {/* Barra de Pesquisa */}
-
-        {/* Informações e Filtros Ativos */}
         <div className="flex items-center w-full justify-between">
           <div className="flex items-center space-x-4 justify-between w-full">
             <div className="text-sm text-cinza-chumbo/70">
               Mostrando {startIndex + 1}-
-              {Math.min(endIndex, filteredData.length)} de {filteredData.length}{" "}
-              itens
+              {Math.min(endIndex, sortedAndFilteredData.length)} de{" "}
+              {sortedAndFilteredData.length} itens
             </div>
             <div className="flex items-center space-x-4">
               {hasActiveFilters && (
@@ -211,7 +293,6 @@ export function DataTable<T extends Record<string, any>>({
         </div>
       </div>
 
-      {/* Container da Tabela com Scroll */}
       <div className="flex-1 overflow-auto px-6" style={{ maxHeight }}>
         <table className={`w-full ${tableClassName}`}>
           <thead className="sticky top-0 bg-white z-10">
@@ -229,7 +310,6 @@ export function DataTable<T extends Record<string, any>>({
                       )}
                     </div>
 
-                    {/* Input de Filtro da Coluna */}
                     {column.filterable && (
                       <div className="relative">
                         <input
@@ -283,7 +363,7 @@ export function DataTable<T extends Record<string, any>>({
         </table>
 
         {/* Estado Vazio */}
-        {filteredData.length === 0 && (
+        {sortedAndFilteredData.length === 0 && (
           <div className="text-center py-12">
             {emptyIcon && (
               <div className="flex justify-center mb-4">{emptyIcon}</div>
@@ -301,7 +381,6 @@ export function DataTable<T extends Record<string, any>>({
         )}
       </div>
 
-      {/* Paginação */}
       {totalPages > 1 && (
         <div className="p-6 pt-4 flex-shrink-0 border-t border-verde-suave/10">
           <div className="flex items-center justify-between">

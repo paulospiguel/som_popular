@@ -12,13 +12,14 @@ interface ModalProps {
   className?: string;
   size?: "sm" | "md" | "lg" | "xl" | "large" | "full";
   children: ReactNode;
+  headerActions?: ReactNode; // Nova prop para ações no header
 }
 
 const sizeClasses = {
   sm: "max-w-sm",
   md: "max-w-md",
   lg: "max-w-lg",
-  xl: "max-w-xl",
+  xl: "max-w-2xl",
   large: "max-w-[65vw]",
   full: "w-full",
 };
@@ -30,10 +31,11 @@ export function Modal({
   subtitle,
   icon,
   children,
-  size = "md",
+  size = "xl",
   showCloseButton = true,
   closeOnOverlayClick = true,
   className = "",
+  headerActions,
 }: ModalProps) {
   // Fechar modal com ESC
   useEffect(() => {
@@ -86,15 +88,19 @@ export function Modal({
                   </div>
                 </div>
               )}
-              {showCloseButton && (
-                <button
-                  onClick={onClose}
-                  className="p-2 hover:bg-cinza-chumbo/10 rounded-lg transition-colors"
-                  aria-label="Fechar modal"
-                >
-                  <X className="w-5 h-5 text-cinza-chumbo" />
-                </button>
-              )}
+              <div className="flex items-center space-x-2">
+                {/* Ações do header */}
+                {headerActions}
+                {showCloseButton && (
+                  <button
+                    onClick={onClose}
+                    className="p-2 hover:bg-cinza-chumbo/10 rounded-lg transition-colors"
+                    aria-label="Fechar modal"
+                  >
+                    <X className="w-5 h-5 text-cinza-chumbo" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         )}

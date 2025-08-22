@@ -8,29 +8,34 @@ import {
   ModalPrimaryButton,
   ModalSecondaryButton,
 } from "@/components/Modal";
+import { Participant } from "@/db/schema";
 import { useSession } from "@/lib/auth-client";
 import {
   ArrowLeft,
   CheckCircle,
   Clock,
   Eye,
-  FileText,
   Mail,
   MapPin,
   Phone,
   Plus,
-  Printer,
-  Send,
   User,
   UserCheck,
   Users,
   UserX,
-  X,
   XCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import AddParticipantModal from "./components/add-new";
+import ParticipantDetailsModal from "./components/participant-detail";
+import {
+  getCategoryText,
+  getExperienceText,
+  getStatusColor,
+  getStatusText,
+} from "./utils";
 
 // Mock data atualizado com campo de notificações
 const mockParticipants = [
@@ -158,37 +163,17 @@ const mockParticipants = [
   },
 ];
 
-type ParticipantStatus = "all" | "pending" | "approved" | "rejected";
-type ParticipantCategory =
-  | "all"
-  | "fado"
-  | "guitarra"
-  | "concertina"
-  | "outros";
-
 export default function ParticipantsManagement() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
-  const [participants, setParticipants] = useState(mockParticipants);
+  const [participants, setParticipants] =
+    useState<Partial<Participant>[]>(mockParticipants);
   const [showModal, setShowModal] = useState(false);
   const [selectedParticipant, setSelectedParticipant] = useState<any>(null);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [participantToReject, setParticipantToReject] = useState<any>(null);
-  const [newParticipant, setNewParticipant] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    age: "",
-    city: "",
-    district: "",
-    category: "fado",
-    experience: "iniciante",
-    biography: "",
-    acceptsEmailNotifications: false,
-  });
 
   useEffect(() => {
     if (!isPending && !session) {
@@ -223,58 +208,6 @@ export default function ParticipantsManagement() {
       setShowRejectModal(false);
       setRejectionReason("");
       setParticipantToReject(null);
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "approved":
-        return "text-green-600 bg-green-50";
-      case "rejected":
-        return "text-red-600 bg-red-50";
-      case "pending":
-        return "text-yellow-600 bg-yellow-50";
-      default:
-        return "text-gray-600 bg-gray-50";
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "approved":
-        return "Aprovado";
-      case "rejected":
-        return "Rejeitado";
-      case "pending":
-        return "Pendente";
-      default:
-        return status;
-    }
-  };
-
-  const getCategoryText = (category: string) => {
-    switch (category) {
-      case "fado":
-        return "Fado";
-      case "guitarra":
-        return "Guitarra";
-      case "concertina":
-        return "Concertina";
-      default:
-        return category;
-    }
-  };
-
-  const getExperienceText = (experience: string) => {
-    switch (experience) {
-      case "iniciante":
-        return "Iniciante";
-      case "intermedio":
-        return "Intermédio";
-      case "avancado":
-        return "Avançado";
-      default:
-        return experience;
     }
   };
 
@@ -345,7 +278,13 @@ export default function ParticipantsManagement() {
       header: "Data",
       render: (participant: any) => (
         <span className="text-sm text-cinza-chumbo">
-          {participant.registrationDate.toLocaleDateString("pt-PT")}
+          {participant.registrationDate.toLocaleDateString("pt-PT", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
         </span>
       ),
     },
@@ -365,18 +304,6 @@ export default function ParticipantsManagement() {
             title="Ver detalhes"
           >
             <Eye className="w-4 h-4" />
-          </button>
-
-          {/* Nova ação: Comprovante */}
-          <button
-            onClick={() => {
-              setSelectedParticipant(participant);
-              setShowReceiptModal(true);
-            }}
-            className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
-            title="Ver comprovante"
-          >
-            <FileText className="w-4 h-4" />
           </button>
 
           {participant.status === "pending" && (
@@ -408,33 +335,6 @@ export default function ParticipantsManagement() {
     pending: participants.filter((p) => p.status === "pending").length,
     approved: participants.filter((p) => p.status === "approved").length,
     rejected: participants.filter((p) => p.status === "rejected").length,
-  };
-
-  // Função para adicionar novo participante
-  const handleAddParticipant = () => {
-    const participant = {
-      id: Date.now().toString(),
-      ...newParticipant,
-      age: parseInt(newParticipant.age),
-      status: "pending",
-      registrationDate: new Date(),
-      notes: "",
-    };
-
-    setParticipants((prev) => [participant, ...prev]);
-    setNewParticipant({
-      name: "",
-      email: "",
-      phone: "",
-      age: "",
-      city: "",
-      district: "",
-      category: "fado",
-      experience: "iniciante",
-      biography: "",
-      acceptsEmailNotifications: false,
-    });
-    setShowAddModal(false);
   };
 
   if (isPending) {
@@ -546,451 +446,42 @@ export default function ParticipantsManagement() {
           <DataTable
             data={participants}
             columns={columns}
-            itemsPerPage={15}
-            searchFields={["name", "email", "city"]}
-            emptyMessage="Nenhum participante encontrado com os filtros aplicados."
-            emptyIcon={<User className="w-12 h-12 text-cinza-chumbo/30" />}
-            className="flex-1"
-            maxHeight="calc(100vh - 400px)"
+            searchFields={["name", "email", "city", "category"]}
+            searchPlaceholder="Pesquisar por nome, email, cidade ou categoria..."
+            emptyMessage="Nenhum participante encontrado."
+            emptyIcon={<Users className="w-12 h-12 text-cinza-chumbo/30" />}
+            orderBy={[
+              { field: "registrationDate", direction: "desc" }, // Mudança aqui: desc para mais novo primeiro
+              { field: "name", direction: "asc" },
+              { field: "status" },
+            ]}
           />
         </div>
       </main>
 
       {/* Modal de Adicionar Participante */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="festival-subtitle text-xl">
-                  Adicionar Novo Participante
-                </h3>
-                <button
-                  onClick={() => setShowAddModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleAddParticipant();
-                }}
-                className="space-y-6"
-              >
-                {/* Informações Pessoais */}
-                <div>
-                  <h4 className="font-semibold text-cinza-chumbo mb-4">
-                    Informações Pessoais
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                        Nome Completo *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={newParticipant.name}
-                        onChange={(e) =>
-                          setNewParticipant((prev) => ({
-                            ...prev,
-                            name: e.target.value,
-                          }))
-                        }
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-verde-suave focus:border-transparent transition-colors"
-                        placeholder="Digite o nome completo"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                        Email *
-                      </label>
-                      <input
-                        type="email"
-                        required
-                        value={newParticipant.email}
-                        onChange={(e) =>
-                          setNewParticipant((prev) => ({
-                            ...prev,
-                            email: e.target.value,
-                          }))
-                        }
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-verde-suave focus:border-transparent transition-colors"
-                        placeholder="exemplo@email.com"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                        Telefone
-                      </label>
-                      <input
-                        type="tel"
-                        value={newParticipant.phone}
-                        onChange={(e) =>
-                          setNewParticipant((prev) => ({
-                            ...prev,
-                            phone: e.target.value,
-                          }))
-                        }
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-verde-suave focus:border-transparent transition-colors"
-                        placeholder="+351 912 345 678"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                        Idade *
-                      </label>
-                      <input
-                        type="number"
-                        required
-                        min="16"
-                        max="99"
-                        value={newParticipant.age}
-                        onChange={(e) =>
-                          setNewParticipant((prev) => ({
-                            ...prev,
-                            age: e.target.value,
-                          }))
-                        }
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-verde-suave focus:border-transparent transition-colors"
-                        placeholder="25"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                        Cidade *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={newParticipant.city}
-                        onChange={(e) =>
-                          setNewParticipant((prev) => ({
-                            ...prev,
-                            city: e.target.value,
-                          }))
-                        }
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-verde-suave focus:border-transparent transition-colors"
-                        placeholder="Lisboa"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                        Distrito *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={newParticipant.district}
-                        onChange={(e) =>
-                          setNewParticipant((prev) => ({
-                            ...prev,
-                            district: e.target.value,
-                          }))
-                        }
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-verde-suave focus:border-transparent transition-colors"
-                        placeholder="Lisboa"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Informações Artísticas */}
-                <div>
-                  <h4 className="font-semibold text-cinza-chumbo mb-4">
-                    Informações Artísticas
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                        Categoria *
-                      </label>
-                      <select
-                        required
-                        value={newParticipant.category}
-                        onChange={(e) =>
-                          setNewParticipant((prev) => ({
-                            ...prev,
-                            category: e.target.value,
-                          }))
-                        }
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-verde-suave focus:border-transparent transition-colors"
-                      >
-                        <option value="fado">Fado</option>
-                        <option value="guitarra">Guitarra</option>
-                        <option value="concertina">Concertina</option>
-                        <option value="outros">Outros</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                        Nível de Experiência *
-                      </label>
-                      <select
-                        required
-                        value={newParticipant.experience}
-                        onChange={(e) =>
-                          setNewParticipant((prev) => ({
-                            ...prev,
-                            experience: e.target.value,
-                          }))
-                        }
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-verde-suave focus:border-transparent transition-colors"
-                      >
-                        <option value="iniciante">Iniciante</option>
-                        <option value="intermedio">Intermédio</option>
-                        <option value="avancado">Avançado</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                      Biografia
-                    </label>
-                    <textarea
-                      rows={4}
-                      value={newParticipant.biography}
-                      onChange={(e) =>
-                        setNewParticipant((prev) => ({
-                          ...prev,
-                          biography: e.target.value,
-                        }))
-                      }
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-verde-suave focus:border-transparent transition-colors resize-none"
-                      placeholder="Conte-nos um pouco sobre a sua experiência musical..."
-                    />
-                  </div>
-                </div>
-
-                {/* Botões */}
-                <div className="flex gap-4 pt-4 border-t">
-                  <button
-                    type="button"
-                    onClick={() => setShowAddModal(false)}
-                    className="flex-1 bg-gray-100 text-cinza-chumbo py-3 px-4 rounded-xl hover:bg-gray-200 transition-colors"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 bg-verde-suave text-white py-3 px-4 rounded-xl hover:bg-verde-suave/90 transition-colors flex items-center justify-center space-x-2"
-                  >
-                    <Plus className="w-5 h-5" />
-                    <span>Adicionar Participante</span>
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
+        <AddParticipantModal
+          setParticipant={(participant: any) => {
+            setParticipants([...participants, participant]);
+          }}
+          isOpen={showAddModal}
+          onClose={() => setShowAddModal(false)}
+        />
       )}
 
       {/* Modal de Detalhes do Participante */}
       {showModal && selectedParticipant && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="festival-subtitle text-xl">
-                  Detalhes do Participante
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowModal(false);
-                    setSelectedParticipant(null);
-                  }}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="space-y-8">
-                {/* Dados da Inscrição */}
-                <div>
-                  <h3 className="font-bold text-cinza-chumbo mb-4 text-lg">
-                    Dados da Inscrição
-                  </h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm text-cinza-chumbo/70 font-medium">
-                        Número de Inscrição
-                      </label>
-                      <p className="font-bold text-verde-suave text-lg">
-                        #{selectedParticipant.id.toUpperCase()}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm text-cinza-chumbo/70 font-medium">
-                        Data de Inscrição
-                      </label>
-                      <p className="font-semibold">
-                        {selectedParticipant.registrationDate.toLocaleDateString(
-                          "pt-PT",
-                          {
-                            day: "2-digit",
-                            month: "long",
-                            year: "numeric",
-                          }
-                        )}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm text-cinza-chumbo/70 font-medium">
-                        Status
-                      </label>
-                      <span
-                        className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                          selectedParticipant.status === "approved"
-                            ? "text-green-600 bg-green-50"
-                            : selectedParticipant.status === "rejected"
-                              ? "text-red-600 bg-red-50"
-                              : "text-yellow-600 bg-yellow-50"
-                        }`}
-                      >
-                        {getStatusText(selectedParticipant.status)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Dados do Participante */}
-                <div>
-                  <h3 className="font-bold text-cinza-chumbo mb-4 text-lg">
-                    Dados do Participante
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div>
-                        <label className="text-sm text-cinza-chumbo/70 font-medium">
-                          Nome Completo
-                        </label>
-                        <p className="font-semibold text-lg">
-                          {selectedParticipant.name}
-                        </p>
-                      </div>
-                      <div>
-                        <label className="text-sm text-cinza-chumbo/70 font-medium">
-                          Email
-                        </label>
-                        <p className="font-medium">
-                          {selectedParticipant.email}
-                        </p>
-                      </div>
-                      <div>
-                        <label className="text-sm text-cinza-chumbo/70 font-medium">
-                          Telefone
-                        </label>
-                        <p className="font-medium">
-                          {selectedParticipant.phone || "N/A"}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="text-sm text-cinza-chumbo/70 font-medium">
-                          Idade
-                        </label>
-                        <p className="font-semibold">
-                          {selectedParticipant.age} anos
-                        </p>
-                      </div>
-                      <div>
-                        <label className="text-sm text-cinza-chumbo/70 font-medium">
-                          Localização
-                        </label>
-                        <p className="font-medium">
-                          {selectedParticipant.city},{" "}
-                          {selectedParticipant.district}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Dados Artísticos */}
-                <div>
-                  <h3 className="font-bold text-cinza-chumbo mb-4 text-lg">
-                    Informações Artísticas
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="text-sm text-cinza-chumbo/70 font-medium">
-                        Categoria
-                      </label>
-                      <p className="font-semibold text-lg">
-                        {getCategoryText(selectedParticipant.category)}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm text-cinza-chumbo/70 font-medium">
-                        Nível de Experiência
-                      </label>
-                      <p className="font-semibold">
-                        {getExperienceText(selectedParticipant.experience)}
-                      </p>
-                    </div>
-                  </div>
-                  {selectedParticipant.biography && (
-                    <div className="mt-4">
-                      <label className="text-sm text-cinza-chumbo/70 font-medium">
-                        Biografia
-                      </label>
-                      <p className="font-medium mt-2 text-justify">
-                        {selectedParticipant.biography}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Notas (se existirem) */}
-                {selectedParticipant.notes && (
-                  <div>
-                    <h3 className="font-bold text-cinza-chumbo mb-4 text-lg">
-                      Notas
-                    </h3>
-                    <div className="bg-gray-50 rounded-xl p-4">
-                      <p className="text-cinza-chumbo">
-                        {selectedParticipant.notes}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Ações para participantes pendentes */}
-                {selectedParticipant.status === "pending" && (
-                  <div className="flex justify-end space-x-4 pt-6 border-t">
-                    <button
-                      onClick={() => {
-                        handleReject(selectedParticipant.id);
-                        setShowModal(false);
-                        setSelectedParticipant(null);
-                      }}
-                      className="px-6 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors flex items-center space-x-2"
-                    >
-                      <UserX className="w-5 h-5" />
-                      <span>Rejeitar</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        handleApprove(selectedParticipant.id);
-                        setShowModal(false);
-                        setSelectedParticipant(null);
-                      }}
-                      className="px-6 py-3 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-colors flex items-center space-x-2"
-                    >
-                      <UserCheck className="w-5 h-5" />
-                      <span>Aprovar</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        <ParticipantDetailsModal
+          handleApprove={handleApprove}
+          handleReject={handleReject}
+          participant={selectedParticipant}
+          isOpen={showModal}
+          onClose={() => {
+            setShowModal(false);
+            setSelectedParticipant(null);
+          }}
+        />
       )}
 
       {/* Modal de Rejeição - Agora usando o componente reutilizável */}
@@ -1045,382 +536,6 @@ export default function ParticipantsManagement() {
           </ModalPrimaryButton>
         </ModalButtons>
       </Modal>
-
-      {/* Modal de Comprovante de Inscrição */}
-      {showReceiptModal && selectedParticipant && (
-        <Modal
-          isOpen={showReceiptModal}
-          onClose={() => {
-            setShowReceiptModal(false);
-            setSelectedParticipant(null);
-          }}
-          title="Comprovante de Inscrição"
-          subtitle={selectedParticipant.name}
-          icon={<FileText className="w-6 h-6 text-verde-suave" />}
-          size="large"
-        >
-          <div className="p-8 print:p-12">
-            {/* Informações do Comprovante */}
-            <div className="space-y-8">
-              {/* Dados da Inscrição */}
-              <div className="bg-gray-50 rounded-xl p-6">
-                <h3 className="font-bold text-cinza-chumbo mb-4 text-lg">
-                  Dados da Inscrição
-                </h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm text-cinza-chumbo/70 font-medium">
-                      Número de Inscrição
-                    </label>
-                    <p className="font-bold text-verde-suave text-lg">
-                      #{selectedParticipant.id.toUpperCase()}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm text-cinza-chumbo/70 font-medium">
-                      Data de Inscrição
-                    </label>
-                    <p className="font-semibold">
-                      {selectedParticipant.registrationDate.toLocaleDateString(
-                        "pt-PT",
-                        {
-                          day: "2-digit",
-                          month: "long",
-                          year: "numeric",
-                        }
-                      )}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm text-cinza-chumbo/70 font-medium">
-                      Status
-                    </label>
-                    <span
-                      className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                        selectedParticipant.status === "approved"
-                          ? "text-green-600 bg-green-50"
-                          : selectedParticipant.status === "rejected"
-                            ? "text-red-600 bg-red-50"
-                            : "text-yellow-600 bg-yellow-50"
-                      }`}
-                    >
-                      {selectedParticipant.status === "approved"
-                        ? "Aprovado"
-                        : selectedParticipant.status === "rejected"
-                          ? "Rejeitado"
-                          : "Pendente"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Dados do Participante */}
-              <div>
-                <h3 className="font-bold text-cinza-chumbo mb-4 text-lg">
-                  Dados do Participante
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm text-cinza-chumbo/70 font-medium">
-                        Nome Completo
-                      </label>
-                      <p className="font-semibold text-lg">
-                        {selectedParticipant.name}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm text-cinza-chumbo/70 font-medium">
-                        Email
-                      </label>
-                      <p className="font-medium">{selectedParticipant.email}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm text-cinza-chumbo/70 font-medium">
-                        Telefone
-                      </label>
-                      <p className="font-medium">
-                        {selectedParticipant.phone || "N/A"}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm text-cinza-chumbo/70 font-medium">
-                        Idade
-                      </label>
-                      <p className="font-semibold">
-                        {selectedParticipant.age} anos
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm text-cinza-chumbo/70 font-medium">
-                        Localização
-                      </label>
-                      <p className="font-medium">
-                        {selectedParticipant.city},{" "}
-                        {selectedParticipant.district}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Dados Artísticos */}
-              <div>
-                <h3 className="font-bold text-cinza-chumbo mb-4 text-lg">
-                  Informações Artísticas
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="text-sm text-cinza-chumbo/70 font-medium">
-                      Categoria
-                    </label>
-                    <p className="font-semibold text-lg">
-                      {getCategoryText(selectedParticipant.category)}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm text-cinza-chumbo/70 font-medium">
-                      Nível de Experiência
-                    </label>
-                    <p className="font-semibold">
-                      {getExperienceText(selectedParticipant.experience)}
-                    </p>
-                  </div>
-                </div>
-                {selectedParticipant.biography && (
-                  <div className="mt-4">
-                    <label className="text-sm text-cinza-chumbo/70 font-medium">
-                      Biografia
-                    </label>
-                    <p className="font-medium mt-2 text-justify">
-                      {selectedParticipant.biography}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Informações do Festival */}
-              <div className="bg-verde-suave/10 rounded-xl p-6 border border-verde-suave/20">
-                <h3 className="font-bold text-cinza-chumbo mb-4 text-lg">
-                  Informações do Festival
-                </h3>
-                <div className="space-y-2">
-                  <p>
-                    <strong>Evento:</strong> Som Popular - Festival Centenário
-                  </p>
-                  <p>
-                    <strong>Organização:</strong> Câmara Municipal
-                  </p>
-                  <p>
-                    <strong>Local:</strong> A definir
-                  </p>
-                  <p>
-                    <strong>Data:</strong> A definir
-                  </p>
-                </div>
-              </div>
-
-              {/* Notificações por Email */}
-              {selectedParticipant.acceptsEmailNotifications !== undefined && (
-                <div className="text-sm text-cinza-chumbo/70 bg-gray-50 rounded-lg p-4">
-                  <p>
-                    <strong>Notificações por Email:</strong>{" "}
-                    {selectedParticipant.acceptsEmailNotifications ? (
-                      <span className="text-green-600 font-medium">
-                        ✓ Aceita receber notificações
-                      </span>
-                    ) : (
-                      <span className="text-red-600 font-medium">
-                        ✗ Não aceita notificações
-                      </span>
-                    )}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Ações do Comprovante */}
-            <div className="flex gap-4 mt-8 pt-6 border-t print:hidden">
-              <button
-                onClick={handlePrintReceipt}
-                className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
-              >
-                <Printer className="w-5 h-5" />
-                <span>Imprimir</span>
-              </button>
-
-              {selectedParticipant.acceptsEmailNotifications && (
-                <button
-                  onClick={() => handleEmailReceipt(selectedParticipant)}
-                  className="flex-1 bg-verde-suave text-white py-3 px-4 rounded-xl hover:bg-verde-suave/90 transition-colors flex items-center justify-center space-x-2"
-                >
-                  <Send className="w-5 h-5" />
-                  <span>Enviar por Email</span>
-                </button>
-              )}
-
-              <button
-                onClick={() => setShowReceiptModal(false)}
-                className="px-6 py-3 bg-gray-100 text-cinza-chumbo rounded-xl hover:bg-gray-200 transition-colors"
-              >
-                Fechar
-              </button>
-            </div>
-          </div>
-        </Modal>
-      )}
-
-      {/* Modal de Adicionar Participante - Atualizado */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              {/* ... existing form fields ... */}
-
-              {/* Novo campo de notificações */}
-              <div className="mt-6">
-                <h4 className="font-semibold text-cinza-chumbo mb-4">
-                  Preferências de Comunicação
-                </h4>
-                <div className="flex items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    id="emailNotifications"
-                    checked={newParticipant.acceptsEmailNotifications}
-                    onChange={(e) =>
-                      setNewParticipant((prev) => ({
-                        ...prev,
-                        acceptsEmailNotifications: e.target.checked,
-                      }))
-                    }
-                    className="w-4 h-4 text-verde-suave bg-gray-100 border-gray-300 rounded focus:ring-verde-suave focus:ring-2"
-                  />
-                  <label
-                    htmlFor="emailNotifications"
-                    className="text-sm text-cinza-chumbo"
-                  >
-                    Aceito receber notificações por email sobre este evento e
-                    futuros eventos
-                  </label>
-                </div>
-                <p className="text-xs text-cinza-chumbo/60 mt-2">
-                  Ao aceitar, receberá informações sobre o estado da sua
-                  inscrição, detalhes do evento e convites para futuros
-                  festivais.
-                </p>
-              </div>
-
-              {/* ... existing form buttons ... */}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ... existing modals ... */}
     </div>
   );
 }
-
-// Função para imprimir comprovante
-const handlePrintReceipt = () => {
-  // Adicionar estilos específicos para impressão
-  const printStyles = `
-    <style>
-      @media print {
-        body * {
-          visibility: hidden;
-        }
-        .print-area, .print-area * {
-          visibility: visible;
-        }
-        .print-area {
-          position: absolute;
-          left: 0;
-          top: 0;
-          width: 100%;
-        }
-        .print-hidden {
-          display: none !important;
-        }
-        .bg-gradient-to-br {
-          background: white !important;
-        }
-      }
-    </style>
-  `;
-
-  // Adicionar os estilos ao head temporariamente
-  const styleElement = document.createElement("style");
-  styleElement.innerHTML = printStyles;
-  document.head.appendChild(styleElement);
-
-  // Imprimir
-  window.print();
-
-  // Remover os estilos após a impressão
-  setTimeout(() => {
-    document.head.removeChild(styleElement);
-  }, 1000);
-};
-
-// Função para enviar comprovante por email
-const handleEmailReceipt = async (participant: any) => {
-  if (!participant) return;
-
-  try {
-    // Mostrar loading (podes adicionar um estado de loading se quiseres)
-    const loadingToast = document.createElement("div");
-    loadingToast.className =
-      "fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-50";
-    loadingToast.textContent = "A enviar comprovante...";
-    document.body.appendChild(loadingToast);
-
-    // Simular chamada à API (aqui implementarias a lógica real)
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    // Aqui farias a chamada real à API
-    // const response = await fetch('/api/send-receipt', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({
-    //     participantId: participant.id,
-    //     email: participant.email,
-    //     participantData: participant
-    //   })
-    // });
-
-    // Remover loading
-    document.body.removeChild(loadingToast);
-
-    // Mostrar sucesso
-    const successToast = document.createElement("div");
-    successToast.className =
-      "fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50";
-    successToast.textContent = `Comprovante enviado para ${participant.email} com sucesso!`;
-    document.body.appendChild(successToast);
-
-    // Remover toast de sucesso após 3 segundos
-    setTimeout(() => {
-      if (document.body.contains(successToast)) {
-        document.body.removeChild(successToast);
-      }
-    }, 3000);
-  } catch (error) {
-    console.error("Erro ao enviar comprovante:", error);
-
-    // Mostrar erro
-    const errorToast = document.createElement("div");
-    errorToast.className =
-      "fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50";
-    errorToast.textContent = "Erro ao enviar comprovante. Tenta novamente.";
-    document.body.appendChild(errorToast);
-
-    setTimeout(() => {
-      if (document.body.contains(errorToast)) {
-        document.body.removeChild(errorToast);
-      }
-    }, 3000);
-  }
-};
