@@ -1,3 +1,37 @@
+CREATE TABLE `participants` (
+	`id` text PRIMARY KEY NOT NULL,
+	`name` text NOT NULL,
+	`email` text NOT NULL,
+	`phone` text,
+	`category` text NOT NULL,
+	`experience` text NOT NULL,
+	`additional_info` text,
+	`status` text DEFAULT 'approved' NOT NULL,
+	`rejection_reason` text,
+	`archived` integer DEFAULT false NOT NULL,
+	`accepts_email_notifications` integer DEFAULT false NOT NULL,
+	`registration_date` integer,
+	`approved_at` integer,
+	`approved_by` text,
+	`rejected_at` integer,
+	`rejected_by` text,
+	`notes` text,
+	`created_at` integer,
+	`updated_at` integer
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `participants_email_unique` ON `participants` (`email`);--> statement-breakpoint
+CREATE TABLE `system_logs` (
+	`id` text PRIMARY KEY NOT NULL,
+	`action` text NOT NULL,
+	`category` text DEFAULT 'system' NOT NULL,
+	`metadata` text,
+	`ip_address` text,
+	`status` text DEFAULT 'pending' NOT NULL,
+	`message` text,
+	`created_at` integer
+);
+--> statement-breakpoint
 CREATE TABLE `account` (
 	`id` text PRIMARY KEY NOT NULL,
 	`account_id` text NOT NULL,

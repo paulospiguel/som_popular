@@ -1,6 +1,6 @@
 import { Modal } from "@/components/Modal";
 import { Participant } from "@/db/schema";
-import { FileText, Printer, QrCode, Send, X } from "lucide-react"; // Adicionado X
+import { FileText, Printer, QrCode, Send } from "lucide-react"; // Adicionado X
 import { useState } from "react"; // Adicionar useState
 import { getCategoryText, getExperienceText } from "../utils";
 
@@ -391,39 +391,6 @@ export default function ParticipantDetailsModal({
               </>
             </div>
           )}
-          <div className="flex gap-4 mt-8 pt-6 print:hidden">
-            {participant.status === "pending" && (
-              <>
-                <button
-                  onClick={() => {
-                    // handleApprove(participant?.id);
-                    onClose();
-                  }}
-                  className="flex-1 bg-green-600 text-white py-3 px-4 rounded-xl hover:bg-green-700 transition-colors"
-                >
-                  Aprovar
-                </button>
-
-                <button
-                  onClick={() => setShowRejectModal(true)}
-                  className="flex-1 bg-red-600 text-white py-3 px-4 rounded-xl hover:bg-red-700 transition-colors"
-                >
-                  Rejeitar
-                </button>
-              </>
-            )}
-
-            {/* Botão de Indeferir para participantes aprovados */}
-            {participant.status === "approved" && (
-              <button
-                onClick={() => setShowRejectModal(true)}
-                className="bg-red-600 text-white py-3 px-6 rounded-xl hover:bg-red-700 transition-colors flex items-center gap-2"
-              >
-                <X className="w-4 h-4" />
-                Indeferir Inscrição
-              </button>
-            )}
-          </div>
         </div>
       </Modal>
 

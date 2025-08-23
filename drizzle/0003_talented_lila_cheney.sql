@@ -1,1 +1,0 @@
-ALTER TABLE `participants` ADD `accepts_email_notifications` integer DEFAULT false NOT NULL;

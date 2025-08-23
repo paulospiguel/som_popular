@@ -46,21 +46,21 @@ export default function Footer() {
         title: "Utilitários",
         links: [
           {
-            name: "Email de Contato",
-            href: "mailto:contato@festival.com",
+            name: "Contato",
+            href: "/contato",
           },
           // {
           //   name: "WhatsApp",
           //   href: "https://wa.me/5511999999999",
           // },
-          {
-            name: "55 (43) ****-****",
-            href: "tel:554399999-9999",
-          },
-          {
-            name: "Login",
-            href: "/login",
-          },
+          // {
+          //   name: "55 (43) ****-****",
+          //   href: "tel:554399999-9999",
+          // },
+          // {
+          //   name: "Dashboard (Admin)",
+          //   href: "/login",
+          // },
         ],
       },
     ],

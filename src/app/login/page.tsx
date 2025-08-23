@@ -15,14 +15,12 @@ export default function LoginPage() {
   const router = useRouter();
   const { data: session, isPending } = useSession();
 
-  // Redirecionar se já estiver autenticado
   useEffect(() => {
     if (session?.user && !isPending) {
       router.push("/dashboard");
     }
   }, [session, isPending, router]);
 
-  // Mostrar loading enquanto verifica a sessão
   if (isPending) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-bege-claro via-verde-muito-suave to-dourado-muito-claro flex items-center justify-center">
@@ -34,7 +32,6 @@ export default function LoginPage() {
     );
   }
 
-  // Não renderizar o formulário se já estiver autenticado
   if (session?.user) {
     return null;
   }
@@ -49,6 +46,8 @@ export default function LoginPage() {
         email,
         password,
       });
+
+      console.log(result);
 
       if (result.error) {
         setError("Email ou password incorretos");

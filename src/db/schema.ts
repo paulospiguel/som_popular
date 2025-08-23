@@ -29,9 +29,14 @@ export const participants = sqliteTable("participants", {
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   phone: text("phone"),
+  avatar: text("avatar"),
   category: text("category").notNull(),
   experience: text("experience").notNull(),
   additionalInfo: text("additional_info"),
+  hasSpecialNeeds: integer("has_special_needs", { mode: "boolean" })
+    .notNull()
+    .default(false),
+  specialNeedsDescription: text("special_needs_description"),
   status: text("status").notNull().default("approved"),
   rejectionReason: text("rejection_reason"),
   archived: integer("archived", { mode: "boolean" }).notNull().default(false),
@@ -44,10 +49,10 @@ export const participants = sqliteTable("participants", {
     mode: "timestamp",
   }).$defaultFn(() => new Date()),
   approvedAt: integer("approved_at", { mode: "timestamp" }),
-  approvedBy: text("approved_by"), // ID do admin que aprovou
-  rejectedAt: integer("rejected_at", { mode: "timestamp" }), // ✅ NOVO: quando foi rejeitado
-  rejectedBy: text("rejected_by"), // ✅ NOVO: ID do admin que rejeitou
-  notes: text("notes"), // Notas administrativas
+  approvedBy: text("approved_by"),
+  rejectedAt: integer("rejected_at", { mode: "timestamp" }),
+  rejectedBy: text("rejected_by"),
+  notes: text("notes"),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
     () => new Date()
   ),
