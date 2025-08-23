@@ -29,23 +29,24 @@ export const participants = sqliteTable("participants", {
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   phone: text("phone"),
-  age: integer("age"),
-  city: text("city"),
-  district: text("district"),
-  category: text("category").notNull(), // "fado", "guitarra", "concertina", etc.
-  experience: text("experience").notNull(), // "iniciante", "intermedio", "avancado"
-  biography: text("biography"),
-  status: text("status").notNull().default("pending"), // "pending", "approved", "rejected"
+  category: text("category").notNull(),
+  experience: text("experience").notNull(),
+  additionalInfo: text("additional_info"),
+  status: text("status").notNull().default("approved"),
+  rejectionReason: text("rejection_reason"),
+  archived: integer("archived", { mode: "boolean" }).notNull().default(false),
   acceptsEmailNotifications: integer("accepts_email_notifications", {
     mode: "boolean",
   })
     .notNull()
-    .default(false), // Novo campo
+    .default(false),
   registrationDate: integer("registration_date", {
     mode: "timestamp",
   }).$defaultFn(() => new Date()),
   approvedAt: integer("approved_at", { mode: "timestamp" }),
   approvedBy: text("approved_by"), // ID do admin que aprovou
+  rejectedAt: integer("rejected_at", { mode: "timestamp" }), // ✅ NOVO: quando foi rejeitado
+  rejectedBy: text("rejected_by"), // ✅ NOVO: ID do admin que rejeitou
   notes: text("notes"), // Notas administrativas
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
     () => new Date()

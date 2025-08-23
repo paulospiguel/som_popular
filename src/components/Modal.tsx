@@ -37,7 +37,6 @@ export function Modal({
   className = "",
   headerActions,
 }: ModalProps) {
-  // Fechar modal com ESC
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isOpen) {
@@ -47,7 +46,6 @@ export function Modal({
 
     if (isOpen) {
       document.addEventListener("keydown", handleEscape);
-      // Prevenir scroll do body quando modal está aberto
       document.body.style.overflow = "hidden";
     }
 
@@ -60,14 +58,14 @@ export function Modal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 print:bg-transparent print:p-0">
       <div
-        className={`bg-white relative rounded-2xl shadow-2xl w-full ${sizeClasses[size]} max-h-[90vh] overflow-y-auto ${className}`}
+        className={`bg-white relative rounded-2xl shadow-2xl print:shadow-none w-full ${sizeClasses[size]} max-h-[90vh] overflow-y-auto ${className} print:min-w-full`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         {(title || subtitle || icon || showCloseButton) && (
-          <div className="sticky top-0 z-10 bg-white border-b border-cinza-chumbo/10 rounded-t-2xl">
+          <div className="sticky print:hidden top-0 z-10 bg-white border-b border-cinza-chumbo/10 rounded-t-2xl">
             <div className="flex items-center justify-between p-6">
               {(title || subtitle || icon) && (
                 <div className="flex items-center space-x-3">
@@ -106,7 +104,7 @@ export function Modal({
         )}
 
         {/* Content */}
-        <div className="p-6">{children}</div>
+        <div className="p-6 print:p-0">{children}</div>
       </div>
 
       {/* Overlay para fechar ao clicar fora */}

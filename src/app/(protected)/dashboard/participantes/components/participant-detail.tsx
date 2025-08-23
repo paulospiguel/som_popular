@@ -1,24 +1,24 @@
 import { Modal } from "@/components/Modal";
 import { Participant } from "@/db/schema";
-import { FileText, Printer, Send, CreditCard } from "lucide-react"; // Adicionado CreditCard
+import { FileText, Printer, QrCode, Send, X } from "lucide-react"; // Adicionado X
+import { useState } from "react"; // Adicionar useState
 import { getCategoryText, getExperienceText } from "../utils";
 
 interface ParticipantDetailsModalProps {
   participant: Participant;
   isOpen: boolean;
   onClose: () => void;
-  handleReject: (id: string) => void;
-  handleApprove: (id: string) => void;
 }
 
 export default function ParticipantDetailsModal({
   participant,
   isOpen,
   onClose,
-  handleReject,
-  handleApprove,
 }: ParticipantDetailsModalProps) {
-  // Função para imprimir comprovante
+  // Adicionar estados para o modal de indeferimento
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
+
   const handlePrintReceipt = () => {
     // Adicionar estilos específicos para impressão
     const printStyles = `
@@ -60,19 +60,16 @@ export default function ParticipantDetailsModal({
     }, 1000);
   };
 
-  // Função para enviar comprovante por email
   const handleEmailReceipt = async (participant: any) => {
     if (!participant) return;
 
     try {
-      // Mostrar loading (podes adicionar um estado de loading se quiseres)
       const loadingToast = document.createElement("div");
       loadingToast.className =
         "fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-50";
       loadingToast.textContent = "A enviar comprovante...";
       document.body.appendChild(loadingToast);
 
-      // Simular chamada à API (aqui implementarias a lógica real)
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Aqui farias a chamada real à API
@@ -96,7 +93,6 @@ export default function ParticipantDetailsModal({
       successToast.textContent = `Comprovante enviado para ${participant.email} com sucesso!`;
       document.body.appendChild(successToast);
 
-      // Remover toast de sucesso após 3 segundos
       setTimeout(() => {
         if (document.body.contains(successToast)) {
           document.body.removeChild(successToast);
@@ -105,7 +101,6 @@ export default function ParticipantDetailsModal({
     } catch (error) {
       console.error("Erro ao enviar comprovante:", error);
 
-      // Mostrar erro
       const errorToast = document.createElement("div");
       errorToast.className =
         "fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50";
@@ -120,308 +115,364 @@ export default function ParticipantDetailsModal({
     }
   };
 
-  // Função para gerar credencial
   const handleGenerateCredential = () => {
     // Lógica para gerar credencial de identificação
     console.log("Gerando credencial para:", participant?.name);
     // Aqui você pode implementar a lógica para gerar a credencial
   };
 
-  // Ações do header (ícones discretos)
-  const headerActions = participant.status !== "pending" ? (
-    <>
-      <button
-        onClick={handlePrintReceipt}
-        className="p-2 hover:bg-blue-50 rounded-lg transition-colors group"
-        title="Imprimir comprovante"
-      >
-        <Printer className="w-5 h-5 text-blue-600 group-hover:text-blue-700" />
-      </button>
-      
-      <button
-        onClick={handleGenerateCredential}
-        className="p-2 hover:bg-purple-50 rounded-lg transition-colors group"
-        title="Gerar credencial"
-      >
-        <CreditCard className="w-5 h-5 text-purple-600 group-hover:text-purple-700" />
-      </button>
-      
-      {participant?.acceptsEmailNotifications && (
+  // Função para lidar com o indeferimento
+  const handleRejectWithReason = () => {
+    if (rejectionReason.trim()) {
+      //  handleReject(participant?.id, rejectionReason);
+      setShowRejectModal(false);
+      setRejectionReason("");
+      onClose();
+    }
+  };
+
+  const headerActions =
+    participant.status !== "pending" ? (
+      <>
         <button
-          onClick={() => handleEmailReceipt(participant?.id)}
-          className="p-2 hover:bg-green-50 rounded-lg transition-colors group"
-          title="Notificar por email"
+          onClick={handlePrintReceipt}
+          className="p-2 hover:bg-blue-50 rounded-lg transition-colors group"
+          title="Imprimir comprovante"
         >
-          <Send className="w-5 h-5 text-verde-suave group-hover:text-verde-suave/80" />
+          <Printer className="w-5 h-5 text-gray-500 group-hover:text-gray-700" />
         </button>
-      )}
-    </>
-  ) : null;
+
+        <button
+          onClick={handleGenerateCredential}
+          className="p-2 hover:bg-blue-50 rounded-lg transition-colors group"
+          title="Gerar credencial"
+        >
+          <QrCode className="w-5 h-5 text-gray-500 group-hover:text-gray-700" />
+        </button>
+
+        {participant?.acceptsEmailNotifications && (
+          <button
+            onClick={() => handleEmailReceipt(participant)}
+            className="p-2 hover:bg-blue-50 rounded-lg transition-colors group"
+            title="Notificar por email"
+          >
+            <Send className="w-5 h-5 text-gray-500 group-hover:text-gray-700" />
+          </button>
+        )}
+      </>
+    ) : null;
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={() => {
-        onClose();
-        // setparticipant?(null);
-      }}
-      title="Detalhes da Inscrição"
-      subtitle={participant?.name}
-      icon={<FileText className="w-6 h-6 text-verde-suave" />}
-      size="large"
-      headerActions={headerActions} // Passando as ações para o header
-    >
-      <div className="p-8 print:p-12">
-        <div className="space-y-8">
-          <div className="bg-gray-50 rounded-xl p-6">
-            <h3 className="font-bold text-cinza-chumbo mb-4 text-lg">
-              Dados da Inscrição
-            </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm text-cinza-chumbo/70 font-medium">
-                  Número de Inscrição
-                </label>
-                <p className="font-bold text-verde-suave text-lg">
-                  #{participant?.id.toUpperCase()}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm text-cinza-chumbo/70 font-medium">
-                  Data de Inscrição
-                </label>
-                <p className="font-semibold">
-                  {participant?.registrationDate?.toLocaleDateString("pt-PT", {
-                    weekday: "long",
-                    day: "2-digit",
-                    month: "long",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm text-cinza-chumbo/70 font-medium">
-                  Modalidade de Inscrição
-                </label>
-                <p className="font-semibold">
-                  {participant?.createdAt &&
-                  participant?.registrationDate &&
-                  Math.abs(
-                    participant.createdAt.getTime() -
-                      participant.registrationDate.getTime()
-                  ) < 60000
-                    ? "Automática"
-                    : "Online"}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm text-cinza-chumbo/70 font-medium">
-                  Status
-                </label>
-                <span
-                  className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                    participant?.status === "approved"
-                      ? "text-green-600 bg-green-50"
-                      : participant?.status === "rejected"
-                        ? "text-red-600 bg-red-50"
-                        : "text-yellow-600 bg-yellow-50"
-                  }`}
-                >
-                  {participant?.status === "approved"
-                    ? "Aprovado"
-                    : participant?.status === "rejected"
-                      ? "Rejeitado"
-                      : "Pendente"}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Motivo de Rejeição - Novo bloco */}
-          {participant?.status === "rejected" && participant?.notes && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-6">
-              <h3 className="font-bold text-red-800 mb-3 text-lg">
-                Motivo da Rejeição
+    <>
+      <Modal
+        isOpen={isOpen}
+        onClose={() => {
+          onClose();
+          // setparticipant?(null);
+        }}
+        title="Detalhes da Inscrição"
+        subtitle={participant?.name}
+        icon={<FileText className="w-6 h-6 text-verde-suave" />}
+        size="large"
+        headerActions={headerActions}
+      >
+        <div className="p-8 print:p-12">
+          <div className="space-y-8">
+            <div className="bg-gray-50 rounded-xl p-6">
+              <h3 className="font-bold text-cinza-chumbo mb-4 text-lg">
+                Dados da Inscrição
               </h3>
-              <p className="text-red-700 font-medium">{participant.notes}</p>
-            </div>
-          )}
-
-          {/* Dados do Participante */}
-          <div>
-            <h3 className="font-bold text-cinza-chumbo mb-4 text-lg">
-              Dados do Participante
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm text-cinza-chumbo/70 font-medium">
-                    Nome Completo
+                    Número de Inscrição
                   </label>
-                  <p className="font-semibold text-lg">{participant?.name}</p>
+                  <p className="font-bold text-verde-suave text-lg">
+                    #{participant?.id.toUpperCase()}
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm text-cinza-chumbo/70 font-medium">
-                    Email
+                    Data de Inscrição
                   </label>
-                  <p className="font-medium">{participant?.email}</p>
+                  <p className="font-semibold">
+                    {participant?.registrationDate?.toLocaleDateString(
+                      "pt-PT",
+                      {
+                        weekday: "long",
+                        day: "2-digit",
+                        month: "long",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }
+                    )}
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm text-cinza-chumbo/70 font-medium">
-                    Telefone
+                    Modalidade de Inscrição
                   </label>
-                  <p className="font-medium">{participant?.phone || "N/A"}</p>
+                  <p className="font-semibold">
+                    {participant?.createdAt &&
+                    participant?.registrationDate &&
+                    Math.abs(
+                      participant.createdAt.getTime() -
+                        participant.registrationDate.getTime()
+                    ) < 60000
+                      ? "Automática"
+                      : "Online"}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm text-cinza-chumbo/70 font-medium">
+                    Status
+                  </label>
+                  <span
+                    className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                      participant?.status === "approved"
+                        ? "text-green-600 bg-green-50"
+                        : participant?.status === "rejected"
+                          ? "text-red-600 bg-red-50"
+                          : "text-yellow-600 bg-yellow-50"
+                    }`}
+                  >
+                    {participant?.status === "approved"
+                      ? "Aprovado"
+                      : participant?.status === "rejected"
+                        ? "Rejeitado"
+                        : "Pendente"}
+                  </span>
                 </div>
               </div>
-              <div className="space-y-4">
+            </div>
+
+            {/* Adicionar campo de justificativa de rejeição se existir */}
+            {participant.status === "rejected" &&
+              participant.rejectionReason && (
+                <div className="space-y-2 bg-red-50 p-3 rounded-md">
+                  <h4 className="font-medium text-red-900">
+                    Motivo da Rejeição
+                  </h4>
+                  <p className="text-red-700">{participant.rejectionReason}</p>
+                  {participant.rejectedAt && (
+                    <p className="text-sm text-red-600">
+                      Rejeitado em:{" "}
+                      {new Date(participant.rejectedAt).toLocaleDateString(
+                        "pt-PT"
+                      )}
+                    </p>
+                  )}
+                </div>
+              )}
+
+            {/* Dados do Participante */}
+            <div>
+              <h3 className="font-bold text-cinza-chumbo mb-4 text-lg">
+                Dados do Participante
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm text-cinza-chumbo/70 font-medium">
+                      Nome Completo
+                    </label>
+                    <p className="font-semibold text-lg">{participant?.name}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-cinza-chumbo/70 font-medium">
+                      Email
+                    </label>
+                    <p className="font-medium">{participant?.email}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-cinza-chumbo/70 font-medium">
+                      Telefone
+                    </label>
+                    <p className="font-medium">{participant?.phone || "N/A"}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Dados Artísticos */}
+            <div>
+              <h3 className="font-bold text-cinza-chumbo mb-4 text-lg">
+                Informações Artísticas
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="text-sm text-cinza-chumbo/70 font-medium">
-                    Idade
+                    Categoria
                   </label>
-                  <p className="font-semibold">{participant?.age} anos</p>
+                  <p className="font-semibold text-lg">
+                    {getCategoryText(participant?.category)}
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm text-cinza-chumbo/70 font-medium">
-                    Localização
+                    Nível de Experiência
                   </label>
-                  <p className="font-medium">
-                    {participant?.city}, {participant?.district}
+                  <p className="font-semibold">
+                    {getExperienceText(participant?.experience)}
                   </p>
                 </div>
               </div>
+              {/* Informações Adicionais */}
+              {participant.additionalInfo && (
+                <div className="space-y-2">
+                  <h4 className="font-medium text-gray-900">
+                    Informações Adicionais
+                  </h4>
+                  <p className="text-gray-600">{participant.additionalInfo}</p>
+                </div>
+              )}
             </div>
-          </div>
 
-          {/* Dados Artísticos */}
-          <div>
-            <h3 className="font-bold text-cinza-chumbo mb-4 text-lg">
-              Informações Artísticas
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="text-sm text-cinza-chumbo/70 font-medium">
-                  Categoria
-                </label>
-                <p className="font-semibold text-lg">
-                  {getCategoryText(participant?.category)}
+            {/* Informações do Festival */}
+            <div className="bg-verde-suave/10 rounded-xl p-6 border border-verde-suave/20">
+              <h3 className="font-bold text-cinza-chumbo mb-4 text-lg">
+                Informações do Festival
+              </h3>
+              <div className="space-y-2">
+                <p>
+                  <strong>Evento:</strong> Som Popular - Festival Centenário
                 </p>
-              </div>
-              <div>
-                <label className="text-sm text-cinza-chumbo/70 font-medium">
-                  Nível de Experiência
-                </label>
-                <p className="font-semibold">
-                  {getExperienceText(participant?.experience)}
+                <p>
+                  <strong>Organização:</strong> Câmara Municipal
+                </p>
+                <p>
+                  <strong>Local:</strong> A definir
+                </p>
+                <p>
+                  <strong>Data:</strong> A definir
                 </p>
               </div>
             </div>
-            {participant?.biography && (
-              <div className="mt-4">
-                <label className="text-sm text-cinza-chumbo/70 font-medium">
-                  Biografia
-                </label>
-                <p className="font-medium mt-2 text-justify">
-                  {participant?.biography}
+
+            {/* Notificações por Email */}
+            {participant?.acceptsEmailNotifications !== undefined && (
+              <div className="text-sm text-cinza-chumbo/70 bg-gray-50 rounded-lg p-4">
+                <p>
+                  <strong>Notificações por Email:</strong>{" "}
+                  {participant?.acceptsEmailNotifications ? (
+                    <span className="text-green-600 font-medium">
+                      ✓ Aceita receber notificações
+                    </span>
+                  ) : (
+                    <span className="text-red-600 font-medium">
+                      ✗ Não aceita notificações
+                    </span>
+                  )}
                 </p>
               </div>
             )}
           </div>
+          {/* Ações do Comprovante */}
+          {participant.status === "pending" && (
+            <div className="flex gap-4 mt-8 pt-6 print:hidden">
+              <>
+                <button
+                  onClick={() => {
+                    //handleApprove(participant?.id);
+                    onClose();
+                  }}
+                  className="flex-1 bg-green-600 text-white py-3 px-4 rounded-xl hover:bg-green-700 transition-colors"
+                >
+                  Aprovar
+                </button>
 
-          {/* Informações do Festival */}
-          <div className="bg-verde-suave/10 rounded-xl p-6 border border-verde-suave/20">
-            <h3 className="font-bold text-cinza-chumbo mb-4 text-lg">
-              Informações do Festival
+                <button
+                  onClick={() => setShowRejectModal(true)}
+                  className="flex-1 bg-red-600 text-white py-3 px-4 rounded-xl hover:bg-red-700 transition-colors"
+                >
+                  Rejeitar
+                </button>
+              </>
+            </div>
+          )}
+          <div className="flex gap-4 mt-8 pt-6 print:hidden">
+            {participant.status === "pending" && (
+              <>
+                <button
+                  onClick={() => {
+                    // handleApprove(participant?.id);
+                    onClose();
+                  }}
+                  className="flex-1 bg-green-600 text-white py-3 px-4 rounded-xl hover:bg-green-700 transition-colors"
+                >
+                  Aprovar
+                </button>
+
+                <button
+                  onClick={() => setShowRejectModal(true)}
+                  className="flex-1 bg-red-600 text-white py-3 px-4 rounded-xl hover:bg-red-700 transition-colors"
+                >
+                  Rejeitar
+                </button>
+              </>
+            )}
+
+            {/* Botão de Indeferir para participantes aprovados */}
+            {participant.status === "approved" && (
+              <button
+                onClick={() => setShowRejectModal(true)}
+                className="bg-red-600 text-white py-3 px-6 rounded-xl hover:bg-red-700 transition-colors flex items-center gap-2"
+              >
+                <X className="w-4 h-4" />
+                Indeferir Inscrição
+              </button>
+            )}
+          </div>
+        </div>
+      </Modal>
+
+      {showRejectModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">
+              {participant.status === "approved"
+                ? "Indeferir Inscrição"
+                : "Rejeitar Inscrição"}
             </h3>
-            <div className="space-y-2">
-              <p>
-                <strong>Evento:</strong> Som Popular - Festival Centenário
-              </p>
-              <p>
-                <strong>Organização:</strong> Câmara Municipal
-              </p>
-              <p>
-                <strong>Local:</strong> A definir
-              </p>
-              <p>
-                <strong>Data:</strong> A definir
-              </p>
+
+            <p className="text-gray-600 mb-4">
+              Por favor, indique o motivo do{" "}
+              {participant.status === "approved" ? "indeferimento" : "rejeição"}{" "}
+              da inscrição de <strong>{participant.name}</strong>:
+            </p>
+
+            <textarea
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              placeholder="Motivo do indeferimento..."
+              className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              rows={4}
+              required
+            />
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowRejectModal(false);
+                  setRejectionReason("");
+                }}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </button>
+
+              <button
+                onClick={handleRejectWithReason}
+                disabled={!rejectionReason.trim()}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+              >
+                {participant.status === "approved" ? "Indeferir" : "Rejeitar"}
+              </button>
             </div>
           </div>
-
-          {/* Notificações por Email */}
-          {participant?.acceptsEmailNotifications !== undefined && (
-            <div className="text-sm text-cinza-chumbo/70 bg-gray-50 rounded-lg p-4">
-              <p>
-                <strong>Notificações por Email:</strong>{" "}
-                {participant?.acceptsEmailNotifications ? (
-                  <span className="text-green-600 font-medium">
-                    ✓ Aceita receber notificações
-                  </span>
-                ) : (
-                  <span className="text-red-600 font-medium">
-                    ✗ Não aceita notificações
-                  </span>
-                )}
-              </p>
-            </div>
-          )}
         </div>
-
-        {/* Ações do Comprovante */}
-        <div className="flex  gap-4 mt-8 pt-6 border-t print:hidden">
-          {participant.status !== "pending" ? (
-            <>
-              <button
-                onClick={handlePrintReceipt}
-                className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
-              >
-                <Printer className="w-5 h-5" />
-                <span>Imprimir</span>
-              </button>
-
-              {participant?.acceptsEmailNotifications && (
-                <button
-                  onClick={() => handleEmailReceipt(participant?.id)}
-                  className="flex-1 bg-verde-suave text-white py-3 px-4 rounded-xl hover:bg-verde-suave/90 transition-colors flex items-center justify-center space-x-2"
-                >
-                  <Send className="w-5 h-5" />
-                  <span>Notificar por Email</span>
-                </button>
-              )}
-            </>
-          ) : (
-            <>
-              <button
-                onClick={() => {
-                  handleApprove(participant?.id);
-                  onClose();
-                }}
-                className="flex-1 bg-green-600 text-white py-3 px-4 rounded-xl hover:bg-green-700 transition-colors"
-              >
-                Aprovar
-              </button>
-
-              <button
-                onClick={() => {
-                  handleReject(participant?.id);
-                  onClose();
-                }}
-                className="flex-1 bg-red-600 text-white py-3 px-4 rounded-xl hover:bg-red-700 transition-colors"
-              >
-                Rejeitar
-              </button>
-            </>
-          )}
-          <button
-            onClick={onClose}
-            className="bg-gray-600 text-white py-3 px-4 rounded-xl hover:bg-gray-700 transition-colors"
-          >
-            Fechar
-          </button>
-        </div>
-      </div>
-    </Modal>
+      )}
+    </>
   );
 }

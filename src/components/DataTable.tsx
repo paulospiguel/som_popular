@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, Filter, Search, X } from "lucide-react";
 import { ReactNode, useMemo, useState } from "react";
 
@@ -31,6 +32,7 @@ interface DataTableProps<T> {
         field: keyof T;
         direction?: "asc" | "desc";
       }[];
+  onArchive?: (id: string) => void;
 }
 
 export function DataTable<T extends Record<string, any>>({
@@ -46,6 +48,7 @@ export function DataTable<T extends Record<string, any>>({
   maxHeight = "500px",
   showSearch = true,
   orderBy = [],
+  onArchive,
 }: DataTableProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
@@ -53,11 +56,9 @@ export function DataTable<T extends Record<string, any>>({
     {}
   );
 
-  // Aplicar filtros primeiro
   const filteredData = useMemo(() => {
     let filtered = data;
 
-    // Aplicar pesquisa global
     if (searchTerm && searchFields.length > 0) {
       filtered = filtered.filter((item) =>
         searchFields.some((field) => {
@@ -73,7 +74,6 @@ export function DataTable<T extends Record<string, any>>({
       );
     }
 
-    // Aplicar filtros de coluna
     Object.entries(columnFilters).forEach(([columnKey, filterValue]) => {
       if (filterValue) {
         filtered = filtered.filter((item) => {
@@ -92,13 +92,10 @@ export function DataTable<T extends Record<string, any>>({
     return filtered;
   }, [data, searchTerm, searchFields, columnFilters]);
 
-  // Aplicar ordenação aos dados filtrados
   const sortedAndFilteredData = useMemo(() => {
     let sorted = [...filteredData];
 
-    // Aplicar ordenação hierárquica correta
     sorted.sort((a, b) => {
-      // Iterar por cada critério de ordenação
       for (const orderConfig of orderBy) {
         const field =
           typeof orderConfig === "string"
@@ -113,7 +110,6 @@ export function DataTable<T extends Record<string, any>>({
               ? orderConfig.direction
               : "asc";
 
-        // Para o campo status, assumir sempre ordem ascendente se não especificado
         if (
           field === "status" &&
           typeof orderConfig === "object" &&
@@ -125,14 +121,12 @@ export function DataTable<T extends Record<string, any>>({
         const valueA = a[field] as string | number | Date | null | undefined;
         const valueB = b[field] as string | number | Date | null | undefined;
 
-        // Tratar valores null/undefined
         if (valueA == null && valueB == null) continue;
         if (valueA == null) return direction === "asc" ? 1 : -1;
         if (valueB == null) return direction === "asc" ? -1 : 1;
 
         let comparison = 0;
 
-        // Ordenação especial para o campo status
         if (field === "status") {
           const statusOrder = {
             pending: 1,
@@ -144,40 +138,30 @@ export function DataTable<T extends Record<string, any>>({
           const orderB = statusOrder[valueB as keyof typeof statusOrder] || 999;
 
           comparison = orderA - orderB;
-        }
-        // Tratar datas especificamente
-        else if (valueA instanceof Date && valueB instanceof Date) {
+        } else if (valueA instanceof Date && valueB instanceof Date) {
           comparison = valueA.getTime() - valueB.getTime();
-        }
-        // Ordenação normal para strings e números
-        else {
+        } else {
           if (valueA < valueB) comparison = -1;
           else if (valueA > valueB) comparison = 1;
           else comparison = 0;
         }
 
-        // Se há diferença, aplicar direção e retornar
         if (comparison !== 0) {
           return direction === "asc" ? comparison : -comparison;
         }
-        
-        // Se são iguais, continuar para o próximo critério
       }
-      
-      // Se todos os critérios são iguais
+
       return 0;
     });
 
     return sorted;
   }, [filteredData, orderBy]);
 
-  // Calcular paginação com dados ordenados
   const totalPages = Math.ceil(sortedAndFilteredData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentData = sortedAndFilteredData.slice(startIndex, endIndex);
 
-  // Reset página quando dados mudam
   useMemo(() => {
     if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(1);
@@ -238,13 +222,13 @@ export function DataTable<T extends Record<string, any>>({
     <div className={`festival-card flex flex-col ${className}`}>
       <div className="p-6 pb-4 flex-shrink-0 border-b border-verde-suave/10">
         <div className="flex items-center w-full justify-between">
-          <div className="flex items-center space-x-4 justify-between w-full">
-            <div className="text-sm text-cinza-chumbo/70">
+          <div className=" grid grid-cols-3 items-center space-x-4 justify-between w-full">
+            <div className="text-sm col-span-1 text-cinza-chumbo/70">
               Mostrando {startIndex + 1}-
               {Math.min(endIndex, sortedAndFilteredData.length)} de{" "}
               {sortedAndFilteredData.length} itens
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="col-span-1 text-end">
               {hasActiveFilters && (
                 <button
                   onClick={clearAllFilters}
@@ -253,8 +237,10 @@ export function DataTable<T extends Record<string, any>>({
                   Limpar filtros
                 </button>
               )}
+            </div>
+            <div className="flex flex-1 col-span-1 items-center space-x-4">
               {showSearch && (
-                <div className="mb-4">
+                <div className="mb-4 w-full">
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <Search className="h-5 w-5 text-cinza-chumbo/50" />
@@ -300,10 +286,17 @@ export function DataTable<T extends Record<string, any>>({
               {columns.map((column, index) => (
                 <th
                   key={index}
-                  className={`text-left py-4 px-2 font-semibold text-cinza-chumbo bg-white ${column.headerClassName || ""}`}
+                  className={cn(
+                    "text-left py-4 px-2 font-semibold text-cinza-chumbo bg-white"
+                  )}
                 >
-                  <div className="flex flex-col space-y-2">
-                    <div className="flex items-center space-x-2">
+                  <div
+                    className={cn(
+                      "flex flex-col space-y-2",
+                      column.headerClassName || ""
+                    )}
+                  >
+                    <div className={"flex items-center space-x-2 text-sm"}>
                       <span>{column.header}</span>
                       {column.filterable && (
                         <Filter className="h-4 w-4 text-cinza-chumbo/50" />
@@ -362,7 +355,6 @@ export function DataTable<T extends Record<string, any>>({
           </tbody>
         </table>
 
-        {/* Estado Vazio */}
         {sortedAndFilteredData.length === 0 && (
           <div className="text-center py-12">
             {emptyIcon && (
@@ -432,7 +424,6 @@ export function DataTable<T extends Record<string, any>>({
   );
 }
 
-// Hook para facilitar o uso
 export function useDataTable<T>(data: T[], itemsPerPage = 10) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);

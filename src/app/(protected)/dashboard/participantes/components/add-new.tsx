@@ -18,12 +18,20 @@ const AddParticipantModal = ({
     {} as NewParticipant
   );
 
-  // Função para adicionar novo participante
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    category: "",
+    experience: "",
+    additionalInfo: "",
+    acceptsEmailNotifications: true,
+  });
+
   const handleAddParticipant = () => {
     const participant = {
       ...newParticipant,
       id: Date.now().toString(),
-      age: newParticipant.age ? Number(newParticipant.age) : 0,
       status: "pending",
       registrationDate: new Date(),
       notes: "",
@@ -33,6 +41,22 @@ const AddParticipantModal = ({
     setNewParticipant({} as NewParticipant);
     onClose();
   };
+
+  /*   const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const newParticipant = {
+      ...formData,
+      id: Date.now().toString(),
+      status: "approved", // Auto-aprovação no registo
+      archived: false,
+      registrationDate: new Date(),
+      notes: "",
+    };
+
+    onAdd(newParticipant);
+    onClose();
+  }; */
 
   return (
     <Modal
@@ -107,62 +131,6 @@ const AddParticipantModal = ({
                 placeholder="+351 912 345 678"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                Idade *
-              </label>
-              <input
-                type="number"
-                required
-                min="16"
-                max="99"
-                value={newParticipant.age || ""}
-                onChange={(e) =>
-                  setNewParticipant((prev) => ({
-                    ...prev,
-                    age: Number(e.target.value),
-                  }))
-                }
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-verde-suave focus:border-transparent transition-colors"
-                placeholder="25"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                Cidade *
-              </label>
-              <input
-                type="text"
-                required
-                value={newParticipant.city || ""}
-                onChange={(e) =>
-                  setNewParticipant((prev) => ({
-                    ...prev,
-                    city: e.target.value,
-                  }))
-                }
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-verde-suave focus:border-transparent transition-colors"
-                placeholder="Lisboa"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                Distrito *
-              </label>
-              <input
-                type="text"
-                required
-                value={newParticipant.district || ""}
-                onChange={(e) =>
-                  setNewParticipant((prev) => ({
-                    ...prev,
-                    district: e.target.value,
-                  }))
-                }
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-verde-suave focus:border-transparent transition-colors"
-                placeholder="Lisboa"
-              />
-            </div>
           </div>
         </div>
 
@@ -187,10 +155,11 @@ const AddParticipantModal = ({
                 }
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-verde-suave focus:border-transparent transition-colors"
               >
-                <option value="fado">Fado</option>
-                <option value="guitarra">Guitarra</option>
-                <option value="concertina">Concertina</option>
-                <option value="outros">Outros</option>
+                <option value="">Selecione uma categoria</option>
+                <option value="vocal">Vocal</option>
+                <option value="instrumental">Instrumental</option>
+                <option value="banda">Banda</option>
+                <option value="dj">DJ</option>
               </select>
             </div>
             <div>
@@ -215,21 +184,22 @@ const AddParticipantModal = ({
             </div>
           </div>
           <div className="mt-4">
-            <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-              Biografia
-            </label>
-            <textarea
-              rows={4}
-              value={newParticipant.biography || ""}
-              onChange={(e) =>
-                setNewParticipant((prev) => ({
-                  ...prev,
-                  biography: e.target.value,
-                }))
-              }
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-verde-suave focus:border-transparent transition-colors resize-none"
-              placeholder="Conte-nos um pouco sobre a sua experiência musical..."
-            />
+            {/* Remover campos de idade, cidade e distrito */}
+            {/* Campo de informações adicionais */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">
+                Informações Adicionais
+              </label>
+              <textarea
+                value={formData.additionalInfo}
+                onChange={(e) =>
+                  setFormData({ ...formData, additionalInfo: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows={3}
+                placeholder="Conte-nos sobre a sua experiência musical..."
+              />
+            </div>
           </div>
         </div>
 

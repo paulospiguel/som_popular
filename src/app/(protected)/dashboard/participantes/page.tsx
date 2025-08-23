@@ -2,28 +2,17 @@
 
 import { DataTable } from "@/components/DataTable";
 import { Loading } from "@/components/loading";
-import {
-  Modal,
-  ModalButtons,
-  ModalPrimaryButton,
-  ModalSecondaryButton,
-} from "@/components/Modal";
 import { Participant } from "@/db/schema";
 import { useSession } from "@/lib/auth-client";
 import {
   ArrowLeft,
-  CheckCircle,
-  Clock,
   Eye,
   Mail,
-  MapPin,
   Phone,
   Plus,
   User,
   UserCheck,
   Users,
-  UserX,
-  XCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -37,20 +26,19 @@ import {
   getStatusText,
 } from "./utils";
 
-// Mock data atualizado com campo de notificações
+// Mock data atualizado sem age, city, district e com additionalInfo
 const mockParticipants = [
   {
     id: "1",
     name: "João Silva",
     email: "joao.silva@email.com",
     phone: "+351 912 345 678",
-    age: 28,
-    city: "Lisboa",
-    district: "Lisboa",
     category: "fado",
     experience: "intermedio",
-    biography: "Canto fado há 5 anos, participei em vários eventos locais.",
-    status: "pending",
+    additionalInfo:
+      "Canto fado há 5 anos, participei em vários eventos locais.",
+    status: "approved", // Alterado de 'pending' para 'approved' (auto-aprovação)
+    archived: false,
     acceptsEmailNotifications: true,
     registrationDate: new Date("2024-01-15"),
     notes: "",
@@ -60,13 +48,11 @@ const mockParticipants = [
     name: "Maria Santos",
     email: "maria.santos@email.com",
     phone: "+351 913 456 789",
-    age: 35,
-    city: "Porto",
-    district: "Porto",
     category: "guitarra",
     experience: "avancado",
-    biography: "Guitarrista profissional com 15 anos de experiência.",
+    additionalInfo: "Guitarrista profissional com 15 anos de experiência.",
     status: "approved",
+    archived: false,
     acceptsEmailNotifications: false,
     registrationDate: new Date("2024-01-10"),
     notes: "Excelente candidata, muito experiente.",
@@ -76,13 +62,11 @@ const mockParticipants = [
     name: "António Costa",
     email: "antonio.costa@email.com",
     phone: "+351 914 567 890",
-    age: 42,
-    city: "Coimbra",
-    district: "Coimbra",
     category: "concertina",
     experience: "avancado",
-    biography: "Toco concertina desde criança, ensino música tradicional.",
+    additionalInfo: "Toco concertina desde criança, ensino música tradicional.",
     status: "approved",
+    archived: false,
     registrationDate: new Date("2024-01-08"),
     notes: "",
   },
@@ -91,75 +75,31 @@ const mockParticipants = [
     name: "Ana Ferreira",
     email: "ana.ferreira@email.com",
     phone: "+351 915 678 901",
-    age: 22,
-    city: "Braga",
-    district: "Braga",
     category: "fado",
     experience: "iniciante",
-    biography: "Sempre gostei de cantar, quero começar no fado.",
+    additionalInfo: "Sempre gostei de cantar, quero começar no fado.",
     status: "rejected",
+    archived: false,
     registrationDate: new Date("2024-01-12"),
+    rejectionReason:
+      "Necessita de mais experiência prática antes de participar no evento.",
+    rejectedAt: new Date("2024-01-13"),
+    rejectedBy: "admin@somopopular.pt",
     notes: "Precisa de mais experiência antes de participar.",
   },
   {
-    id: "1",
-    name: "João Silva",
-    email: "joao.silva@email.com",
-    phone: "+351 912 345 678",
-    age: 28,
-    city: "Lisboa",
-    district: "Lisboa",
-    category: "fado",
+    id: "5",
+    name: "Carlos Mendes",
+    email: "carlos.mendes@email.com",
+    phone: "+351 916 789 012",
+    category: "cavaquinho",
     experience: "intermedio",
-    biography: "Canto fado há 5 anos, participei em vários eventos locais.",
-    status: "pending",
-    registrationDate: new Date("2024-01-15"),
-    notes: "",
-  },
-  {
-    id: "2",
-    name: "Maria Santos",
-    email: "maria.santos@email.com",
-    phone: "+351 913 456 789",
-    age: 35,
-    city: "Porto",
-    district: "Porto",
-    category: "guitarra",
-    experience: "avancado",
-    biography: "Guitarrista profissional com 15 anos de experiência.",
+    additionalInfo: "Toco cavaquinho há 3 anos, gosto muito de música popular.",
     status: "approved",
-    registrationDate: new Date("2024-01-10"),
-    notes: "Excelente candidata, muito experiente.",
-  },
-  {
-    id: "3",
-    name: "António Costa",
-    email: "antonio.costa@email.com",
-    phone: "+351 914 567 890",
-    age: 42,
-    city: "Coimbra",
-    district: "Coimbra",
-    category: "concertina",
-    experience: "avancado",
-    biography: "Toco concertina desde criança, ensino música tradicional.",
-    status: "approved",
-    registrationDate: new Date("2024-01-08"),
+    archived: false,
+    acceptsEmailNotifications: true,
+    registrationDate: new Date("2024-01-20"),
     notes: "",
-  },
-  {
-    id: "4",
-    name: "Ana Ferreira",
-    email: "ana.ferreira@email.com",
-    phone: "+351 915 678 901",
-    age: 22,
-    city: "Braga",
-    district: "Braga",
-    category: "fado",
-    experience: "iniciante",
-    biography: "Sempre gostei de cantar, quero começar no fado.",
-    status: "rejected",
-    registrationDate: new Date("2024-01-12"),
-    notes: "Precisa de mais experiência antes de participar.",
   },
 ];
 
@@ -171,7 +111,6 @@ export default function ParticipantsManagement() {
   const [showModal, setShowModal] = useState(false);
   const [selectedParticipant, setSelectedParticipant] = useState<any>(null);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [participantToReject, setParticipantToReject] = useState<any>(null);
 
@@ -189,29 +128,14 @@ export default function ParticipantsManagement() {
     );
   };
 
-  const handleReject = (participantId: string) => {
-    const participant = participants.find((p) => p.id === participantId);
-    setParticipantToReject(participant);
-    setShowRejectModal(true);
+  const handleArchiveParticipant = (id: string) => {
+    setParticipants((prev) =>
+      prev.map((p) =>
+        p.id === id ? { ...p, archived: true, updatedAt: new Date() } : p
+      )
+    );
   };
 
-  const handleConfirmReject = () => {
-    if (participantToReject && rejectionReason.trim()) {
-      setParticipants((prev) =>
-        prev.map((p) =>
-          p.id === participantToReject.id
-            ? { ...p, status: "rejected", notes: rejectionReason }
-            : p
-        )
-      );
-
-      setShowRejectModal(false);
-      setRejectionReason("");
-      setParticipantToReject(null);
-    }
-  };
-
-  // Definir colunas da tabela
   const columns = [
     {
       key: "participant",
@@ -249,15 +173,18 @@ export default function ParticipantsManagement() {
       ),
     },
     {
-      key: "location",
-      header: "Localização",
+      key: "registrationDate",
+      header: "Data de Registro",
       render: (participant: any) => (
-        <div className="flex items-center text-cinza-chumbo">
-          <MapPin className="w-4 h-4 mr-1" />
-          <span>
-            {participant.city}, {participant.district}
-          </span>
-        </div>
+        <span className="text-sm text-cinza-chumbo">
+          {participant.registrationDate.toLocaleDateString("pt-PT", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </span>
       ),
     },
     {
@@ -274,26 +201,11 @@ export default function ParticipantsManagement() {
       ),
     },
     {
-      key: "registrationDate",
-      header: "Data",
-      render: (participant: any) => (
-        <span className="text-sm text-cinza-chumbo">
-          {participant.registrationDate.toLocaleDateString("pt-PT", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </span>
-      ),
-    },
-    {
       key: "actions",
       header: "Ações",
       className: "text-center",
-      headerClassName: "text-center",
-      render: (participant: any) => (
+      headerClassName: "text-center items-center",
+      render: (participant: Partial<Participant>) => (
         <div className="flex items-center justify-center space-x-2">
           <button
             onClick={() => {
@@ -305,36 +217,31 @@ export default function ParticipantsManagement() {
           >
             <Eye className="w-4 h-4" />
           </button>
-
-          {participant.status === "pending" && (
-            <>
-              <button
-                onClick={() => handleApprove(participant.id)}
-                className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                title="Aprovar"
-              >
-                <UserCheck className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => handleReject(participant.id)}
-                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                title="Rejeitar"
-              >
-                <UserX className="w-4 h-4" />
-              </button>
-            </>
-          )}
+          {/* 
+          {["approved", "rejected"].includes(participant.status!) && (
+            <button
+              onClick={() => handleArchiveParticipant(participant?.id!)}
+              disabled={participant.archived}
+              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              title="Arquivar participante"
+            >
+              <Archive className="w-4 h-4 text-gray-500 group-hover:text-orange-600" />
+            </button>
+          )} */}
         </div>
       ),
     },
   ];
 
-  // Calcular estatísticas
+  const activeParticipants = participants.filter((p) => !p.archived);
+
   const stats = {
     total: participants.length,
-    pending: participants.filter((p) => p.status === "pending").length,
-    approved: participants.filter((p) => p.status === "approved").length,
-    rejected: participants.filter((p) => p.status === "rejected").length,
+    active: activeParticipants.length,
+    pending: activeParticipants.filter((p) => p.status === "pending").length,
+    approved: activeParticipants.filter((p) => p.status === "approved").length,
+    rejected: activeParticipants.filter((p) => p.status === "rejected").length,
+    archived: participants.filter((p) => p.archived).length,
   };
 
   if (isPending) {
@@ -342,8 +249,7 @@ export default function ParticipantsManagement() {
   }
 
   return (
-    <div className="h-screen bg-gradient-to-br from-bege-claro via-verde-muito-suave to-dourado-muito-claro flex flex-col">
-      {/* Header */}
+    <div className="bg-gradient-to-br from-bege-claro via-verde-muito-suave to-dourado-muito-claro flex flex-col">
       <header className="bg-white/90 backdrop-blur-sm border-b border-verde-suave/20 shadow-sm flex-shrink-0">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -372,86 +278,123 @@ export default function ParticipantsManagement() {
         </div>
       </header>
 
-      {/* Conteúdo Principal */}
       <main className="flex-1 overflow-hidden flex flex-col">
         <div className="container mx-auto px-4 py-8 flex-1 flex flex-col">
-          {/* Cards de Estatísticas */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 flex-shrink-0">
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 border border-verde-suave/20 shadow-lg">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 flex-shrink-0">
+            <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 border border-cinza-chumbo/10 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-cinza-chumbo/70 font-medium">
-                    Total de Participantes
+                  <p className="text-xs text-cinza-chumbo/60 font-medium uppercase tracking-wide">
+                    Total
                   </p>
-                  <p className="text-3xl font-bold text-cinza-chumbo mt-1">
+                  <p className="text-2xl font-bold text-cinza-chumbo">
                     {stats.total}
                   </p>
                 </div>
-                <div className="p-3 bg-verde-suave/10 rounded-xl">
-                  <Users className="w-8 h-8 text-verde-suave" />
+                <div className="p-2 bg-cinza-chumbo/5 rounded-lg">
+                  <Users className="w-5 h-5 text-cinza-chumbo" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 border border-yellow-200 shadow-lg">
-              <div className="flex items-center justify-between">
+            <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 border border-verde-suave/20 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-3">
                 <div>
-                  <p className="text-sm text-cinza-chumbo/70 font-medium">
-                    Pendentes
+                  <p className="text-xs text-cinza-chumbo/60 font-medium uppercase tracking-wide">
+                    Participantes
                   </p>
-                  <p className="text-3xl font-bold text-yellow-600 mt-1">
+                  <p className="text-lg font-bold text-cinza-chumbo">
+                    {stats.active + stats.archived}
+                  </p>
+                </div>
+                <div className="p-2 bg-verde-suave/10 rounded-lg">
+                  <UserCheck className="w-5 h-5 text-verde-suave" />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full bg-verde-suave"></div>
+                    <span className="text-cinza-chumbo/70">Ativos</span>
+                  </div>
+                  <span className="font-medium text-verde-suave">
+                    {stats.active}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full bg-gray-400"></div>
+                    <span className="text-cinza-chumbo/70">Arquivados</span>
+                  </div>
+                  <span className="font-medium text-gray-500">
+                    {stats.archived}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 border border-cinza-chumbo/10 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <p className="text-xs text-cinza-chumbo/60 font-medium uppercase tracking-wide">
+                    Status
+                  </p>
+                  <p className="text-lg font-bold text-cinza-chumbo">
+                    {stats.pending + stats.approved + stats.rejected}
+                  </p>
+                </div>
+                <div className="p-2 bg-cinza-chumbo/5 rounded-lg">
+                  <User className="w-5 h-5 text-cinza-chumbo" />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                    <span className="text-cinza-chumbo/70">Pendentes</span>
+                  </div>
+                  <span className="font-medium text-yellow-600">
                     {stats.pending}
-                  </p>
+                  </span>
                 </div>
-                <div className="p-3 bg-yellow-100 rounded-xl">
-                  <Clock className="w-8 h-8 text-yellow-600" />
-                </div>
-              </div>
-            </div>
 
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 border border-green-200 shadow-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-cinza-chumbo/70 font-medium">
-                    Aprovados
-                  </p>
-                  <p className="text-3xl font-bold text-green-600 mt-1">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                    <span className="text-cinza-chumbo/70">Aprovados</span>
+                  </div>
+                  <span className="font-medium text-green-600">
                     {stats.approved}
-                  </p>
+                  </span>
                 </div>
-                <div className="p-3 bg-green-100 rounded-xl">
-                  <CheckCircle className="w-8 h-8 text-green-600" />
-                </div>
-              </div>
-            </div>
 
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 border border-red-200 shadow-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-cinza-chumbo/70 font-medium">
-                    Rejeitados
-                  </p>
-                  <p className="text-3xl font-bold text-red-600 mt-1">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                    <span className="text-cinza-chumbo/70">Rejeitados</span>
+                  </div>
+                  <span className="font-medium text-red-600">
                     {stats.rejected}
-                  </p>
-                </div>
-                <div className="p-3 bg-red-100 rounded-xl">
-                  <XCircle className="w-8 h-8 text-red-600" />
+                  </span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Tabela de Participantes com Componente Reutilizável */}
           <DataTable
-            data={participants}
+            className="min-h-[calc(100vh-400px)]"
+            data={activeParticipants}
             columns={columns}
-            searchFields={["name", "email", "city", "category"]}
-            searchPlaceholder="Pesquisar por nome, email, cidade ou categoria..."
+            searchFields={["name", "email", "category"]} // Removido "city"
+            searchPlaceholder="Pesquisar por nome, email ou categoria..."
             emptyMessage="Nenhum participante encontrado."
             emptyIcon={<Users className="w-12 h-12 text-cinza-chumbo/30" />}
+            onArchive={handleArchiveParticipant}
             orderBy={[
-              { field: "registrationDate", direction: "desc" }, // Mudança aqui: desc para mais novo primeiro
+              { field: "registrationDate", direction: "desc" },
               { field: "name", direction: "asc" },
               { field: "status" },
             ]}
@@ -473,8 +416,6 @@ export default function ParticipantsManagement() {
       {/* Modal de Detalhes do Participante */}
       {showModal && selectedParticipant && (
         <ParticipantDetailsModal
-          handleApprove={handleApprove}
-          handleReject={handleReject}
           participant={selectedParticipant}
           isOpen={showModal}
           onClose={() => {
@@ -483,59 +424,6 @@ export default function ParticipantsManagement() {
           }}
         />
       )}
-
-      {/* Modal de Rejeição - Agora usando o componente reutilizável */}
-      <Modal
-        isOpen={showRejectModal}
-        onClose={() => {
-          setShowRejectModal(false);
-          setRejectionReason("");
-          setParticipantToReject(null);
-        }}
-        title="Rejeitar Participante"
-        subtitle={participantToReject?.name}
-        icon={<UserX className="w-6 h-6 text-red-600" />}
-        size="md"
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-              Motivo da rejeição *
-            </label>
-            <textarea
-              value={rejectionReason}
-              onChange={(e) => setRejectionReason(e.target.value)}
-              placeholder="Descreva o motivo da rejeição..."
-              className="w-full px-4 py-3 border border-cinza-chumbo/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-verde-suave/50 focus:border-verde-suave resize-none"
-              rows={4}
-              required
-            />
-            <p className="text-xs text-cinza-chumbo/60 mt-1">
-              Este motivo será guardado nos registos do participante.
-            </p>
-          </div>
-        </div>
-
-        <ModalButtons>
-          <ModalSecondaryButton
-            onClick={() => {
-              setShowRejectModal(false);
-              setRejectionReason("");
-              setParticipantToReject(null);
-            }}
-          >
-            Cancelar
-          </ModalSecondaryButton>
-          <ModalPrimaryButton
-            onClick={handleConfirmReject}
-            disabled={!rejectionReason.trim()}
-            variant="danger"
-          >
-            <UserX className="w-4 h-4" />
-            <span>Rejeitar</span>
-          </ModalPrimaryButton>
-        </ModalButtons>
-      </Modal>
     </div>
   );
 }
