@@ -15,18 +15,11 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 
 export default function AdminDashboard() {
   const { data: session, isPending } = useSession();
-  const router = useRouter();
 
-  useEffect(() => {
-    if (!isPending && !session) {
-      router.push("/login");
-    }
-  }, [session, isPending, router]);
+  // ProtectedProvider já faz a validação de permissões
 
   if (isPending) {
     return (

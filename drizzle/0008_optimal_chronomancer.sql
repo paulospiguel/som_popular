@@ -1,0 +1,1 @@
+ALTER TABLE `session` ADD `role` text DEFAULT 'operator' NOT NULL;

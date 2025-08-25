@@ -49,6 +49,7 @@ export const config = {
   matcher: [
     // páginas protegidas
     "/dashboard/:path*",
+    "/votacoes/:path*",
     "/settings/:path*",
     "/events/:path*",
     "/profile/:path*",
@@ -56,5 +57,6 @@ export const config = {
 
     // APIs privadas
     "/api/private/:path*",
+    "/actions/:path*", // Proteger server actions
   ],
 };

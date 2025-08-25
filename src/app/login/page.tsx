@@ -1,5 +1,6 @@
 "use client";
 
+import { ROLES } from "@/constants";
 import { signIn, useSession } from "@/lib/auth-client";
 import { Eye, EyeOff, Loader2, Lock, Mail, Music } from "lucide-react";
 import Link from "next/link";
@@ -12,12 +13,56 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const router = useRouter();
   const { data: session, isPending } = useSession();
 
   useEffect(() => {
     if (session?.user && !isPending) {
-      router.push("/dashboard");
+      console.log("Login page: Sessão completa:", session);
+      console.log("Login page: Dados do usuário:", session.user);
+      console.log("Login page: Role original:", session.user.role);
+
+      const userRole = session.user.role || ROLES.OPERATOR;
+      console.log("Login page: Role processado:", userRole);
+      console.log("Login page: ROLES.ADMIN:", ROLES.ADMIN);
+      console.log("Login page: ROLES.OPERATOR:", ROLES.OPERATOR);
+      console.log("Login page: É admin?", userRole === ROLES.ADMIN);
+      console.log("Login page: É operador?", userRole === ROLES.OPERATOR);
+
+      setRedirecting(true);
+
+      // Usar setTimeout para garantir que o redirecionamento aconteça
+      const redirectTimeout = setTimeout(() => {
+        console.log(
+          "Login page: Executando redirecionamento com role:",
+          userRole
+        );
+        if (userRole === ROLES.ADMIN) {
+          console.log("Login page: Redirecionando admin para dashboard");
+          router.push("/dashboard");
+        } else if (userRole === ROLES.OPERATOR) {
+          console.log("Login page: Redirecionando operador para votações");
+          router.push("/votacoes");
+        } else {
+          // Usuário sem role válido, manter na página de login
+          console.log("Login page: Usuário sem role válido:", userRole);
+          setRedirecting(false);
+        }
+      }, 1000); // Aumentar delay para 1 segundo para debugging
+
+      // Timeout adicional para mostrar botões manuais se redirecionamento falhar
+      const fallbackTimeout = setTimeout(() => {
+        console.log(
+          "Login page: Redirecionamento falhou, mostrando opções manuais"
+        );
+        setRedirecting(false);
+      }, 3000); // 3 segundos para fallback
+
+      return () => {
+        clearTimeout(redirectTimeout);
+        clearTimeout(fallbackTimeout);
+      };
     }
   }, [session, isPending, router]);
 
@@ -33,7 +78,56 @@ export default function LoginPage() {
   }
 
   if (session?.user) {
-    return null;
+    const userRole = session.user.role || ROLES.OPERATOR;
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-bege-claro via-verde-muito-suave to-dourado-muito-claro flex items-center justify-center">
+        <div className="text-center bg-white p-8 rounded-lg shadow-sm max-w-md w-full mx-4">
+          {redirecting ? (
+            <>
+              <Loader2 className="animate-spin w-8 h-8 text-verde-suave mx-auto mb-4" />
+              <p className="text-cinza-chumbo mb-4">A redirecionar...</p>
+              <p className="text-sm text-cinza-chumbo/70">
+                Se não for redirecionado automaticamente, clique no botão
+                abaixo:
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-cinza-chumbo mb-4">
+                Você está logado como{" "}
+                {userRole === ROLES.ADMIN ? "Administrador" : "Operador"}
+              </p>
+              <p className="text-xs text-gray-500 mb-2">
+                Role detectado: {userRole}
+              </p>
+              <p className="text-sm text-cinza-chumbo/70 mb-6">
+                Clique no botão abaixo para continuar:
+              </p>
+            </>
+          )}
+
+          <div className="space-y-3 mt-6">
+            {userRole === ROLES.ADMIN && (
+              <button
+                onClick={() => router.push("/dashboard")}
+                className="w-full bg-verde-suave text-white px-4 py-2 rounded-lg hover:bg-verde-suave/90 transition-colors"
+              >
+                Ir para Dashboard
+              </button>
+            )}
+            {(userRole === ROLES.ADMIN || userRole === ROLES.OPERATOR) && (
+              <button
+                onClick={() => router.push("/votacoes")}
+                className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Ir para Votações
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,7 +146,11 @@ export default function LoginPage() {
       if (result.error) {
         setError("Email ou password incorretos");
       } else {
-        router.push("/dashboard");
+        // Depois do login bem-sucedido, redirecionar baseado no role
+        // O useEffect acima vai lidar com o redirecionamento quando a sessão for atualizada
+        console.log(
+          "Login bem-sucedido, aguardando redirecionamento automático"
+        );
       }
     } catch (err) {
       setError("Erro ao fazer login. Tenta novamente.");

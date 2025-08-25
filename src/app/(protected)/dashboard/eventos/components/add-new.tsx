@@ -1,5 +1,6 @@
 "use client";
 
+import { createEvent } from "@/actions/events";
 import { Modal } from "@/components/Modal";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -26,14 +27,7 @@ const eventSchema = z.object({
     "workshop",
     "masterclass",
   ]),
-  category: z.enum([
-    "fado",
-    "guitarra",
-    "cavaquinho",
-    "concertina",
-    "viola",
-    "cante",
-  ]),
+  category: z.enum(["pop", "rock", "sertanejo", "samba", "forró", "livre"]),
   location: z.string().min(3, "Local é obrigatório"),
   maxParticipants: z.number().min(1).optional(),
   startDate: z.date(),
@@ -100,20 +94,23 @@ const AddEventModal = ({
       try {
         const validatedData = eventSchema.parse(value);
 
-        const newEvent = {
+        const result = await createEvent({
           ...validatedData,
-          id: Date.now().toString(),
           currentParticipants: 0,
           status: "draft",
           createdBy: "admin", // TODO: pegar do contexto de autenticação
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        } as Event;
+        });
 
-        onEventAdded(newEvent);
-        form.reset();
+        if (result.success && result.data) {
+          onEventAdded(result.data);
+          form.reset();
+          alert("Evento criado com sucesso!");
+        } else {
+          alert(result.error || "Erro ao criar evento");
+        }
       } catch (error) {
         console.error("Erro ao criar evento:", error);
+        alert("Erro ao criar evento");
       } finally {
         setIsSubmitting(false);
       }

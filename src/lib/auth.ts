@@ -1,10 +1,13 @@
+import { ROLES } from "@/constants";
 import { db } from "@/db";
 import * as schema from "@/db/auth-schema";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
+import { admin as adminPlugin } from "better-auth/plugins";
 import { sendEmail } from "./mailer/resend";
 import ResetPasswordTemplate from "./mailer/templates/reset-password";
+import { ac, admin, operator } from "./permissions";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -27,6 +30,16 @@ export const auth = betterAuth({
       });
     },
   },
-  plugins: [nextCookies()],
+  plugins: [nextCookies(), adminPlugin({ ac, roles: { admin, operator } })],
   hooks: {},
+  user: {
+    additionalFields: {
+      role: {
+        type: "string",
+        required: false,
+        defaultValue: ROLES.OPERATOR,
+        input: false,
+      },
+    },
+  },
 });

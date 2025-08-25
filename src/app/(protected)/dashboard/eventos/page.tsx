@@ -1,7 +1,8 @@
 "use client";
 
+import { getEvents } from "@/actions/events";
 import { DataTable } from "@/components/DataTable";
-import { Loading } from "@/components/loading";
+import Loading from "@/components/loading";
 import { Event } from "@/db/schema";
 import { useSession } from "@/lib/auth-client";
 import {
@@ -14,7 +15,6 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import AddEventModal from "./components/add-new";
 import EventDetailsModal from "./components/event-detail";
@@ -25,73 +25,34 @@ import {
   getTypeText,
 } from "./utils";
 
-// Mock data para demonstração
-const mockEvents: Event[] = [
-  {
-    id: "1",
-    name: "Concurso de Fado - Classificatória",
-    description: "Primeira fase do concurso de fado tradicional",
-    type: "classificatoria",
-    category: "fado",
-    location: "Auditório Municipal",
-    maxParticipants: 50,
-    currentParticipants: 23,
-    startDate: new Date("2024-03-15T19:00:00"),
-    endDate: new Date("2024-03-15T22:00:00"),
-    registrationStartDate: new Date("2024-02-01T00:00:00"),
-    registrationEndDate: new Date("2024-03-10T23:59:59"),
-    status: "published",
-    isPublic: true,
-    requiresApproval: false,
-    rules: "Regulamento do concurso de fado",
-    prizes: JSON.stringify({
-      first: "500€ + Troféu",
-      second: "300€ + Medalha",
-      third: "200€ + Medalha",
-    }),
-    notes: "",
-    createdBy: "admin",
-    createdAt: new Date("2024-01-15T10:00:00"),
-    updatedAt: new Date("2024-01-15T10:00:00"),
-  },
-  {
-    id: "2",
-    name: "Festival de Guitarra Portuguesa",
-    description: "Evento dedicado à guitarra portuguesa",
-    type: "final",
-    category: "guitarra",
-    location: "Teatro Municipal",
-    maxParticipants: 30,
-    currentParticipants: 15,
-    startDate: new Date("2024-04-20T20:00:00"),
-    endDate: new Date("2024-04-20T23:00:00"),
-    registrationStartDate: new Date("2024-03-01T00:00:00"),
-    registrationEndDate: new Date("2024-04-15T23:59:59"),
-    status: "draft",
-    isPublic: false,
-    requiresApproval: true,
-    rules: "Regulamento específico para guitarra",
-    prizes: null,
-    notes: "Evento em preparação",
-    createdBy: "admin",
-    createdAt: new Date("2024-02-01T14:30:00"),
-    updatedAt: new Date("2024-02-01T14:30:00"),
-  },
-];
-
 export default function EventsPage() {
   const { data: session, isPending } = useSession();
-  const router = useRouter();
-  const [events, setEvents] = useState<Event[]>(mockEvents);
+  const [events, setEvents] = useState<Event[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isPending && !session) {
-      router.push("/login");
+    // ProtectedProvider já faz a validação de permissões
+    if (!isPending && session) {
+      loadEvents();
     }
-  }, [session, isPending, router]);
+  }, [session, isPending]);
+
+  const loadEvents = async () => {
+    setLoading(true);
+    try {
+      const result = await getEvents();
+      if (result.success && result.data) {
+        setEvents(result.data);
+      }
+    } catch (error) {
+      console.error("Erro ao carregar eventos:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const columns = [
     {
@@ -200,8 +161,8 @@ export default function EventsPage() {
     completed: events.filter((e) => e.status === "completed").length,
   };
 
-  if (isPending) {
-    return <Loading isLoading={isPending} />;
+  if (isPending || loading) {
+    return <Loading />;
   }
 
   return (
@@ -333,8 +294,8 @@ export default function EventsPage() {
       <AddEventModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
-        onEventAdded={(newEvent) => {
-          setEvents([...events, newEvent]);
+        onEventAdded={() => {
+          loadEvents(); // Recarregar eventos após adicionar
           setShowAddModal(false);
         }}
       />
@@ -346,10 +307,8 @@ export default function EventsPage() {
           setSelectedEvent(null);
         }}
         event={selectedEvent}
-        onEventUpdated={(updatedEvent) => {
-          setEvents(
-            events.map((e) => (e.id === updatedEvent.id ? updatedEvent : e))
-          );
+        onEventUpdated={() => {
+          loadEvents(); // Recarregar eventos após atualizar
         }}
       />
     </div>

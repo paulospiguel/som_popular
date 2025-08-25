@@ -1,7 +1,7 @@
 "use client";
 
 import { DataTable } from "@/components/DataTable";
-import { Loading } from "@/components/loading";
+import Loading from "@/components/loading";
 import { Participant } from "@/db/schema";
 import { useSession } from "@/lib/auth-client";
 import {
@@ -15,8 +15,7 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import AddParticipantModal from "./components/add-new";
 import ParticipantDetailsModal from "./components/participant-detail";
 import {
@@ -104,29 +103,14 @@ const mockParticipants = [
 ];
 
 export default function ParticipantsManagement() {
-  const { data: session, isPending } = useSession();
-  const router = useRouter();
+  const { isPending } = useSession();
   const [participants, setParticipants] =
     useState<Partial<Participant>[]>(mockParticipants);
   const [showModal, setShowModal] = useState(false);
   const [selectedParticipant, setSelectedParticipant] = useState<any>(null);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [rejectionReason, setRejectionReason] = useState("");
-  const [participantToReject, setParticipantToReject] = useState<any>(null);
 
-  useEffect(() => {
-    if (!isPending && !session) {
-      router.push("/login");
-    }
-  }, [session, isPending, router]);
-
-  const handleApprove = (participantId: string) => {
-    setParticipants((prev) =>
-      prev.map((p) =>
-        p.id === participantId ? { ...p, status: "approved" } : p
-      )
-    );
-  };
+  // ProtectedProvider já faz a validação de permissões
 
   const handleArchiveParticipant = (id: string) => {
     setParticipants((prev) =>
@@ -245,7 +229,7 @@ export default function ParticipantsManagement() {
   };
 
   if (isPending) {
-    return <Loading isLoading={isPending} />;
+    return <Loading />;
   }
 
   return (
@@ -405,7 +389,7 @@ export default function ParticipantsManagement() {
       {/* Modal de Adicionar Participante */}
       {showAddModal && (
         <AddParticipantModal
-          setParticipant={(participant: any) => {
+          setParticipant={(participant: Participant) => {
             setParticipants([...participants, participant]);
           }}
           isOpen={showAddModal}

@@ -62,6 +62,39 @@ export const participants = sqliteTable("participants", {
 });
 
 /**
+ * Tabela de jurados do festival
+ */
+export const judges = sqliteTable("judges", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  name: text("name").notNull(),
+  description: text("description"), // especialidade ou área de conhecimento
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  notes: text("notes"),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+    () => new Date()
+  ),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
+    () => new Date()
+  ),
+});
+
+/**
+ * Tabela de associação de jurados com eventos
+ */
+export const eventJudges = sqliteTable("event_judges", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  eventId: text("event_id").notNull(),
+  judgeId: text("judge_id").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+    () => new Date()
+  ),
+});
+
+/**
  * Tabela de eventos do festival
  */
 export const events = sqliteTable("events", {
@@ -77,11 +110,15 @@ export const events = sqliteTable("events", {
   currentParticipants: integer("current_participants").notNull().default(0),
   startDate: integer("start_date", { mode: "timestamp" }).notNull(),
   endDate: integer("end_date", { mode: "timestamp" }),
-  registrationStartDate: integer("registration_start_date", { mode: "timestamp" }),
+  registrationStartDate: integer("registration_start_date", {
+    mode: "timestamp",
+  }),
   registrationEndDate: integer("registration_end_date", { mode: "timestamp" }),
   status: text("status").notNull().default("draft"), // 'draft', 'published', 'ongoing', 'completed', 'cancelled'
   isPublic: integer("is_public", { mode: "boolean" }).notNull().default(true),
-  requiresApproval: integer("requires_approval", { mode: "boolean" }).notNull().default(false),
+  requiresApproval: integer("requires_approval", { mode: "boolean" })
+    .notNull()
+    .default(false),
   rules: text("rules"),
   prizes: text("prizes"), // JSON string com informações dos prémios
   notes: text("notes"),
@@ -104,20 +141,70 @@ export const eventRegistrations = sqliteTable("event_registrations", {
   eventId: text("event_id").notNull(),
   participantId: text("participant_id").notNull(),
   status: text("status").notNull().default("registered"), // 'registered', 'confirmed', 'cancelled', 'no_show'
-  registrationDate: integer("registration_date", { mode: "timestamp" }).$defaultFn(
-    () => new Date()
-  ),
+  registrationDate: integer("registration_date", {
+    mode: "timestamp",
+  }).$defaultFn(() => new Date()),
   notes: text("notes"),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
     () => new Date()
   ),
 });
 
+/**
+ * Tabela de avaliações dos participantes nos eventos
+ */
+export const eventEvaluations = sqliteTable("event_evaluations", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  eventId: text("event_id").notNull(),
+  participantId: text("participant_id").notNull(),
+  judgeId: text("judge_id").notNull(), // ID do jurado (da tabela judges)
+  operatorId: text("operator_id").notNull(), // ID do operador que inseriu a nota
+  score: integer("score").notNull(), // Nota de 0 a 100
+  notes: text("notes"), // Observações do juiz
+  criteria: text("criteria"), // JSON com critérios específicos avaliados
+  isPublished: integer("is_published", { mode: "boolean" })
+    .notNull()
+    .default(false),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+    () => new Date()
+  ),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
+    () => new Date()
+  ),
+});
+
+/**
+ * Tabela de sessões de avaliação ativas
+ */
+export const evaluationSessions = sqliteTable("evaluation_sessions", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  eventId: text("event_id").notNull(),
+  judgeId: text("judge_id").notNull(),
+  currentParticipantId: text("current_participant_id"),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  startedAt: integer("started_at", { mode: "timestamp" }).$defaultFn(
+    () => new Date()
+  ),
+  endedAt: integer("ended_at", { mode: "timestamp" }),
+});
+
 export type SystemLog = typeof systemLogs.$inferSelect;
 export type NewSystemLog = typeof systemLogs.$inferInsert;
 export type Participant = typeof participants.$inferSelect;
 export type NewParticipant = typeof participants.$inferInsert;
+export type Judge = typeof judges.$inferSelect;
+export type NewJudge = typeof judges.$inferInsert;
+export type EventJudge = typeof eventJudges.$inferSelect;
+export type NewEventJudge = typeof eventJudges.$inferInsert;
 export type Event = typeof events.$inferSelect;
 export type NewEvent = typeof events.$inferInsert;
 export type EventRegistration = typeof eventRegistrations.$inferSelect;
 export type NewEventRegistration = typeof eventRegistrations.$inferInsert;
+export type EventEvaluation = typeof eventEvaluations.$inferSelect;
+export type NewEventEvaluation = typeof eventEvaluations.$inferInsert;
+export type EvaluationSession = typeof evaluationSessions.$inferSelect;
+export type NewEvaluationSession = typeof evaluationSessions.$inferInsert;
