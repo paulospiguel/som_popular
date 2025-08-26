@@ -1,8 +1,8 @@
 "use server";
 
-import { db } from "@/db";
-import { events, type Event, type NewEvent } from "@/db/schema";
-import { requireAdmin } from "@/lib/action-guards";
+import { db } from "@/database";
+import { events, type Event, type NewEvent } from "@/database/schema";
+import { checkAdminAccess } from "@/lib/auth-guards";
 import { desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
@@ -14,7 +14,7 @@ export async function createEvent(
 ) {
   try {
     // Verificar permissões de admin
-    const { user } = await requireAdmin();
+    const { user } = await checkAdminAccess();
 
     const [event] = await db
       .insert(events)
@@ -122,7 +122,7 @@ export async function getActiveEvents() {
 export async function publishEvent(id: string, publishedBy: string) {
   try {
     // Verificar permissões de admin
-    await requireAdmin();
+    await checkAdminAccess();
 
     // Verificar se o evento existe e está em rascunho
     const [existingEvent] = await db
@@ -173,7 +173,7 @@ export async function publishEvent(id: string, publishedBy: string) {
 export async function startEvent(id: string, startedBy: string) {
   try {
     // Verificar permissões de admin
-    await requireAdmin();
+    await checkAdminAccess();
 
     // Verificar se o evento existe e está publicado
     const [existingEvent] = await db

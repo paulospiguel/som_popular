@@ -1,7 +1,7 @@
 "use server";
 
-import { db } from "@/db";
-import { eventJudges, events, judges, participants } from "@/db/schema";
+import { db } from "@/database";
+import { eventJudges, events, judges, participants } from "@/database/schema";
 
 /**
  * Criar dados de exemplo para teste do sistema de votação

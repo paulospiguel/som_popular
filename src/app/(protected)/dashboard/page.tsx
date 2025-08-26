@@ -142,9 +142,9 @@ export default function AdminDashboard() {
             </div>
           </Link>
 
-          {/* Sistema de Classificações */}
+          {/* Sistema de Votações */}
           <Link
-            href="/dashboard/classificacoes"
+            href="/votacoes"
             className="festival-card p-6 hover:scale-105 transition-all hover:shadow-lg group"
           >
             <div className="flex items-center space-x-4">
@@ -153,10 +153,10 @@ export default function AdminDashboard() {
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold text-cinza-chumbo mb-1">
-                  Sistema de Classificações
+                  Sistema de Votações
                 </h3>
                 <p className="text-sm text-cinza-chumbo/70">
-                  Avaliar e gerir pontuações
+                  Avaliar e gerir votos
                 </p>
               </div>
             </div>

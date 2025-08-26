@@ -1,8 +1,9 @@
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 
-const dbPath = process.env.DATABASE_URL?.replace("file:", "") ?? "./sqlite.db";
-const sqlite = new Database(dbPath);
+const sqlite = new Database(
+  process.env.DATABASE_URL?.replace("file:", "") ?? "./sqlite.db"
+);
 
 const logger = process.env.NODE_ENV === "development";
 

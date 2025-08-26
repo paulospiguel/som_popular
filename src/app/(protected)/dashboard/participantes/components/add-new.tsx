@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Participant } from "@/db/schema";
+import { Participant } from "@/database/schema";
 import { cn } from "@/lib/utils";
 import { participantSchema } from "@/schemas/participant";
 import { Updater, useForm } from "@tanstack/react-form";

@@ -10,9 +10,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Event } from "@/db/schema";
+import { useToast } from "@/components/ui/toast";
+import { Event } from "@/database/schema";
 import { Updater, useForm } from "@tanstack/react-form";
-import { Calendar, Plus } from "lucide-react";
+import { Award, Calendar, Plus, Upload } from "lucide-react";
 import { useState } from "react";
 import z from "zod";
 
@@ -36,7 +37,9 @@ const eventSchema = z.object({
   registrationEndDate: z.date().optional(),
   isPublic: z.boolean(),
   requiresApproval: z.boolean(),
+  approvalMode: z.enum(["automatic", "manual"]),
   rules: z.string().optional(),
+  rulesFile: z.any().optional(),
   prizes: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -50,12 +53,36 @@ const eventTypes = [
 ] as const;
 
 const eventCategories = [
-  { label: "Fado", value: "fado" },
-  { label: "Guitarra Portuguesa", value: "guitarra" },
-  { label: "Cavaquinho", value: "cavaquinho" },
-  { label: "Concertina", value: "concertina" },
-  { label: "Viola Campaniça", value: "viola" },
-  { label: "Cante Alentejano", value: "cante" },
+  { label: "Rock", value: "rock" },
+  { label: "Pop", value: "pop" },
+  { label: "Sertanejo", value: "sertanejo" },
+  { label: "Samba", value: "samba" },
+  { label: "Forró", value: "forró" },
+  { label: "Livre", value: "livre" },
+] as const;
+
+const approvalModes = [
+  {
+    label: "Automática",
+    value: "automatic",
+    description: "Participantes são aprovados automaticamente",
+  },
+  {
+    label: "Revisada",
+    value: "manual",
+    description: "Participantes precisam ser aprovados manualmente",
+  },
+] as const;
+
+const prizeIcons = [
+  { label: "🏆 Troféu", value: "trophy" },
+  { label: "🥇 Medalha de Ouro", value: "gold" },
+  { label: "🥈 Medalha de Prata", value: "silver" },
+  { label: "🥉 Medalha de Bronze", value: "bronze" },
+  { label: "💰 Dinheiro", value: "money" },
+  { label: "🎵 Instrumento", value: "instrument" },
+  { label: "🎤 Microfone", value: "microphone" },
+  { label: "🎸 Guitarra", value: "guitar" },
 ] as const;
 
 interface AddEventModalProps {
@@ -69,6 +96,7 @@ const AddEventModal = ({
   onClose,
   onEventAdded,
 }: AddEventModalProps) => {
+  const { showToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm({
@@ -85,7 +113,9 @@ const AddEventModal = ({
       registrationEndDate: undefined as Date | undefined,
       isPublic: true,
       requiresApproval: false,
+      approvalMode: "automatic" as const,
       rules: "",
+      rulesFile: undefined,
       prizes: "",
       notes: "",
     },
@@ -104,13 +134,26 @@ const AddEventModal = ({
         if (result.success && result.data) {
           onEventAdded(result.data);
           form.reset();
-          alert("Evento criado com sucesso!");
+          onClose();
+          showToast({
+            type: "success",
+            title: "Sucesso!",
+            description: "Evento criado com sucesso!",
+          });
         } else {
-          alert(result.error || "Erro ao criar evento");
+          showToast({
+            type: "error",
+            title: "Erro",
+            description: result.error || "Erro ao criar evento",
+          });
         }
       } catch (error) {
         console.error("Erro ao criar evento:", error);
-        alert("Erro ao criar evento");
+        showToast({
+          type: "error",
+          title: "Erro",
+          description: "Erro ao criar evento",
+        });
       } finally {
         setIsSubmitting(false);
       }
@@ -243,7 +286,7 @@ const AddEventModal = ({
               children={(field) => (
                 <div>
                   <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                    Categoria *
+                    Modalidade *
                   </label>
                   <Select
                     value={field.state.value}
@@ -252,7 +295,7 @@ const AddEventModal = ({
                     }
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Selecione a categoria" />
+                      <SelectValue placeholder="Selecione a modalidade" />
                     </SelectTrigger>
                     <SelectContent>
                       {eventCategories.map((category) => (
@@ -530,6 +573,53 @@ const AddEventModal = ({
                 </div>
               )}
             />
+
+            {/* Modalidade de Aprovação */}
+            {form.state.values.requiresApproval && (
+              <form.Field
+                name="approvalMode"
+                validators={{
+                  onChange: (value) => {
+                    try {
+                      eventSchema.shape.approvalMode.parse(value.value);
+                      return undefined;
+                    } catch (error) {
+                      return (error as z.ZodError).issues[0].message;
+                    }
+                  },
+                }}
+                children={(field) => (
+                  <div className="ml-6">
+                    <label className="block text-sm font-medium text-cinza-chumbo mb-2">
+                      Modalidade de Aprovação
+                    </label>
+                    <Select
+                      value={field.state.value}
+                      onValueChange={(value) =>
+                        field.handleChange(value as any)
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecione a modalidade" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {approvalModes.map((mode) => (
+                          <SelectItem key={mode.value} value={mode.value}>
+                            <div>
+                              <div className="font-medium">{mode.label}</div>
+                              <div className="text-xs text-gray-500">
+                                {mode.description}
+                              </div>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FieldError field={field} />
+                  </div>
+                )}
+              />
+            )}
           </div>
         </div>
 
@@ -548,6 +638,37 @@ const AddEventModal = ({
                   <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                     Regulamento
                   </label>
+
+                  {/* Botão de importar arquivo */}
+                  <div className="mb-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const input = document.createElement("input");
+                        input.type = "file";
+                        input.accept = ".pdf,.txt,.doc,.docx";
+                        input.onchange = (e) => {
+                          const file = (e.target as HTMLInputElement)
+                            .files?.[0];
+                          if (file) {
+                            // Aqui você pode implementar a lógica para ler o arquivo
+                            // Por enquanto, vamos apenas mostrar o nome do arquivo
+                            showToast({
+                              type: "success",
+                              title: "Arquivo selecionado",
+                              description: `Arquivo "${file.name}" selecionado. Implementar leitura do conteúdo.`,
+                            });
+                          }
+                        };
+                        input.click();
+                      }}
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      Importar Arquivo (PDF, TXT, Word)
+                    </button>
+                  </div>
+
                   <textarea
                     value={field.state.value || ""}
                     onChange={(e) => field.handleChange(e.target.value)}
@@ -569,6 +690,8 @@ const AddEventModal = ({
                   <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                     Prémios
                   </label>
+
+                  {/* Campo de texto para prêmios */}
                   <textarea
                     value={field.state.value || ""}
                     onChange={(e) => field.handleChange(e.target.value)}
@@ -577,6 +700,30 @@ const AddEventModal = ({
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-verde-suave focus:border-transparent transition-colors resize-none"
                     placeholder="Ex: 1º Lugar: 500€ + Troféu\n2º Lugar: 300€ + Medalha\n3º Lugar: 200€ + Medalha"
                   />
+
+                  {/* Exemplo de como os prêmios aparecerão como badges */}
+                  {field.state.value && (
+                    <div className="mt-3">
+                      <label className="block text-xs font-medium text-gray-600 mb-2">
+                        Visualização dos prêmios:
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {field.state.value
+                          .split("\n")
+                          .filter((line) => line.trim())
+                          .map((line, index) => (
+                            <div
+                              key={index}
+                              className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                            >
+                              <Award className="w-4 h-4 mr-2" />
+                              {line.trim()}
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
                   <FieldError field={field} />
                 </div>
               )}

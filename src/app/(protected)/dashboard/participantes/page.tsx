@@ -2,7 +2,7 @@
 
 import { DataTable } from "@/components/DataTable";
 import Loading from "@/components/loading";
-import { Participant } from "@/db/schema";
+import { Participant } from "@/database/schema";
 import { useSession } from "@/lib/auth-client";
 import {
   ArrowLeft,

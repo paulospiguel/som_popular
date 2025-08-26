@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Baloo_2, Inter, Roboto, Roboto_Slab, Rye } from "next/font/google";
+import { Toaster } from "sonner";
 import "../styles/globals.css";
 
 const inter = Inter({
@@ -54,7 +55,10 @@ export default function RootLayout({
       lang="pt-PT"
       className={`${inter.className} ${rye.className} ${baloo2.className} ${robotoSlab.className} ${roboto.className}`}
     >
-      <body className="antialiased festival-text min-h-screen">{children}</body>
+      <body className="antialiased festival-text min-h-screen">
+        <Toaster />
+        {children}
+      </body>
     </html>
   );
 }

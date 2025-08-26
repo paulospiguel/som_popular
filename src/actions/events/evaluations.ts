@@ -1,6 +1,6 @@
 "use server";
 
-import { db } from "@/db";
+import { db } from "@/database";
 import {
   evaluationSessions,
   eventEvaluations,
@@ -9,7 +9,7 @@ import {
   participants,
   type NewEvaluationSession,
   type NewEventEvaluation,
-} from "@/db/schema";
+} from "@/database/schema";
 import { requireOperatorOrAdmin } from "@/lib/action-guards";
 import { and, desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";

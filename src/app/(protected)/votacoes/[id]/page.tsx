@@ -25,6 +25,13 @@ import {
   publishEventResults,
 } from "@/actions/events/evaluations";
 import { getEventJudges } from "@/actions/judges";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ROLES } from "@/constants";
 
 interface Judge {
@@ -489,19 +496,21 @@ export default function VotacaoEventoPage() {
                       <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                         Selecionar Jurado:
                       </label>
-                      <select
+                      <Select
                         value={selectedJudge}
-                        onChange={(e) => setSelectedJudge(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-verde-suave focus:border-transparent"
+                        onValueChange={(value) => setSelectedJudge(value)}
                       >
-                        <option value="">Escolha um jurado...</option>
-                        {getAvailableJudges().map((judge) => (
-                          <option key={judge.id} value={judge.id}>
-                            {judge.name}
-                            {judge.description && ` - ${judge.description}`}
-                          </option>
-                        ))}
-                      </select>
+                        <SelectTrigger className="w-full min-h-12">
+                          <SelectValue placeholder="Escolha um jurado..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {getAvailableJudges().map((judge) => (
+                            <SelectItem key={judge.id} value={judge.id}>
+                              {judge.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     {/* Nota */}

@@ -1,7 +1,7 @@
 "use server";
 
-import { db } from "@/db";
-import { eventJudges, judges, type NewJudge } from "@/db/schema";
+import { db } from "@/database";
+import { eventJudges, judges, type NewJudge } from "@/database/schema";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 

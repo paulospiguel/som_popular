@@ -60,14 +60,17 @@ export function formatEventTime(date: Date): string {
 }
 
 export function isEventActive(event: any): boolean {
-  const now = new Date();
-  return event.startDate <= now && (!event.endDate || event.endDate >= now);
+  return event.status === "ongoing";
 }
 
 export function isRegistrationOpen(event: any): boolean {
   const now = new Date();
   const registrationStart = event.registrationStartDate || event.createdAt;
   const registrationEnd = event.registrationEndDate || event.startDate;
-  
-  return registrationStart <= now && registrationEnd >= now && event.status === "published";
+
+  return (
+    registrationStart <= now &&
+    registrationEnd >= now &&
+    event.status === "published"
+  );
 }

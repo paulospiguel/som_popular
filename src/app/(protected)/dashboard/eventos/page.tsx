@@ -3,7 +3,7 @@
 import { getEvents } from "@/actions/events";
 import { DataTable } from "@/components/DataTable";
 import Loading from "@/components/loading";
-import { Event } from "@/db/schema";
+import { Event } from "@/database/schema";
 import { useSession } from "@/lib/auth-client";
 import {
   ArrowLeft,
