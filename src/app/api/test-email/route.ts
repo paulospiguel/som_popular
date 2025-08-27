@@ -18,7 +18,7 @@ export async function GET() {
     const result = await sendResetPasswordEmail({
       to: "paulospil@hotmail.com",
       name: "Utilizador Teste",
-      resetUrl: "http://localhost:3000/reset-password?token=teste123",
+      resetUrl: "http://localhost:3000/auth/reset-password?token=teste123",
     });
 
     console.log("✅ Resultado do teste:", result);

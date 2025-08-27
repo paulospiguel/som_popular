@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import EventsSection from "@/components/EventsSection";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 
@@ -26,18 +27,26 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
             {/* Botão principal - Dourado */}
             <Link
-              href="/inscricoes"
+              href="/register-participant"
               className="festival-button text-lg px-10 py-4 font-semibold"
             >
-              🎤 Inscrever-me Agora
+              🎤 Ser Participante
             </Link>
 
             {/* Botão secundário - Verde */}
             <Link
+              href="/#eventos"
+              className="festival-button-secondary text-lg px-10 py-4 font-semibold"
+            >
+              📋 Ver Eventos
+            </Link>
+
+            {/* Botão terciário - Rankings */}
+            <Link
               href="/ranking"
               className="festival-button-secondary text-lg px-10 py-4 font-semibold"
             >
-              📊 Ver Ranking
+              📊 Ver Rankings
             </Link>
           </div>
 
@@ -100,6 +109,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Seção de Eventos */}
+      <EventsSection />
 
       {/* Seção de Apoiadores com Marquee Elegante */}
       <section className="py-16 px-6 bg-gradient-to-r from-bege-claro/30 to-verde-suave/5">

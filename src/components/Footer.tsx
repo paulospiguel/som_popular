@@ -8,46 +8,50 @@ export default function Footer() {
         title: "Participantes",
         links: [
           {
-            name: "Fazer Inscrição",
-            href: "/inscricoes",
+            name: "Ser Participante",
+            href: "/register-participant",
           },
           {
-            name: "Ver Ranking",
+            name: "Ver Eventos",
+            href: "/#eventos",
+          },
+          {
+            name: "Consultar Inscrição",
+            href: "/consulta-inscricao",
+          },
+          {
+            name: "Ver Rankings",
             href: "/ranking",
-          },
-          {
-            name: "Regulamento",
-            href: "/regulamento",
           },
         ],
       },
     ],
     informations: [
       {
-        title: "Informações",
+        title: "Festival",
         links: [
           {
-            name: "Como Funciona",
-            href: "/#sobre",
+            name: "Sobre o Festival",
+            href: "/#about",
           },
           {
-            name: "Fases do Festival",
-            href: "/fases",
+            name: "Eventos Atuais",
+            href: "/#eventos",
           },
           {
-            name: "Premiação",
-            href: "/premiacao",
+            name: "Apoiadores",
+            href: "/#apoiadores",
           },
         ],
       },
     ],
     utilities: [
       {
-        title: "Utilitários",
+        title: "Suporte",
         links: [
           {
-            name: "Contato",
-            href: "/contato",
+            name: "Ajuda",
+            href: "/ajuda",
           },
           // {
           //   name: "WhatsApp",
@@ -59,7 +63,7 @@ export default function Footer() {
           // },
           // {
           //   name: "Dashboard (Admin)",
-          //   href: "/login",
+          //   href: "/auth/login",
           // },
         ],
       },

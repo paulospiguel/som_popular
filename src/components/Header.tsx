@@ -38,13 +38,13 @@ export default function Header({ transparent = false }: HeaderProps) {
           {/* Navegação Desktop */}
           <nav className="hidden md:flex space-x-6 items-center">
             <Link
-              href="/#sobre"
+              href="/#about"
               className="text-neve hover:text-dourado transition-colors font-medium"
             >
               Sobre
             </Link>
             <Link
-              href="/#regulamento"
+              href="/#rules"
               className="text-neve hover:text-dourado transition-colors font-medium"
             >
               Regulamento
@@ -53,13 +53,13 @@ export default function Header({ transparent = false }: HeaderProps) {
               href="/ranking"
               className="text-neve hover:text-dourado transition-colors font-medium"
             >
-              Ranking
+              Classificação
             </Link>
             <Link
-              href="/inscricoes"
+              href="/register-participant"
               className="festival-button-secondary px-4 py-2 text-sm"
             >
-              Inscrever-me
+              Ser Participante
             </Link>
           </nav>
 

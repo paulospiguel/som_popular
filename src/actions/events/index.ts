@@ -119,7 +119,7 @@ export async function getActiveEvents() {
 /**
  * Publicar evento (alterar status de draft para published)
  */
-export async function publishEvent(id: string, publishedBy: string) {
+export async function publishEvent(id: string, _publishedBy: string) {
   try {
     // Verificar permissões de admin
     await checkAdminAccess();
@@ -170,7 +170,7 @@ export async function publishEvent(id: string, publishedBy: string) {
 /**
  * Colocar evento em curso (alterar status para ongoing)
  */
-export async function startEvent(id: string, startedBy: string) {
+export async function startEvent(id: string, _startedBy: string) {
   try {
     // Verificar permissões de admin
     await checkAdminAccess();
@@ -221,7 +221,7 @@ export async function startEvent(id: string, startedBy: string) {
 /**
  * Concluir evento (alterar status para completed)
  */
-export async function completeEvent(id: string, completedBy: string) {
+export async function completeEvent(id: string, _completedBy: string) {
   try {
     // Verificar se o evento existe e está em curso
     const [existingEvent] = await db
@@ -269,7 +269,7 @@ export async function completeEvent(id: string, completedBy: string) {
  */
 export async function cancelEvent(
   id: string,
-  cancelledBy: string,
+  _cancelledBy: string,
   reason?: string
 ) {
   try {
@@ -320,7 +320,7 @@ export async function cancelEvent(
 /**
  * Voltar evento para rascunho
  */
-export async function revertToDraft(id: string, revertedBy: string) {
+export async function revertToDraft(id: string, _revertedBy: string) {
   try {
     // Verificar se o evento existe
     const [existingEvent] = await db

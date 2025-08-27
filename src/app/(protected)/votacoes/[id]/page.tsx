@@ -107,13 +107,13 @@ export default function VotacaoEventoPage() {
   useEffect(() => {
     // Verificar permissões de acesso
     if (!session) {
-      router.push("/login");
+      router.push("/auth/login");
       return;
     }
 
     const userRole = session?.user?.role || ROLES.OPERATOR;
     if (userRole !== ROLES.ADMIN && userRole !== ROLES.OPERATOR) {
-      router.push("/login");
+      router.push("/auth/login");
       return;
     }
 

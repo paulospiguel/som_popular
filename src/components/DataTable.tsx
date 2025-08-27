@@ -48,7 +48,7 @@ export function DataTable<T extends Record<string, any>>({
   maxHeight = "500px",
   showSearch = true,
   orderBy = [],
-  onArchive,
+  onArchive: _onArchive,
 }: DataTableProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
@@ -424,7 +424,7 @@ export function DataTable<T extends Record<string, any>>({
   );
 }
 
-export function useDataTable<T>(data: T[], itemsPerPage = 10) {
+export function useDataTable<T>(_data: T[], itemsPerPage = 10) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 

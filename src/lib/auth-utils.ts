@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 export async function checkEventModeAccess() {
   const session = await auth.api.getSession({ headers: await headers() }); // ✅
 
-  if (!session?.user) redirect("/login");
+  if (!session?.user) redirect("/auth/login");
 
   const userRole = (session.user as any).role ?? ROLES.OPERATOR; // se ainda não tipaste role
   if (userRole !== ROLES.ADMIN && userRole !== ROLES.OPERATOR)
@@ -20,7 +20,7 @@ export async function checkEventModeAccess() {
 export async function checkAdminAccess() {
   const session = await auth.api.getSession({ headers: await headers() }); // ✅
 
-  if (!session?.user) redirect("/login");
+  if (!session?.user) redirect("/auth/login");
 
   const userRole = (session.user as any).role ?? ROLES.OPERATOR;
   if (userRole !== ROLES.ADMIN) redirect("/dashboard");

@@ -1,27 +1,102 @@
 "use client";
 
+import { getDashboardStats } from "@/actions/dashboard";
+import LogsComponent from "@/components/dashboard/LogsComponent";
+import RecentActivityComponent from "@/components/dashboard/RecentActivity";
 import { useSession } from "@/lib/auth-client";
 import {
   AlertTriangle,
   BarChart3,
   Calendar,
-  FileText,
   Mail,
   Music,
   Settings,
   Shield,
   Trophy,
-  UserCheck,
   Users,
 } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+
+const CARDS = [
+  {
+    icon: Users,
+    color: "verde-suave",
+    title: "Gestão de Participantes",
+    description: "Aprovar, editar e gerir inscrições",
+    href: "/dashboard/participantes",
+  },
+  {
+    icon: Calendar,
+    color: "dourado-claro",
+    title: "Gestão de Eventos",
+    description: "Criar, editar e programar eventos",
+    href: "/dashboard/eventos",
+  },
+  {
+    icon: Trophy,
+    color: "amarelo-suave",
+    title: "Sistema de Votações",
+    description: "Avaliar e gerir votos",
+    href: "/votacoes",
+  },
+  {
+    icon: BarChart3,
+    color: "indigo-500",
+    title: "Relatórios e Estatísticas",
+    description: "Análises e dados do festival",
+    href: "/dashboard/reports",
+    disabled: true,
+  },
+  {
+    icon: Mail,
+    color: "blue-500",
+    title: "Comunicações",
+    description: "Enviar emails e notificações",
+    href: "/dashboard/notifications",
+    disabled: true,
+  },
+  {
+    icon: Settings,
+    color: "cinza-chumbo",
+    title: "Configurações do Sistema",
+    description: "Gerir definições gerais",
+    href: "/dashboard/settings",
+    disabled: true,
+  },
+];
 
 export default function AdminDashboard() {
   const { data: session, isPending } = useSession();
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // ProtectedProvider já faz a validação de permissões
+  const loadDashboardStats = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await getDashboardStats();
+      if (result.success && result.data) {
+        setStats(result.data);
+      } else {
+        setError(result.error || "Erro ao carregar estatísticas");
+      }
+    } catch (error) {
+      console.error("Erro ao carregar estatísticas:", error);
+      setError("Erro ao carregar estatísticas");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  if (isPending) {
+  useEffect(() => {
+    if (session) {
+      loadDashboardStats();
+    }
+  }, [session]);
+
+  if (isPending || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-bege-claro via-verde-muito-suave to-dourado-muito-claro flex items-center justify-center">
         <div className="text-center">
@@ -39,9 +114,9 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-bege-claro via-verde-muito-suave to-dourado-muito-claro">
+    <>
       {/* Conteúdo Principal */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 flex-1">
         {/* Boas-vindas Administrativas */}
         <div className="festival-card p-6 mb-8 border-l-4 border-verde-suave">
           <div className="flex items-center justify-between">
@@ -54,14 +129,47 @@ export default function AdminDashboard() {
                 Gere todos os aspetos do Festival Som Popular
               </p>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-cinza-chumbo/70">Última atualização</p>
-              <p className="font-semibold text-verde-suave">
-                {new Date().toLocaleDateString("pt-PT")}
-              </p>
+            <div className="flex items-center space-x-4">
+              <div className="text-right">
+                <p className="text-sm text-cinza-chumbo/70">
+                  Última atualização
+                </p>
+                <p className="font-semibold text-verde-suave">
+                  {new Date().toLocaleDateString("pt-PT")}
+                </p>
+              </div>
+              <button
+                onClick={loadDashboardStats}
+                disabled={loading}
+                className="p-2 bg-verde-suave/10 hover:bg-verde-suave/20 rounded-lg transition-colors disabled:opacity-50"
+                title="Atualizar estatísticas"
+              >
+                <BarChart3 className="w-5 h-5 text-verde-suave" />
+              </button>
             </div>
           </div>
         </div>
+
+        {/* Indicador de Erro */}
+        {error && (
+          <div className="festival-card p-4 mb-6 border-l-4 border-vermelho-suave bg-vermelho-suave/5">
+            <div className="flex items-center space-x-3">
+              <AlertTriangle className="w-5 h-5 text-vermelho-suave" />
+              <div className="flex-1">
+                <p className="text-sm text-cinza-chumbo font-medium">
+                  Erro ao carregar estatísticas
+                </p>
+                <p className="text-xs text-cinza-chumbo/70">{error}</p>
+              </div>
+              <button
+                onClick={loadDashboardStats}
+                className="px-3 py-1 bg-vermelho-suave/10 hover:bg-vermelho-suave/20 text-vermelho-suave text-xs rounded-lg transition-colors"
+              >
+                Tentar novamente
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Estatísticas Administrativas */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -70,8 +178,24 @@ export default function AdminDashboard() {
             <h3 className="font-semibold text-cinza-chumbo mb-1">
               Total Participantes
             </h3>
-            <p className="text-3xl font-bold text-verde-suave mb-1">156</p>
-            <p className="text-xs text-cinza-chumbo/70">+12 esta semana</p>
+            <p className="text-3xl font-bold text-verde-suave mb-1">
+              {loading ? (
+                <div className="w-8 h-8 border-2 border-verde-suave border-t-transparent rounded-full animate-spin mx-auto" />
+              ) : (
+                stats?.totalParticipants || 0
+              )}
+            </p>
+            <p className="text-xs text-cinza-chumbo/70">
+              {loading ? (
+                "Carregando..."
+              ) : stats?.newParticipantsThisWeek > 0 ? (
+                <span className="text-green-600">
+                  +{stats.newParticipantsThisWeek} esta semana
+                </span>
+              ) : (
+                <span className="text-gray-500">Nenhum novo esta semana</span>
+              )}
+            </p>
           </div>
 
           <div className="festival-card p-6 text-center hover:shadow-lg transition-shadow">
@@ -79,187 +203,118 @@ export default function AdminDashboard() {
             <h3 className="font-semibold text-cinza-chumbo mb-1">
               Eventos Ativos
             </h3>
-            <p className="text-3xl font-bold text-dourado-claro mb-1">8</p>
-            <p className="text-xs text-cinza-chumbo/70">3 pendentes</p>
+            <p className="text-3xl font-bold text-dourado-claro mb-1">
+              {loading ? (
+                <div className="w-8 h-8 border-2 border-dourado-claro border-t-transparent rounded-full animate-spin mx-auto" />
+              ) : (
+                stats?.activeEvents || 0
+              )}
+            </p>
+            <p className="text-xs text-cinza-chumbo/70">
+              {loading
+                ? "Carregando..."
+                : `${stats?.pendingEvents || 0} pendentes`}
+            </p>
           </div>
 
           <div className="festival-card p-6 text-center hover:shadow-lg transition-shadow">
             <Trophy className="w-10 h-10 text-amarelo-suave mx-auto mb-3" />
-            <h3 className="font-semibold text-cinza-chumbo mb-1">
-              Classificações
-            </h3>
-            <p className="text-3xl font-bold text-amarelo-suave mb-1">45</p>
-            <p className="text-xs text-cinza-chumbo/70">avaliadas</p>
+            <h3 className="font-semibold text-cinza-chumbo mb-1">Avaliações</h3>
+            <p className="text-3xl font-bold text-amarelo-suave mb-1">
+              {loading ? (
+                <div className="w-8 h-8 border-2 border-amarelo-suave border-t-transparent rounded-full animate-spin mx-auto" />
+              ) : (
+                stats?.completedEvaluations || 0
+              )}
+            </p>
+            <p className="text-xs text-cinza-chumbo/70">
+              {loading
+                ? "Carregando..."
+                : `de ${stats?.totalEvaluations || 0} esperadas`}
+            </p>
+            {!loading && stats?.totalEvaluations > 0 && (
+              <div className="mt-2">
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-amarelo-suave h-2 rounded-full transition-all duration-300"
+                    style={{
+                      width: `${Math.round(
+                        ((stats.completedEvaluations || 0) /
+                          stats.totalEvaluations) *
+                          100
+                      )}%`,
+                    }}
+                  ></div>
+                </div>
+                <p className="text-xs text-cinza-chumbo/70 mt-1">
+                  {Math.round(
+                    ((stats.completedEvaluations || 0) /
+                      stats.totalEvaluations) *
+                      100
+                  )}
+                  % completo
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="festival-card p-6 text-center hover:shadow-lg transition-shadow">
             <AlertTriangle className="w-10 h-10 text-vermelho-suave mx-auto mb-3" />
             <h3 className="font-semibold text-cinza-chumbo mb-1">Pendências</h3>
-            <p className="text-3xl font-bold text-vermelho-suave mb-1">7</p>
-            <p className="text-xs text-cinza-chumbo/70">requer atenção</p>
+            <p className="text-3xl font-bold text-vermelho-suave mb-1">
+              {loading ? (
+                <div className="w-8 h-8 border-2 border-vermelho-suave border-t-transparent rounded-full animate-spin mx-auto" />
+              ) : (
+                stats?.pendingActions || 0
+              )}
+            </p>
+            <p className="text-xs text-cinza-chumbo/70">
+              {loading ? "Carregando..." : "requer atenção"}
+            </p>
           </div>
         </div>
 
         {/* Ações Administrativas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {/* Gestão de Participantes */}
-          <Link
-            href="/dashboard/participantes"
-            className="festival-card p-6 hover:scale-105 transition-all hover:shadow-lg group"
-          >
-            <div className="flex items-center space-x-4">
-              <div className="bg-verde-suave/10 p-4 rounded-xl group-hover:bg-verde-suave/20 transition-colors">
-                <Users className="w-8 h-8 text-verde-suave" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 ">
+          {CARDS.map((card) => (
+            <Link
+              data-disabled={card.disabled}
+              key={card.title}
+              href={card.href}
+              className="festival-card p-6 hover:scale-105 transition-all hover:shadow-lg group data-disabled:opacity-50 data-disabled:pointer-events-none"
+            >
+              <div className="flex items-center space-x-4">
+                <div
+                  className={`bg-${card.color}/10 p-4 rounded-xl group-hover:bg-${card.color}/20 transition-colors`}
+                >
+                  <card.icon
+                    className={`w-8 h-8 text-${card.color} group-hover:text-${card.color}`}
+                  />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-cinza-chumbo mb-1">
+                    {card.title}
+                  </h3>
+                  <p className="text-sm text-cinza-chumbo/70">
+                    {card.description}
+                  </p>
+                </div>
               </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-cinza-chumbo mb-1">
-                  Gestão de Participantes
-                </h3>
-                <p className="text-sm text-cinza-chumbo/70">
-                  Aprovar, editar e gerir inscrições
-                </p>
-              </div>
-            </div>
-          </Link>
-
-          {/* Gestão de Eventos */}
-          <Link
-            href="/dashboard/eventos"
-            className="festival-card p-6 hover:scale-105 transition-all hover:shadow-lg group"
-          >
-            <div className="flex items-center space-x-4">
-              <div className="bg-dourado-claro/10 p-4 rounded-xl group-hover:bg-dourado-claro/20 transition-colors">
-                <Calendar className="w-8 h-8 text-dourado-claro" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-cinza-chumbo mb-1">
-                  Gestão de Eventos
-                </h3>
-                <p className="text-sm text-cinza-chumbo/70">
-                  Criar, editar e programar eventos
-                </p>
-              </div>
-            </div>
-          </Link>
-
-          {/* Sistema de Votações */}
-          <Link
-            href="/votacoes"
-            className="festival-card p-6 hover:scale-105 transition-all hover:shadow-lg group"
-          >
-            <div className="flex items-center space-x-4">
-              <div className="bg-amarelo-suave/10 p-4 rounded-xl group-hover:bg-amarelo-suave/20 transition-colors">
-                <Trophy className="w-8 h-8 text-amarelo-suave" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-cinza-chumbo mb-1">
-                  Sistema de Votações
-                </h3>
-                <p className="text-sm text-cinza-chumbo/70">
-                  Avaliar e gerir votos
-                </p>
-              </div>
-            </div>
-          </Link>
-
-          {/* Relatórios e Estatísticas */}
-          <Link
-            href="/dashboard/relatorios"
-            className="festival-card p-6 hover:scale-105 transition-all hover:shadow-lg group"
-          >
-            <div className="flex items-center space-x-4">
-              <div className="bg-blue-500/10 p-4 rounded-xl group-hover:bg-blue-500/20 transition-colors">
-                <BarChart3 className="w-8 h-8 text-blue-500" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-cinza-chumbo mb-1">
-                  Relatórios e Estatísticas
-                </h3>
-                <p className="text-sm text-cinza-chumbo/70">
-                  Análises e dados do festival
-                </p>
-              </div>
-            </div>
-          </Link>
-
-          {/* Comunicações */}
-          <Link
-            href="/dashboard/comunicacoes"
-            className="festival-card p-6 hover:scale-105 transition-all hover:shadow-lg group"
-          >
-            <div className="flex items-center space-x-4">
-              <div className="bg-purple-500/10 p-4 rounded-xl group-hover:bg-purple-500/20 transition-colors">
-                <Mail className="w-8 h-8 text-purple-500" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-cinza-chumbo mb-1">
-                  Comunicações
-                </h3>
-                <p className="text-sm text-cinza-chumbo/70">
-                  Enviar emails e notificações
-                </p>
-              </div>
-            </div>
-          </Link>
-
-          {/* Configurações do Sistema */}
-          <Link
-            href="/dashboard/configuracoes"
-            className="festival-card p-6 hover:scale-105 transition-all hover:shadow-lg group"
-          >
-            <div className="flex items-center space-x-4">
-              <div className="bg-cinza-chumbo/10 p-4 rounded-xl group-hover:bg-cinza-chumbo/20 transition-colors">
-                <Settings className="w-8 h-8 text-cinza-chumbo" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-cinza-chumbo mb-1">
-                  Configurações do Sistema
-                </h3>
-                <p className="text-sm text-cinza-chumbo/70">
-                  Gerir definições gerais
-                </p>
-              </div>
-            </div>
-          </Link>
+            </Link>
+          ))}
         </div>
 
         {/* Atividade Recente */}
-        <div className="festival-card p-6 mb-8">
-          <h3 className="festival-subtitle text-lg mb-4 flex items-center">
-            <FileText className="w-5 h-5 mr-2 text-verde-suave" />
-            Atividade Recente
-          </h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-verde-suave/5 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <UserCheck className="w-5 h-5 text-verde-suave" />
-                <span className="text-sm text-cinza-chumbo">
-                  Nova inscrição aprovada: João Silva
-                </span>
-              </div>
-              <span className="text-xs text-cinza-chumbo/70">há 2 horas</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-dourado-claro/5 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <Calendar className="w-5 h-5 text-dourado-claro" />
-                <span className="text-sm text-cinza-chumbo">
-                  Evento "Concurso de Fado" criado
-                </span>
-              </div>
-              <span className="text-xs text-cinza-chumbo/70">há 4 horas</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-amarelo-suave/5 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <Trophy className="w-5 h-5 text-amarelo-suave" />
-                <span className="text-sm text-cinza-chumbo">
-                  Classificações atualizadas para "Concurso de Guitarra"
-                </span>
-              </div>
-              <span className="text-xs text-cinza-chumbo/70">ontem</span>
-            </div>
-          </div>
-        </div>
+        <RecentActivityComponent
+          activities={stats?.recentActivity}
+          loading={loading}
+          className="mb-8"
+          //visible={false}
+        />
+
+        {/* Componente de Logs */}
+        <LogsComponent visible={false} className="mb-8" />
       </main>
-    </div>
+    </>
   );
 }

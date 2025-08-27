@@ -13,9 +13,9 @@ export default async function Layout({ children }: { children: ReactNode }) {
   return (
     <ProtectedProvider>
       <ToastProvider>
-        <div className="min-h-screen bg-gradient-to-br from-bege-claro via-verde-muito-suave to-dourado-muito-claro">
+        <div className="min-h-screen bg-gradient-to-br from-bege-claro via-verde-muito-suave to-dourado-muito-claro flex flex-col layout-protected">
           <Navbar />
-          {children}
+          <main className="flex-1 flex flex-col">{children}</main>
           <FooterDashborad />
           <Toaster />
         </div>

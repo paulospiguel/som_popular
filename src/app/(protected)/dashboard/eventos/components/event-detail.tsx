@@ -137,7 +137,7 @@ const EventDetailsModal = ({
 
   // Fechar menu quando clicar fora
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (_event: MouseEvent) => {
       if (showMenu) {
         setShowMenu(false);
       }

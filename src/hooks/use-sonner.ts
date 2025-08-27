@@ -15,7 +15,7 @@ export const useSonner = () => {
     return toast.success(options?.title || "Sucesso", {
       description: options?.description || message,
       action: options?.action,
-      duration: options?.duration,
+      duration: options?.duration || 5000,
     });
   };
 
@@ -23,7 +23,7 @@ export const useSonner = () => {
     return toast.error(options?.title || "Erro", {
       description: options?.description || message,
       action: options?.action,
-      duration: options?.duration,
+      duration: options?.duration || 5000,
     });
   };
 
@@ -31,7 +31,7 @@ export const useSonner = () => {
     return toast.info(options?.title || "Informação", {
       description: options?.description || message,
       action: options?.action,
-      duration: options?.duration,
+      duration: options?.duration || 5000,
     });
   };
 
@@ -39,7 +39,7 @@ export const useSonner = () => {
     return toast.warning(options?.title || "Aviso", {
       description: options?.description || message,
       action: options?.action,
-      duration: options?.duration,
+      duration: options?.duration || 5000,
     });
   };
 

@@ -64,6 +64,9 @@ export default function LoginPage() {
         clearTimeout(fallbackTimeout);
       };
     }
+
+    // Retornar função vazia se a condição não for atendida
+    return () => {};
   }, [session, isPending, router]);
 
   if (isPending) {
@@ -267,7 +270,7 @@ export default function LoginPage() {
             <p className="text-cinza-chumbo/70">
               Ainda não tens conta?{" "}
               <Link
-                href="/register"
+                href="/auth/register"
                 className="text-verde-suave hover:text-verde-claro font-medium transition-colors"
               >
                 Regista-te aqui

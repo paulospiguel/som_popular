@@ -57,9 +57,45 @@
   --animate-marquee-vertical: marquee-vertical var(--duration) linear infinite;
 }
 
+/* Reset e configurações base */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 body {
   font-family: var(--font-family-inter);
   line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Layout principal com flexbox */
+#__next {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Garantir que o layout protegido funcione corretamente */
+.layout-protected {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.layout-protected main {
+  flex: 1 0 auto;
+}
+
+.layout-protected footer {
+  flex-shrink: 0;
 }
 
 /** Smooth scroll **/

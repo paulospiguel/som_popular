@@ -25,7 +25,7 @@ export default function ProtectedProvider({
 
     if (!session) {
       console.log("ProtectedProvider: Sem sessão, redirecionando para login");
-      router.push("/login");
+      router.push("/auth/login");
       return;
     }
 
@@ -42,7 +42,7 @@ export default function ProtectedProvider({
         if (userRole === ROLES.OPERATOR) {
           router.push("/votacoes");
         } else {
-          router.push("/login");
+          router.push("/auth/login");
         }
         return;
       }
@@ -52,7 +52,7 @@ export default function ProtectedProvider({
         console.log(
           "ProtectedProvider: Votações negadas para usuário sem permissão"
         );
-        router.push("/login");
+        router.push("/auth/login");
         return;
       }
     }

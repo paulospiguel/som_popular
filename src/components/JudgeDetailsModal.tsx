@@ -46,7 +46,6 @@ export function JudgeDetailsModal({
         <div className="flex items-start space-x-4">
           <Avatar
             name={judge.name}
-            src={judge.avatar}
             size="xl"
             className="flex-shrink-0"
           />

@@ -1,83 +1,89 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { requestPasswordReset } from '@/lib/auth-client';
-import { logPasswordResetAction } from '@/actions/logs';
+import { logPasswordResetAction } from "@/actions/logs";
+import { requestPasswordReset } from "@/lib/auth-client";
+import Link from "next/link";
+import { useState } from "react";
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
   const [isUserNotFound, setIsUserNotFound] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setMessage('');
-    setError('');
+    setMessage("");
+    setError("");
     setIsUserNotFound(false);
 
     try {
       // Log da tentativa inicial
       await logPasswordResetAction({
         email,
-        status: 'pending',
-        message: 'Tentativa de recuperação de senha iniciada',
+        status: "pending",
+        message: "Tentativa de recuperação de senha iniciada",
       });
 
       const result = await requestPasswordReset({
         email,
-        redirectTo: '/reset-password',
+        redirectTo: "/auth/reset-password",
       });
 
       if (result.error) {
-        const errorMessage = result.error.message || 'Erro desconhecido';
-        
-        if (errorMessage.toLowerCase().includes('user not found') || 
-            errorMessage.toLowerCase().includes('usuário não encontrado')) {
+        const errorMessage = result.error.message || "Erro desconhecido";
+
+        if (
+          errorMessage.toLowerCase().includes("user not found") ||
+          errorMessage.toLowerCase().includes("usuário não encontrado")
+        ) {
           setIsUserNotFound(true);
-          setError('Este e-mail não está registado no sistema.');
-          
+          setError("Este e-mail não está registado no sistema.");
+
           // Log específico para e-mail não encontrado
           await logPasswordResetAction({
             email,
-            status: 'failed',
-            message: 'E-mail não encontrado no sistema',
-            details: { errorType: 'user_not_found' },
+            status: "failed",
+            message: "E-mail não encontrado no sistema",
+            details: { errorType: "user_not_found" },
           });
         } else {
-          setError('Ocorreu um erro. Tenta novamente.');
-          
+          setError("Ocorreu um erro. Tenta novamente.");
+
           // Log para outros erros
           await logPasswordResetAction({
             email,
-            status: 'failed',
+            status: "failed",
             message: `Erro na recuperação: ${errorMessage}`,
             details: { error: errorMessage },
           });
         }
       } else {
-        setMessage('Se o e-mail existir no sistema, receberás instruções para redefinir a senha.');
-        
+        setMessage(
+          "Se o e-mail existir no sistema, receberás instruções para redefinir a senha."
+        );
+
         // Log de sucesso
         await logPasswordResetAction({
           email,
-          status: 'success',
-          message: 'E-mail de recuperação enviado com sucesso',
+          status: "success",
+          message: "E-mail de recuperação enviado com sucesso",
         });
       }
     } catch (err) {
-      console.error('Erro inesperado:', err);
-      setError('Erro inesperado. Tenta novamente.');
-      
+      console.error("Erro inesperado:", err);
+      setError("Erro inesperado. Tenta novamente.");
+
       // Log para erros inesperados
       await logPasswordResetAction({
         email,
-        status: 'failed',
-        message: 'Erro inesperado na recuperação de senha',
-        details: { error: err instanceof Error ? err.message : 'Unknown error' },
+        status: "failed",
+        message: "Erro inesperado na recuperação de senha",
+        details: {
+          error: err instanceof Error ? err.message : "Unknown error",
+        },
       });
     } finally {
       setIsLoading(false);
@@ -95,7 +101,7 @@ export default function ForgotPasswordPage() {
             Introduz o teu e-mail para receberes instruções de recuperação
           </p>
         </div>
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div>
             <label htmlFor="email" className="sr-only">
@@ -108,7 +114,7 @@ export default function ForgotPasswordPage() {
               autoComplete="email"
               required
               className={`appearance-none rounded-md relative block w-full px-3 py-2 border ${
-                isUserNotFound ? 'border-red-500' : 'border-gray-300'
+                isUserNotFound ? "border-red-500" : "border-gray-300"
               } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
               placeholder="E-mail"
               value={email}
@@ -122,7 +128,7 @@ export default function ForgotPasswordPage() {
               disabled={isLoading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'A enviar...' : 'Enviar instruções'}
+              {isLoading ? "A enviar..." : "Enviar instruções"}
             </button>
           </div>
 
@@ -133,17 +139,21 @@ export default function ForgotPasswordPage() {
           )}
 
           {error && (
-            <div className={`rounded-md p-4 ${
-              isUserNotFound ? 'bg-amber-50' : 'bg-red-50'
-            }`}>
-              <p className={`text-sm ${
-                isUserNotFound ? 'text-amber-800' : 'text-red-800'
-              }`}>
+            <div
+              className={`rounded-md p-4 ${
+                isUserNotFound ? "bg-amber-50" : "bg-red-50"
+              }`}
+            >
+              <p
+                className={`text-sm ${
+                  isUserNotFound ? "text-amber-800" : "text-red-800"
+                }`}
+              >
                 {error}
                 {isUserNotFound && (
                   <span className="block mt-2">
-                    <Link 
-                      href="/register" 
+                    <Link
+                      href="/auth/register"
                       className="font-medium text-amber-600 hover:text-amber-500"
                     >
                       Criar nova conta →
@@ -155,8 +165,8 @@ export default function ForgotPasswordPage() {
           )}
 
           <div className="text-center">
-            <Link 
-              href="/login" 
+            <Link
+              href="/auth/login"
               className="font-medium text-indigo-600 hover:text-indigo-500"
             >
               ← Voltar ao login

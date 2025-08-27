@@ -7,10 +7,10 @@ import { NextResponse } from "next/server";
 function isPublicPath(pathname: string) {
   return (
     pathname === "/" ||
-    pathname.startsWith("/login") ||
-    pathname.startsWith("/register") ||
+    pathname.startsWith("/auth/login") ||
+    pathname.startsWith("/auth/register") ||
     pathname.startsWith("/forgot-password") ||
-    pathname.startsWith("/reset-password") ||
+    pathname.startsWith("/auth/reset-password") ||
     pathname.startsWith("/api/auth/") || // endpoints do Better Auth
     pathname.startsWith("/_next/") ||
     pathname.startsWith("/favicon")
@@ -39,7 +39,7 @@ export function middleware(req: NextRequest) {
 
   // páginas protegidas → redirect para login, preservando redirectTo
   const url = req.nextUrl.clone();
-  url.pathname = "/login";
+  url.pathname = "/auth/login";
   url.searchParams.set("redirectTo", pathname + (search ?? ""));
   return NextResponse.redirect(url);
 }

@@ -74,17 +74,6 @@ const approvalModes = [
   },
 ] as const;
 
-const prizeIcons = [
-  { label: "🏆 Troféu", value: "trophy" },
-  { label: "🥇 Medalha de Ouro", value: "gold" },
-  { label: "🥈 Medalha de Prata", value: "silver" },
-  { label: "🥉 Medalha de Bronze", value: "bronze" },
-  { label: "💰 Dinheiro", value: "money" },
-  { label: "🎵 Instrumento", value: "instrument" },
-  { label: "🎤 Microfone", value: "microphone" },
-  { label: "🎸 Guitarra", value: "guitar" },
-] as const;
-
 interface AddEventModalProps {
   isOpen: boolean;
   onClose: () => void;

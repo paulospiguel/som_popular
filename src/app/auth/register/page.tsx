@@ -20,39 +20,39 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-  
+
     // Validações mais robustas
     if (!name.trim()) {
       setError("O nome é obrigatório");
       return;
     }
-  
+
     if (!email.trim()) {
       setError("O email é obrigatório");
       return;
     }
-  
+
     if (password.length < 6) {
       setError("A password deve ter pelo menos 6 caracteres");
       return;
     }
-  
+
     if (password !== confirmPassword) {
       setError("As passwords não coincidem");
       return;
     }
-  
+
     setLoading(true);
-  
+
     try {
       const result = await signUp.email({
         email: email.trim(),
         password,
         name: name.trim(),
       });
-  
+
       console.log("✅ Registo bem-sucedido:", result);
-  
+
       if (result.error) {
         console.error("❌ Erro no registo:", result.error);
         setError(
@@ -217,7 +217,7 @@ export default function RegisterPage() {
             <p className="text-cinza-chumbo/70">
               Já tens conta?{" "}
               <Link
-                href="/login"
+                href="/auth/login"
                 className="text-verde-suave hover:text-verde-claro font-medium transition-colors"
               >
                 Faz login aqui

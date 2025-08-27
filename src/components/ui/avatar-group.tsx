@@ -96,7 +96,7 @@ export function AvatarGroup({
               >
                 <Avatar
                   name={item.name}
-                  src={item.avatar}
+                  src={item.avatar || null}
                   size={size}
                   onClick={() => onAvatarClick?.(item)}
                   className="cursor-pointer"
@@ -107,7 +107,7 @@ export function AvatarGroup({
               <div className="flex items-start space-x-3">
                 <Avatar
                   name={item.name}
-                  src={item.avatar}
+                  src={item.avatar || null}
                   size="lg"
                   className="flex-shrink-0"
                 />

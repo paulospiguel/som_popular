@@ -1,8 +1,9 @@
 import { Music, Shield } from "lucide-react";
+import Link from "next/link";
 
 export function Logo({ isDashboard }: { isDashboard: boolean }) {
   return (
-    <div className="flex items-center">
+    <Link href="/dashboard" className="flex items-center">
       <Music className="w-8 h-8 text-verde-suave" />
       <div className="ml-2">
         <h1
@@ -17,6 +18,6 @@ export function Logo({ isDashboard }: { isDashboard: boolean }) {
           </p>
         )}
       </div>
-    </div>
+    </Link>
   );
 }

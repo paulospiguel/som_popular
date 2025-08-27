@@ -1,9 +1,11 @@
 import { Home } from "lucide-react";
 import Link from "next/link";
 
-export default function FooterDashborad() {
+export default function FooterDashborad({ className }: { className?: string }) {
   return (
-    <footer className="bg-white/90 backdrop-blur-sm border-t border-verde-suave/20 shadow-sm">
+    <footer
+      className={`bg-white/90 backdrop-blur-sm border-t border-verde-suave/20 shadow-sm mt-auto ${className}`}
+    >
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="text-cinza-chumbo text-xs">
