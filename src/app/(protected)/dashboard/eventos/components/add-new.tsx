@@ -3,6 +3,7 @@
 import { createEvent } from "@/actions/events";
 import { Modal } from "@/components/Modal";
 import { Checkbox } from "@/components/ui/checkbox";
+import { DateTimePicker } from "@/components/ui/date-picker";
 import {
   Select,
   SelectContent,
@@ -10,10 +11,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { TagsInput } from "@/components/ui/tags-input";
 import { useToast } from "@/components/ui/toast";
 import { Event } from "@/database/schema";
-import { Updater, useForm } from "@tanstack/react-form";
-import { Award, Calendar, Plus, Upload } from "lucide-react";
+import { useForm } from "@tanstack/react-form";
+import { Calendar, Plus, Trophy, Upload } from "lucide-react";
 import { useState } from "react";
 import z from "zod";
 
@@ -40,7 +42,14 @@ const eventSchema = z.object({
   approvalMode: z.enum(["automatic", "manual"]),
   rules: z.string().optional(),
   rulesFile: z.any().optional(),
-  prizes: z.string().optional(),
+  prizes: z
+    .string()
+    .optional()
+    .refine((val) => {
+      if (!val) return true;
+      const prizes = val.split(",").filter(Boolean);
+      return prizes.length <= 5;
+    }, "Máximo de 5 prémios permitidos"),
   notes: z.string().optional(),
 });
 
@@ -149,16 +158,12 @@ const AddEventModal = ({
     },
   });
 
-  const FieldError = ({ field }: { field: any }) => {
+  const FieldError = ({ field }: { field: any }): React.ReactElement | null => {
     return field.state.meta.isTouched && field.state.meta.errors.length > 0 ? (
       <p className="text-red-500 text-sm mt-1">
         {field.state.meta.errors.join(", ")}
       </p>
     ) : null;
-  };
-
-  const formatDateForInput = (date: Date) => {
-    return date.toISOString().slice(0, 16);
   };
 
   return (
@@ -239,8 +244,8 @@ const AddEventModal = ({
                   </label>
                   <Select
                     value={field.state.value}
-                    onValueChange={(value) =>
-                      field.handleChange(value as Updater<"">)
+                    onValueChange={(value: string) =>
+                      field.handleChange(value as any)
                     }
                   >
                     <SelectTrigger className="w-full">
@@ -279,8 +284,8 @@ const AddEventModal = ({
                   </label>
                   <Select
                     value={field.state.value}
-                    onValueChange={(value) =>
-                      field.handleChange(value as Updater<"">)
+                    onValueChange={(value: string) =>
+                      field.handleChange(value as any)
                     }
                   >
                     <SelectTrigger className="w-full">
@@ -409,18 +414,11 @@ const AddEventModal = ({
                   <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                     Data e Hora de Início *
                   </label>
-                  <input
-                    type="datetime-local"
-                    value={formatDateForInput(field.state.value)}
-                    onChange={(e) =>
-                      field.handleChange(new Date(e.target.value))
+                  <DateTimePicker
+                    date={field.state.value}
+                    onDateChange={(date: Date | undefined) =>
+                      field.handleChange(date || new Date())
                     }
-                    onBlur={field.handleBlur}
-                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-verde-suave focus:border-transparent transition-colors ${
-                      field.state.meta.errors.length > 0
-                        ? "border-red-300"
-                        : "border-gray-200"
-                    }`}
                   />
                   <FieldError field={field} />
                 </div>
@@ -435,21 +433,11 @@ const AddEventModal = ({
                   <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                     Data e Hora de Fim
                   </label>
-                  <input
-                    type="datetime-local"
-                    value={
-                      field.state.value
-                        ? formatDateForInput(field.state.value)
-                        : ""
+                  <DateTimePicker
+                    date={field.state.value || undefined}
+                    onDateChange={(date: Date | undefined) =>
+                      field.handleChange(date)
                     }
-                    onChange={(e) => {
-                      const value = e.target.value
-                        ? new Date(e.target.value)
-                        : undefined;
-                      field.handleChange(value);
-                    }}
-                    onBlur={field.handleBlur}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-verde-suave focus:border-transparent transition-colors"
                   />
                   <FieldError field={field} />
                 </div>
@@ -464,21 +452,11 @@ const AddEventModal = ({
                   <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                     Início das Inscrições
                   </label>
-                  <input
-                    type="datetime-local"
-                    value={
-                      field.state.value
-                        ? formatDateForInput(field.state.value)
-                        : ""
+                  <DateTimePicker
+                    date={field.state.value || undefined}
+                    onDateChange={(date: Date | undefined) =>
+                      field.handleChange(date)
                     }
-                    onChange={(e) => {
-                      const value = e.target.value
-                        ? new Date(e.target.value)
-                        : undefined;
-                      field.handleChange(value);
-                    }}
-                    onBlur={field.handleBlur}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-verde-suave focus:border-transparent transition-colors"
                   />
                   <FieldError field={field} />
                 </div>
@@ -493,21 +471,11 @@ const AddEventModal = ({
                   <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                     Fim das Inscrições
                   </label>
-                  <input
-                    type="datetime-local"
-                    value={
-                      field.state.value
-                        ? formatDateForInput(field.state.value)
-                        : ""
+                  <DateTimePicker
+                    date={field.state.value || undefined}
+                    onDateChange={(date: Date | undefined) =>
+                      field.handleChange(date)
                     }
-                    onChange={(e) => {
-                      const value = e.target.value
-                        ? new Date(e.target.value)
-                        : undefined;
-                      field.handleChange(value);
-                    }}
-                    onBlur={field.handleBlur}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-verde-suave focus:border-transparent transition-colors"
                   />
                   <FieldError field={field} />
                 </div>
@@ -531,7 +499,9 @@ const AddEventModal = ({
                   <Checkbox
                     id="isPublic"
                     checked={field.state.value}
-                    onCheckedChange={(checked) => field.handleChange(!!checked)}
+                    onCheckedChange={(checked: boolean) =>
+                      field.handleChange(!!checked)
+                    }
                   />
                   <label
                     htmlFor="isPublic"
@@ -551,7 +521,9 @@ const AddEventModal = ({
                   <Checkbox
                     id="requiresApproval"
                     checked={field.state.value}
-                    onCheckedChange={(checked) => field.handleChange(!!checked)}
+                    onCheckedChange={(checked: boolean) =>
+                      field.handleChange(!!checked)
+                    }
                   />
                   <label
                     htmlFor="requiresApproval"
@@ -584,7 +556,7 @@ const AddEventModal = ({
                     </label>
                     <Select
                       value={field.state.value}
-                      onValueChange={(value) =>
+                      onValueChange={(value: string) =>
                         field.handleChange(value as any)
                       }
                     >
@@ -680,38 +652,20 @@ const AddEventModal = ({
                     Prémios
                   </label>
 
-                  {/* Campo de texto para prêmios */}
-                  <textarea
-                    value={field.state.value || ""}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                    rows={3}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-verde-suave focus:border-transparent transition-colors resize-none"
-                    placeholder="Ex: 1º Lugar: 500€ + Troféu\n2º Lugar: 300€ + Medalha\n3º Lugar: 200€ + Medalha"
+                  {/* TagsInput para prêmios */}
+                  <TagsInput
+                    placeHolder="Adicionar prêmios (ex: 1º Lugar: 500€ + Troféu)"
+                    value={
+                      field.state.value
+                        ? field.state.value.split(",").filter(Boolean)
+                        : []
+                    }
+                    onChange={(tags: string[]) =>
+                      field.handleChange(tags.join(","))
+                    }
+                    maxTagsCount={5}
+                    icon={Trophy}
                   />
-
-                  {/* Exemplo de como os prêmios aparecerão como badges */}
-                  {field.state.value && (
-                    <div className="mt-3">
-                      <label className="block text-xs font-medium text-gray-600 mb-2">
-                        Visualização dos prêmios:
-                      </label>
-                      <div className="flex flex-wrap gap-2">
-                        {field.state.value
-                          .split("\n")
-                          .filter((line) => line.trim())
-                          .map((line, index) => (
-                            <div
-                              key={index}
-                              className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
-                            >
-                              <Award className="w-4 h-4 mr-2" />
-                              {line.trim()}
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                  )}
 
                   <FieldError field={field} />
                 </div>

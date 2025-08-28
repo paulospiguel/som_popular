@@ -1,127 +1,76 @@
 "use server";
 
 import { db } from "@/database";
-import { systemLogs } from "@/database/schema";
-import { SystemLogger, type LogAction, type LogStatus } from "@/lib/logger";
-import { and, desc, eq, gte, like, sql } from "drizzle-orm";
-import { headers } from "next/headers";
-
-interface LogActionParams {
-  action: LogAction;
-  userEmail?: string;
-  userId?: string;
-  details?: Record<string, any>;
-  status?: LogStatus;
-  message?: string;
-}
-
-interface GetLogsParams {
-  category?: string;
-  status?: string;
-  search?: string;
-  dateFilter?: string;
-  limit?: number;
-  offset?: number;
-}
+import {
+  eventLogs,
+  systemLogs,
+  type NewEventLog,
+  type NewSystemLog,
+} from "@/database/schema";
+import { and, desc, eq, inArray } from "drizzle-orm";
 
 /**
- * Server Action para registar logs do sistema
+ * Criar log do sistema
  */
-export async function logSystemAction(params: LogActionParams) {
+export async function createSystemLog(
+  data: Omit<NewSystemLog, "id" | "createdAt">
+) {
   try {
-    const headersList = await headers();
-    const requestInfo = {
-      ipAddress:
-        headersList.get("x-forwarded-for") ||
-        headersList.get("x-real-ip") ||
-        "unknown",
-      userAgent: headersList.get("user-agent") || "unknown",
-    };
+    const [log] = await db
+      .insert(systemLogs)
+      .values({
+        ...data,
+        createdAt: new Date(),
+      })
+      .returning();
 
-    await SystemLogger.logAuth({
-      ...params,
-      ...requestInfo,
-    });
-
-    return { success: true };
+    return { success: true, data: log };
   } catch (error) {
-    console.error("❌ Erro no Server Action de logs:", error);
-    return { success: false, error: "Erro ao registar log" };
+    console.error("Erro ao criar log do sistema:", error);
+    return { success: false, error: "Erro ao criar log do sistema" };
   }
 }
 
 /**
- * Server Action específico para logs de recuperação de senha
+ * Criar log de evento
  */
-export async function logPasswordResetAction({
-  email,
-  status,
-  message,
-  details,
-}: {
-  email: string;
-  status: LogStatus;
-  message?: string;
-  details?: Record<string, any>;
-}) {
-  return await logSystemAction({
-    action: "password_reset_attempt",
-    userEmail: email.trim(),
-    status,
-    message: message || "",
-    details: details || {},
-  });
+export async function createEventLog(
+  data: Omit<NewEventLog, "id" | "createdAt">
+) {
+  try {
+    const [log] = await db
+      .insert(eventLogs)
+      .values({
+        ...data,
+        createdAt: new Date(),
+      })
+      .returning();
+
+    return { success: true, data: log };
+  } catch (error) {
+    console.error("Erro ao criar log de evento:", error);
+    return { success: false, error: "Erro ao criar log de evento" };
+  }
 }
 
 /**
- * Server Action para buscar logs do sistema
+ * Obter logs do sistema com filtros
  */
-export async function getSystemLogs(params: GetLogsParams = {}) {
+export async function getSystemLogs(options?: {
+  severity?: string;
+  category?: string;
+  status?: string;
+  limit?: number;
+}) {
   try {
-    const {
-      category,
-      status,
-      search,
-      dateFilter,
-      limit = 100,
-      offset = 0,
-    } = params;
-
     let whereConditions = [];
 
-    // Filtro por categoria
-    if (category && category !== "all") {
-      whereConditions.push(eq(systemLogs.category, category));
+    // Aplicar filtros (severity temporariamente desabilitado)
+    if (options?.category) {
+      whereConditions.push(eq(systemLogs.category, options.category));
     }
-
-    // Filtro por status
-    if (status && status !== "all") {
-      whereConditions.push(eq(systemLogs.status, status));
-    }
-
-    // Filtro por data
-    if (dateFilter && dateFilter !== "all") {
-      const now = new Date();
-      let filterDate = new Date();
-
-      switch (dateFilter) {
-        case "today":
-          filterDate.setHours(0, 0, 0, 0);
-          break;
-        case "week":
-          filterDate.setDate(now.getDate() - 7);
-          break;
-        case "month":
-          filterDate.setMonth(now.getMonth() - 1);
-          break;
-      }
-
-      whereConditions.push(gte(systemLogs.createdAt, filterDate));
-    }
-
-    // Filtro por busca
-    if (search) {
-      whereConditions.push(like(systemLogs.action, `%${search}%`));
+    if (options?.status) {
+      whereConditions.push(eq(systemLogs.status, options.status));
     }
 
     const whereClause =
@@ -132,65 +81,144 @@ export async function getSystemLogs(params: GetLogsParams = {}) {
       .from(systemLogs)
       .where(whereClause)
       .orderBy(desc(systemLogs.createdAt))
-      .limit(limit)
-      .offset(offset);
+      .limit(options?.limit || 100);
 
-    return { success: true, logs };
+    return { success: true, data: logs };
   } catch (error) {
-    console.error("❌ Erro ao buscar logs:", error);
-    return { success: false, error: "Erro ao buscar logs" };
+    console.error("Erro ao buscar logs do sistema:", error);
+    return { success: false, error: "Erro ao buscar logs do sistema" };
   }
 }
 
 /**
- * Server Action para obter estatísticas dos logs
+ * Obter logs de eventos com filtros
+ */
+export async function getEventLogs(options?: {
+  eventId?: string;
+  severity?: string;
+  category?: string;
+  status?: string;
+  limit?: number;
+}) {
+  try {
+    let whereConditions = [];
+
+    // Aplicar filtros (severity temporariamente desabilitado)
+    if (options?.eventId) {
+      whereConditions.push(eq(eventLogs.eventId, options.eventId));
+    }
+    if (options?.category) {
+      whereConditions.push(eq(eventLogs.category, options.category));
+    }
+    if (options?.status) {
+      whereConditions.push(eq(eventLogs.status, options.status));
+    }
+
+    const whereClause =
+      whereConditions.length > 0 ? and(...whereConditions) : undefined;
+
+    const logs = await db
+      .select()
+      .from(eventLogs)
+      .where(whereClause)
+      .orderBy(desc(eventLogs.createdAt))
+      .limit(options?.limit || 100);
+
+    return { success: true, data: logs };
+  } catch (error) {
+    console.error("Erro ao buscar logs de eventos:", error);
+    return { success: false, error: "Erro ao buscar logs de eventos" };
+  }
+}
+
+/**
+ * Obter estatísticas dos logs
  */
 export async function getLogsStats() {
   try {
-    const [
-      totalLogs,
-      authLogs,
-      securityLogs,
-      userActionLogs,
-      systemLogsCount,
-      emailLogs,
-    ] = await Promise.all([
-      db.select({ count: sql`count(*)` }).from(systemLogs),
-      db
-        .select({ count: sql`count(*)` })
-        .from(systemLogs)
-        .where(eq(systemLogs.category, "auth")),
-      db
-        .select({ count: sql`count(*)` })
-        .from(systemLogs)
-        .where(eq(systemLogs.category, "security")),
-      db
-        .select({ count: sql`count(*)` })
-        .from(systemLogs)
-        .where(eq(systemLogs.category, "user_action")),
-      db
-        .select({ count: sql`count(*)` })
-        .from(systemLogs)
-        .where(eq(systemLogs.category, "system")),
-      db
-        .select({ count: sql`count(*)` })
-        .from(systemLogs)
-        .where(eq(systemLogs.category, "email")),
-    ]);
+    // Estatísticas dos logs do sistema
+    const systemLogsStats = await db
+      .select({
+        severity: systemLogs.severity,
+        count: systemLogs.id,
+      })
+      .from(systemLogs)
+      .groupBy(systemLogs.severity);
+
+    // Estatísticas dos logs de eventos
+    const eventLogsStats = await db
+      .select({
+        severity: eventLogs.severity,
+        count: eventLogs.id,
+      })
+      .from(eventLogs)
+      .groupBy(eventLogs.severity);
+
+    // Logs pendentes (críticos e maiores)
+    const pendingCriticalLogs = await db
+      .select()
+      .from(systemLogs)
+      .where(
+        and(
+          eq(systemLogs.status, "pending"),
+          inArray(systemLogs.severity, ["critical", "major"])
+        )
+      )
+      .orderBy(desc(systemLogs.createdAt))
+      .limit(10);
+
+    const pendingCriticalEventLogs = await db
+      .select()
+      .from(eventLogs)
+      .where(
+        and(
+          eq(eventLogs.status, "pending"),
+          inArray(eventLogs.severity, ["critical", "major"])
+        )
+      )
+      .orderBy(desc(eventLogs.createdAt))
+      .limit(10);
 
     return {
       success: true,
-      stats: {
-        total: totalLogs[0]?.count || 0,
-        auth: authLogs[0]?.count || 0,
-        security: securityLogs[0]?.count || 0,
-        userAction: userActionLogs[0]?.count || 0,
-        system: systemLogsCount[0]?.count || 0,
-        email: emailLogs[0]?.count || 0,
+      data: {
+        systemLogs: systemLogsStats,
+        eventLogs: eventLogsStats,
+        pendingCritical: [...pendingCriticalLogs, ...pendingCriticalEventLogs],
       },
     };
   } catch (error) {
-    console.error("❌ Erro ao buscar estatísticas dos logs:", error);
-    return { success: false, error: "Erro ao buscar estatísticas" };
+    console.error("Erro ao buscar estatísticas dos logs:", error);
+    return { success: false, error: "Erro ao buscar estatísticas dos logs" };
+  }
+}
+
+/**
+ * Atualizar status de um log
+ */
+export async function updateLogStatus(
+  logId: string,
+  status: string,
+  logType: "system" | "event"
+) {
+  try {
+    if (logType === "system") {
+      const [log] = await db
+        .update(systemLogs)
+        .set({ status })
+        .where(eq(systemLogs.id, logId))
+        .returning();
+      return { success: true, data: log };
+    } else {
+      const [log] = await db
+        .update(eventLogs)
+        .set({ status })
+        .where(eq(eventLogs.id, logId))
+        .returning();
+      return { success: true, data: log };
+    }
+  } catch (error) {
+    console.error("Erro ao atualizar status do log:", error);
+    return { success: false, error: "Erro ao atualizar status do log" };
   }
 }

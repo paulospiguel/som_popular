@@ -28,13 +28,23 @@ import { JudgeDetailsModal } from "@/components/JudgeDetailsModal";
 import { Modal } from "@/components/Modal";
 import { ParticipantDetailsModal } from "@/components/ParticipantDetailsModal";
 import { AvatarGroup } from "@/components/ui/avatar-group";
+import { DateTimePicker } from "@/components/ui/date-picker";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { TagsInput } from "@/components/ui/tags-input";
 import { useToast } from "@/components/ui/toast";
+import { EVENT_CATEGORIES, EVENT_STATUSES, EVENT_TYPES } from "@/constants";
 import { Event, Participant } from "@/database/schema";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useSonner } from "@/hooks/use-sonner";
@@ -67,7 +77,6 @@ import {
   formatEventDate,
   formatEventTime,
   getCategoryText,
-  getStatusColor,
   getStatusText,
   getTypeText,
   isEventActive,
@@ -123,13 +132,14 @@ const EventDetailsModal = ({
     if (isOpen && event) {
       loadEventJudges();
       loadEventParticipants();
+
       setEditedEvent({
         name: event.name,
         description: event.description,
         location: event.location,
         maxParticipants: event.maxParticipants,
         rules: event.rules,
-        prizes: event.prizes,
+        prizes: event.prizes || "",
         notes: event.notes,
       });
     }
@@ -499,7 +509,15 @@ const EventDetailsModal = ({
     if (!event) return;
 
     try {
-      const result = await updateEvent(event.id, editedEvent);
+      // Garantir que os prémios sejam uma string válida
+      const dataToSave = {
+        ...editedEvent,
+        prizes: editedEvent.prizes || "",
+      };
+
+      console.log("Salvando dados:", dataToSave);
+
+      const result = await updateEvent(event.id, dataToSave);
       if (result.success) {
         showToast({
           type: "success",
@@ -657,6 +675,12 @@ const EventDetailsModal = ({
                 description: event.description,
                 location: event.location,
                 maxParticipants: event.maxParticipants,
+                startDate: event.startDate,
+                endDate: event.endDate,
+                registrationStartDate: event.registrationStartDate,
+                registrationEndDate: event.registrationEndDate,
+                isPublic: event.isPublic,
+                requiresApproval: event.requiresApproval,
                 rules: event.rules,
                 prizes: event.prizes,
                 notes: event.notes,
@@ -736,26 +760,58 @@ const EventDetailsModal = ({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="text-sm text-cinza-chumbo/70 font-medium">
-                  Status do Evento
+                  Estado do Evento
                 </label>
-                <div className="mt-1">
-                  <span
-                    className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                      event.status
-                    )}`}
-                  >
-                    {getStatusText(event.status)}
-                  </span>
-                  {isEventActive(event) && (
-                    <span className="ml-2 inline-block px-2 py-1 bg-blue-100 text-blue-600 rounded-full text-xs font-medium">
-                      Em curso
+                <div className="mt-1 space-y-3">
+                  {/* Estado Principal do Evento */}
+                  <div>
+                    <span className="text-xs text-cinza-chumbo/60 block mb-1">
+                      Estado atual:
                     </span>
-                  )}
-                  {isRegistrationOpen(event) && (
-                    <span className="ml-2 inline-block px-2 py-1 bg-green-100 text-green-600 rounded-full text-xs font-medium">
-                      Inscrições abertas
+                    {(() => {
+                      const statusInfo = EVENT_STATUSES.find(
+                        (s) => s.value === event.status
+                      );
+                      return (
+                        <span
+                          className={`inline-block px-3 py-1.5 rounded-full text-sm font-medium ${
+                            statusInfo?.color || "text-gray-600 bg-gray-100"
+                          }`}
+                        >
+                          {statusInfo?.label || getStatusText(event.status)}
+                        </span>
+                      );
+                    })()}
+                  </div>
+
+                  {/* Condições Adicionais */}
+                  <div>
+                    <span className="text-xs text-cinza-chumbo/60 block mb-1">
+                      Condições:
                     </span>
-                  )}
+                    <div className="flex flex-wrap gap-2">
+                      {isEventActive(event) && (
+                        <span className="inline-flex items-center px-2 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-medium border border-blue-200">
+                          <Clock className="w-3 h-3 mr-1" />
+                          Evento em andamento
+                        </span>
+                      )}
+                      {isRegistrationOpen(event) && (
+                        <span className="inline-flex items-center px-2 py-1 bg-green-50 text-green-700 rounded-md text-xs font-medium border border-green-200">
+                          <UserPlus className="w-3 h-3 mr-1" />
+                          Aceitando inscrições
+                        </span>
+                      )}
+                      {!isEventActive(event) &&
+                        !isRegistrationOpen(event) &&
+                        event.status === "published" && (
+                          <span className="inline-flex items-center px-2 py-1 bg-gray-50 text-gray-600 rounded-md text-xs font-medium border border-gray-200">
+                            <Calendar className="w-3 h-3 mr-1" />
+                            Aguardando início
+                          </span>
+                        )}
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -764,16 +820,18 @@ const EventDetailsModal = ({
                   Tipo de Evento
                 </label>
                 <p className="font-semibold text-cinza-chumbo">
-                  {getTypeText(event.type)}
+                  {EVENT_TYPES.find((type) => type.value === event.type)
+                    ?.label || getTypeText(event.type)}
                 </p>
               </div>
 
               <div>
                 <label className="text-sm text-cinza-chumbo/70 font-medium">
-                  Categoria
+                  Modalidade
                 </label>
                 <p className="font-semibold text-cinza-chumbo">
-                  {getCategoryText(event.category)}
+                  {EVENT_CATEGORIES.find((cat) => cat.value === event.category)
+                    ?.label || getCategoryText(event.category)}
                 </p>
               </div>
             </div>
@@ -874,12 +932,26 @@ const EventDetailsModal = ({
                   <label className="text-sm text-cinza-chumbo/70 font-medium">
                     Data e Hora de Início
                   </label>
-                  <p className="font-semibold text-cinza-chumbo">
-                    {formatEventDate(event.startDate)}
-                  </p>
-                  <p className="text-sm text-cinza-chumbo/70">
-                    às {formatEventTime(event.startDate)}
-                  </p>
+                  {isEditing ? (
+                    <DateTimePicker
+                      date={editedEvent.startDate}
+                      onDateChange={(date) =>
+                        setEditedEvent({
+                          ...editedEvent,
+                          startDate: date || new Date(),
+                        })
+                      }
+                    />
+                  ) : (
+                    <>
+                      <p className="font-semibold text-cinza-chumbo">
+                        {formatEventDate(event.startDate)}
+                      </p>
+                      <p className="text-sm text-cinza-chumbo/70">
+                        às {formatEventTime(event.startDate)}
+                      </p>
+                    </>
+                  )}
                 </div>
 
                 {event.endDate && (
@@ -887,55 +959,99 @@ const EventDetailsModal = ({
                     <label className="text-sm text-cinza-chumbo/70 font-medium">
                       Data e Hora de Fim
                     </label>
-                    <p className="font-semibold text-cinza-chumbo">
-                      {formatEventDate(event.endDate)}
-                    </p>
-                    <p className="text-sm text-cinza-chumbo/70">
-                      às {formatEventTime(event.endDate)}
-                    </p>
+                    {isEditing ? (
+                      <DateTimePicker
+                        date={editedEvent.endDate || undefined}
+                        onDateChange={(date) =>
+                          setEditedEvent({
+                            ...editedEvent,
+                            endDate: date || null,
+                          })
+                        }
+                      />
+                    ) : (
+                      <>
+                        <p className="font-semibold text-cinza-chumbo">
+                          {formatEventDate(event.endDate)}
+                        </p>
+                        <p className="text-sm text-cinza-chumbo/70">
+                          às {formatEventTime(event.endDate)}
+                        </p>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
             </div>
 
             {/* Período de Inscrições */}
-            {(event.registrationStartDate || event.registrationEndDate) && (
-              <div>
-                <h4 className="font-semibold text-cinza-chumbo mb-4 flex items-center">
-                  <Clock className="w-5 h-5 mr-2" />
-                  Período de Inscrições
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {event.registrationStartDate && (
-                    <div>
-                      <label className="text-sm text-cinza-chumbo/70 font-medium">
-                        Início das Inscrições
-                      </label>
+            <div>
+              <h4 className="font-semibold text-cinza-chumbo mb-4 flex items-center">
+                <Clock className="w-5 h-5 mr-2" />
+                Período de Inscrições
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="text-sm text-cinza-chumbo/70 font-medium">
+                    Início das Inscrições
+                  </label>
+                  {isEditing ? (
+                    <DateTimePicker
+                      date={editedEvent.registrationStartDate || undefined}
+                      onDateChange={(date) =>
+                        setEditedEvent({
+                          ...editedEvent,
+                          registrationStartDate: date || null,
+                        })
+                      }
+                    />
+                  ) : event.registrationStartDate ? (
+                    <>
                       <p className="font-semibold text-cinza-chumbo">
                         {formatEventDate(event.registrationStartDate)}
                       </p>
                       <p className="text-sm text-cinza-chumbo/70">
                         às {formatEventTime(event.registrationStartDate)}
                       </p>
-                    </div>
+                    </>
+                  ) : (
+                    <p className="text-sm text-cinza-chumbo/50 italic">
+                      Não definido
+                    </p>
                   )}
+                </div>
 
-                  {event.registrationEndDate && (
-                    <div>
-                      <label className="text-sm text-cinza-chumbo/70 font-medium">
-                        Fim das Inscrições
-                      </label>
+                <div>
+                  <label className="text-sm text-cinza-chumbo/70 font-medium">
+                    Fim das Inscrições
+                  </label>
+                  {isEditing ? (
+                    <DateTimePicker
+                      date={editedEvent.registrationEndDate || undefined}
+                      onDateChange={(date) =>
+                        setEditedEvent({
+                          ...editedEvent,
+                          registrationEndDate: date || null,
+                        })
+                      }
+                    />
+                  ) : event.registrationEndDate ? (
+                    <>
                       <p className="font-semibold text-cinza-chumbo">
                         {formatEventDate(event.registrationEndDate)}
                       </p>
                       <p className="text-sm text-cinza-chumbo/70">
                         às {formatEventTime(event.registrationEndDate)}
                       </p>
-                    </div>
+                    </>
+                  ) : (
+                    <p className="text-sm text-cinza-chumbo/50 italic">
+                      Não definido
+                    </p>
                   )}
                 </div>
               </div>
-            )}
+            </div>
 
             {/* Configurações */}
             <div>
@@ -948,28 +1064,80 @@ const EventDetailsModal = ({
                   <label className="text-sm text-cinza-chumbo/70 font-medium">
                     Visibilidade
                   </label>
-                  <p className="font-semibold text-cinza-chumbo">
-                    {event.isPublic ? "Público" : "Privado"}
-                  </p>
-                  <p className="text-xs text-cinza-chumbo/70">
-                    {event.isPublic
-                      ? "Visível para todos os utilizadores"
-                      : "Visível apenas para administradores"}
-                  </p>
+                  {isEditing ? (
+                    <Select
+                      value={editedEvent.isPublic ? "publico" : "privado"}
+                      onValueChange={(value) =>
+                        setEditedEvent({
+                          ...editedEvent,
+                          isPublic: value === "publico",
+                        })
+                      }
+                    >
+                      <SelectTrigger className="w-full ">
+                        <SelectValue placeholder="Selecione uma opção" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="privado">Privado</SelectItem>
+                        <SelectItem value="publico">Público</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <>
+                      <p className="font-semibold text-cinza-chumbo">
+                        {event.isPublic ? "Público" : "Privado"}
+                      </p>
+                      <p className="text-xs text-cinza-chumbo/70">
+                        {event.isPublic
+                          ? "Visível para todos os utilizadores"
+                          : "Visível apenas para administradores"}
+                      </p>
+                    </>
+                  )}
                 </div>
 
                 <div>
                   <label className="text-sm text-cinza-chumbo/70 font-medium">
                     Aprovação de Inscrições
                   </label>
-                  <p className="font-semibold text-cinza-chumbo">
-                    {event.requiresApproval ? "Requer aprovação" : "Automática"}
-                  </p>
-                  <p className="text-xs text-cinza-chumbo/70">
-                    {event.requiresApproval
-                      ? "Inscrições precisam ser aprovadas"
-                      : "Inscrições são aprovadas automaticamente"}
-                  </p>
+                  {isEditing ? (
+                    <Select
+                      value={
+                        editedEvent.requiresApproval
+                          ? "requer_aprovacao"
+                          : "automatica"
+                      }
+                      onValueChange={(value) =>
+                        setEditedEvent({
+                          ...editedEvent,
+                          requiresApproval: value === "requer_aprovacao",
+                        })
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecione uma opção" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="automatica">Automática</SelectItem>
+                        <SelectItem value="requer_aprovacao">
+                          Requer aprovação
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <>
+                      <p className="font-semibold text-cinza-chumbo">
+                        {event.requiresApproval
+                          ? "Requer aprovação"
+                          : "Automática"}
+                      </p>
+                      <p className="text-xs text-cinza-chumbo/70">
+                        {event.requiresApproval
+                          ? "Inscrições precisam ser aprovadas"
+                          : "Inscrições são aprovadas automaticamente"}
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -1009,23 +1177,40 @@ const EventDetailsModal = ({
                 Prémios
               </h4>
               {isEditing ? (
-                <textarea
-                  value={editedEvent.prizes || ""}
-                  onChange={(e) =>
-                    setEditedEvent({ ...editedEvent, prizes: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  rows={4}
-                  placeholder="Prémios do evento..."
+                <TagsInput
+                  disabled={false}
+                  value={editedEvent.prizes?.split(",").filter(Boolean) || []}
+                  onChange={(value) => {
+                    setEditedEvent({ ...editedEvent, prizes: value.join(",") });
+                  }}
+                  name="prizes"
+                  placeHolder="Prémios do evento..."
+                  maxTagsCount={5}
+                  icon={Trophy}
                 />
-              ) : event.prizes ? (
-                <div className="bg-yellow-50 p-4 rounded-lg">
-                  <p className="text-cinza-chumbo whitespace-pre-wrap text-sm">
-                    {event.prizes}
-                  </p>
-                </div>
               ) : (
-                <p className="text-gray-500 text-sm">Sem prémios definidos</p>
+                <div className="space-y-2">
+                  {event.prizes ? (
+                    <div className="flex flex-wrap gap-2">
+                      {event.prizes
+                        .split(",")
+                        .filter(Boolean)
+                        .map((prize, index) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full text-sm font-medium shadow-sm"
+                          >
+                            <Trophy className="w-4 h-4 mr-2 text-amber-100" />
+                            {prize.trim()}
+                          </span>
+                        ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">
+                      Sem prémios definidos
+                    </p>
+                  )}
+                </div>
               )}
             </div>
 

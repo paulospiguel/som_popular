@@ -64,6 +64,8 @@ export const participantSchema = z
       ),
 
     acceptsEmailNotifications: z.boolean().default(true),
+
+    eventId: z.string().min(1, "Selecione um evento para inscrição"),
   })
   .refine(
     (data) => {

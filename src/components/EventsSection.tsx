@@ -208,96 +208,106 @@ function EventCard({ event, isCurrentEvent = false }: EventCardProps) {
   };
 
   return (
-    <div
-      className={`festival-card p-6 hover:shadow-lg transition-all duration-300 ${
-        isCurrentEvent
-          ? "border-2 border-verde-suave bg-verde-suave/5"
-          : "hover:scale-105"
-      }`}
-    >
-      {/* Header */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex-1">
-          <h4 className="font-bold text-lg text-cinza-chumbo mb-2 line-clamp-2">
-            {event.name}
-          </h4>
-          <div className="flex flex-wrap gap-2 mb-3">
-            <Badge
-              className={
-                EVENT_TYPE_COLORS[
-                  event.type as keyof typeof EVENT_TYPE_COLORS
-                ] || "bg-gray-100 text-gray-800"
-              }
-            >
-              {EVENT_TYPE_LABELS[
-                event.type as keyof typeof EVENT_TYPE_LABELS
-              ] || event.type}
-            </Badge>
-            <Badge variant="outline" className="capitalize">
-              {event.category}
-            </Badge>
+    <Link href={`/events/${event.id}`} className="block">
+      <div
+        className={`festival-card p-6 hover:shadow-lg transition-all duration-300 cursor-pointer ${
+          isCurrentEvent
+            ? "border-2 border-verde-suave bg-verde-suave/5 hover:bg-verde-suave/10"
+            : "hover:scale-105"
+        }`}
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex-1">
+            <h4 className="font-bold text-lg text-cinza-chumbo mb-2 line-clamp-2">
+              {event.name}
+            </h4>
+            <div className="flex flex-wrap gap-2 mb-3">
+              <Badge
+                className={
+                  EVENT_TYPE_COLORS[
+                    event.type as keyof typeof EVENT_TYPE_COLORS
+                  ] || "bg-gray-100 text-gray-800"
+                }
+              >
+                {EVENT_TYPE_LABELS[
+                  event.type as keyof typeof EVENT_TYPE_LABELS
+                ] || event.type}
+              </Badge>
+              <Badge variant="outline" className="capitalize">
+                {event.category}
+              </Badge>
+            </div>
           </div>
+          {isCurrentEvent && (
+            <div className="text-verde-suave">
+              <div className="w-3 h-3 bg-verde-suave rounded-full animate-pulse"></div>
+            </div>
+          )}
         </div>
-        {isCurrentEvent && (
-          <div className="text-verde-suave">
-            <div className="w-3 h-3 bg-verde-suave rounded-full animate-pulse"></div>
-          </div>
+
+        {/* Descrição */}
+        {event.description && (
+          <p className="text-sm text-cinza-chumbo/80 mb-4 line-clamp-2">
+            {event.description}
+          </p>
         )}
-      </div>
 
-      {/* Descrição */}
-      {event.description && (
-        <p className="text-sm text-cinza-chumbo/80 mb-4 line-clamp-2">
-          {event.description}
-        </p>
-      )}
-
-      {/* Informações do Evento */}
-      <div className="space-y-2 mb-4">
-        <div className="flex items-center text-sm text-cinza-chumbo">
-          <Calendar className="w-4 h-4 mr-2 text-dourado-claro" />
-          <span>{formatDate(event.startDate)}</span>
-        </div>
-        <div className="flex items-center text-sm text-cinza-chumbo">
-          <MapPin className="w-4 h-4 mr-2 text-dourado-claro" />
-          <span>{event.location}</span>
-        </div>
-        {event.maxParticipants && (
+        {/* Informações do Evento */}
+        <div className="space-y-2 mb-4">
           <div className="flex items-center text-sm text-cinza-chumbo">
-            <Users className="w-4 h-4 mr-2 text-dourado-claro" />
-            <span>
-              {event.currentParticipants} / {event.maxParticipants}{" "}
-              participantes
-            </span>
+            <Calendar className="w-4 h-4 mr-2 text-dourado-claro" />
+            <span>{formatDate(event.startDate)}</span>
           </div>
-        )}
-      </div>
-
-      {/* Status de Inscrição */}
-      <div className="mb-4">
-        <div className="flex items-center space-x-2">
-          <StatusIcon className="w-4 h-4" />
-          <Badge className={STATUS_COLORS[event.registrationStatus]}>
-            {STATUS_LABELS[event.registrationStatus]}
-          </Badge>
+          <div className="flex items-center text-sm text-cinza-chumbo">
+            <MapPin className="w-4 h-4 mr-2 text-dourado-claro" />
+            <span>{event.location}</span>
+          </div>
+          {event.maxParticipants && (
+            <div className="flex items-center text-sm text-cinza-chumbo">
+              <Users className="w-4 h-4 mr-2 text-dourado-claro" />
+              <span>
+                {event.currentParticipants} / {event.maxParticipants}{" "}
+                participantes
+              </span>
+            </div>
+          )}
         </div>
-      </div>
 
-      {/* Ações */}
-      <div className="flex space-x-2">
-        <Link href={`/eventos/${event.id}`} className="flex-1">
-          <Button variant="outline" size="sm" className="w-full">
+        {/* Status de Inscrição */}
+        <div className="mb-4">
+          <div className="flex items-center space-x-2">
+            <StatusIcon className="w-4 h-4" />
+            <Badge className={STATUS_COLORS[event.registrationStatus]}>
+              {STATUS_LABELS[event.registrationStatus]}
+            </Badge>
+          </div>
+        </div>
+
+        {/* Ações */}
+        <div className="flex space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1"
+            onClick={(e) => e.stopPropagation()}
+          >
             Ver Detalhes
           </Button>
-        </Link>
-        {event.canRegister && (
-          <Link href={`/eventos/${event.id}/inscricao`} className="flex-1">
-            <Button size="sm" className="w-full festival-button">
+          {event.canRegister && (
+            <Button
+              size="sm"
+              className="flex-1 festival-button"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.location.href = `/events/${event.id}/registration`;
+              }}
+            >
               Inscrever-me
             </Button>
-          </Link>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </Link>
   );
 }

@@ -9,7 +9,7 @@ export default function Footer() {
         links: [
           {
             name: "Ser Participante",
-            href: "/register-participant",
+            href: "/participant-registration",
           },
           {
             name: "Ver Eventos",
@@ -17,7 +17,7 @@ export default function Footer() {
           },
           {
             name: "Consultar Inscrição",
-            href: "/consulta-inscricao",
+            href: "/registration-lookup",
           },
           {
             name: "Ver Rankings",
@@ -51,7 +51,7 @@ export default function Footer() {
         links: [
           {
             name: "Ajuda",
-            href: "/ajuda",
+            href: "/help",
           },
           // {
           //   name: "WhatsApp",

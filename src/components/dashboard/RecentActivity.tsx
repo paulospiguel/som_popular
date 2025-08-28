@@ -1,5 +1,6 @@
 "use client";
 
+import { getDashboardStats } from "@/actions/dashboard";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatTimeAgo } from "@/lib/utils";
@@ -17,6 +18,7 @@ import {
   Users,
   XCircle,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface ActivityDetail {
   status?: string;
@@ -33,9 +35,8 @@ interface Activity {
 }
 
 interface RecentActivityComponentProps {
-  activities?: Activity[];
-  loading?: boolean;
   className?: string;
+  visible?: boolean;
 }
 
 const ACTIVITY_TYPES = [
@@ -102,10 +103,35 @@ const TYPE_ICONS = {
 };
 
 export default function RecentActivityComponent({
-  activities = [],
-  loading = false,
   className = "",
+  visible = true,
 }: RecentActivityComponentProps) {
+  const [activities, setActivities] = useState<Activity[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadEventStats = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await getDashboardStats();
+      if (result.success && result.data) {
+        setActivities(result.data.recentActivity);
+      } else {
+        setError(result.error || "Erro ao carregar estatísticas");
+      }
+    } catch (error) {
+      console.error("Erro ao carregar estatísticas:", error);
+      setError("Erro ao carregar estatísticas");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadEventStats();
+  }, []);
+
   const getActivityIcon = (type: string) => {
     return TYPE_ICONS[type as keyof typeof TYPE_ICONS] || AlertCircle;
   };
@@ -146,7 +172,7 @@ export default function RecentActivityComponent({
 
   const filterActivitiesByType = (type: string) => {
     if (type === "all") return activities;
-    return activities.filter((activity) => activity.type === type);
+    return activities?.filter((activity) => activity.type === type);
   };
 
   const getStatusIcon = (status: string) => {
@@ -163,6 +189,22 @@ export default function RecentActivityComponent({
         return AlertCircle;
     }
   };
+
+  if (!visible) {
+    return null;
+  }
+
+  if (error) {
+    return (
+      <div className={`festival-card p-6 mb-8 ${className}`}>
+        <h3 className="festival-subtitle text-lg mb-4 flex items-center">
+          <FileText className="w-5 h-5 mr-2 text-verde-suave" />
+          Atividade Recente
+        </h3>
+        <p>{error}</p>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -224,13 +266,13 @@ export default function RecentActivityComponent({
               value={type.value}
               className="space-y-3"
             >
-              {filteredActivities.length === 0 ? (
+              {filteredActivities?.length === 0 ? (
                 <div className="text-center py-8 text-cinza-chumbo/70">
                   <Icon className="w-8 h-8 mx-auto mb-2 opacity-50" />
                   <p>Nenhuma atividade encontrada para esta categoria</p>
                 </div>
               ) : (
-                filteredActivities.map((activity, index) => (
+                filteredActivities?.map((activity, index) => (
                   <div
                     key={index}
                     className={`flex items-center justify-between p-3 rounded-lg ${getActivityColor(

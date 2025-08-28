@@ -1,23 +1,13 @@
+import { EVENT_STATUSES } from "@/constants";
+
 export function getStatusText(status: string): string {
-  const statusMap: Record<string, string> = {
-    draft: "Rascunho",
-    published: "Publicado",
-    ongoing: "Em Curso",
-    completed: "Concluído",
-    cancelled: "Cancelado",
-  };
-  return statusMap[status] || status;
+  const statusInfo = EVENT_STATUSES.find((s) => s.value === status);
+  return statusInfo?.label || status;
 }
 
 export function getStatusColor(status: string): string {
-  const colorMap: Record<string, string> = {
-    draft: "text-gray-600 bg-gray-100",
-    published: "text-green-600 bg-green-100",
-    ongoing: "text-blue-600 bg-blue-100",
-    completed: "text-yellow-600 bg-yellow-100",
-    cancelled: "text-red-600 bg-red-100",
-  };
-  return colorMap[status] || "text-gray-600 bg-gray-100";
+  const statusInfo = EVENT_STATUSES.find((s) => s.value === status);
+  return statusInfo?.color || "text-gray-600 bg-gray-100";
 }
 
 export function getTypeText(type: string): string {

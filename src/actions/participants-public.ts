@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/database";
-import { participants } from "@/database/schema";
+import { eventRegistrations, participants } from "@/database/schema";
 import { participantSchema } from "@/schemas/participant";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
@@ -17,6 +17,7 @@ export interface ParticipantRegistrationData {
   hasSpecialNeeds: boolean;
   specialNeedsDescription?: string;
   acceptsEmailNotifications: boolean;
+  eventId: string; // ID do evento para inscrição automática
 }
 
 export async function registerParticipant(
@@ -65,7 +66,18 @@ export async function registerParticipant(
       })
       .returning();
 
+    // Criar inscrição automática no evento
+    if (validatedData.eventId) {
+      await db.insert(eventRegistrations).values({
+        eventId: validatedData.eventId,
+        participantId: newParticipant[0].id,
+        status: "registered",
+        registrationDate: new Date(),
+      });
+    }
+
     revalidatePath("/participantes");
+    revalidatePath("/eventos");
 
     return {
       success: true,

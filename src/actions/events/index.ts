@@ -380,3 +380,13 @@ export async function getPublishedEvents() {
     return { success: false, error: "Erro ao buscar eventos publicados" };
   }
 }
+
+export async function getEventStats() {
+  try {
+    const eventStats = await db.select().from(events);
+    return { success: true, data: eventStats };
+  } catch (error) {
+    console.error("Erro ao buscar estatísticas de eventos:", error);
+    return { success: false, error: "Erro ao buscar estatísticas de eventos" };
+  }
+}

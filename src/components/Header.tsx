@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Menu } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
+import { Logo } from "./logo";
 
 interface HeaderProps {
   transparent?: boolean;
@@ -19,21 +19,7 @@ export default function Header({ transparent = false }: HeaderProps) {
       <div className="container mx-auto px-4 py-4 text-white">
         <div className="flex items-center justify-between">
           {/* Logo e Título */}
-          <Link
-            href="/"
-            className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
-          >
-            <Image
-              src="/images/logo.png"
-              alt="Festival Som Popular"
-              width={50}
-              height={50}
-              className="rounded-full"
-            />
-            <h1 className="festival-title text-neve text-2xl font-bold">
-              Som Popular
-            </h1>
-          </Link>
+          <Logo isDashboard={false} />
 
           {/* Navegação Desktop */}
           <nav className="hidden md:flex space-x-6 items-center">
@@ -44,10 +30,16 @@ export default function Header({ transparent = false }: HeaderProps) {
               Sobre
             </Link>
             <Link
-              href="/#rules"
+              href="/regulation"
               className="text-neve hover:text-dourado transition-colors font-medium"
             >
               Regulamento
+            </Link>
+            <Link
+              href="/help"
+              className="text-neve hover:text-dourado transition-colors font-medium"
+            >
+              Ajuda
             </Link>
             <Link
               href="/ranking"
@@ -56,7 +48,7 @@ export default function Header({ transparent = false }: HeaderProps) {
               Classificação
             </Link>
             <Link
-              href="/register-participant"
+              href="/participant-registration"
               className="festival-button-secondary px-4 py-2 text-sm"
             >
               Ser Participante

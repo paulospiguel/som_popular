@@ -14,6 +14,7 @@ export const systemLogs = sqliteTable("system_logs", {
   ipAddress: text("ip_address"),
   status: text("status").notNull().default("pending"),
   message: text("message"),
+  severity: text("severity").notNull().default("none"),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
     () => new Date()
   ),
@@ -192,6 +193,26 @@ export const evaluationSessions = sqliteTable("evaluation_sessions", {
   endedAt: integer("ended_at", { mode: "timestamp" }),
 });
 
+/**
+ * Tabela de logs de eventos
+ */
+export const eventLogs = sqliteTable("event_logs", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  eventId: text("event_id").notNull(),
+  action: text("action").notNull(),
+  category: text("category").notNull().default("event"),
+  severity: text("severity").notNull().default("none"), // 'critical', 'major', 'minor', 'none'
+  metadata: text("metadata"),
+  userId: text("user_id"), // ID do usuário que executou a ação
+  status: text("status").notNull().default("pending"),
+  message: text("message"),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+    () => new Date()
+  ),
+});
+
 export type SystemLog = typeof systemLogs.$inferSelect;
 export type NewSystemLog = typeof systemLogs.$inferInsert;
 export type Participant = typeof participants.$inferSelect;
@@ -208,3 +229,5 @@ export type EventEvaluation = typeof eventEvaluations.$inferSelect;
 export type NewEventEvaluation = typeof eventEvaluations.$inferInsert;
 export type EvaluationSession = typeof evaluationSessions.$inferSelect;
 export type NewEvaluationSession = typeof evaluationSessions.$inferInsert;
+export type EventLog = typeof eventLogs.$inferSelect;
+export type NewEventLog = typeof eventLogs.$inferInsert;

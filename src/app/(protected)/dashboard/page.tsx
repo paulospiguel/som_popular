@@ -1,8 +1,6 @@
 "use client";
 
 import { getDashboardStats } from "@/actions/dashboard";
-import LogsComponent from "@/components/dashboard/LogsComponent";
-import RecentActivityComponent from "@/components/dashboard/RecentActivity";
 import { useSession } from "@/lib/auth-client";
 import {
   AlertTriangle,
@@ -258,7 +256,10 @@ export default function AdminDashboard() {
             )}
           </div>
 
-          <div className="festival-card p-6 text-center hover:shadow-lg transition-shadow">
+          <Link
+            href="/dashboard/logs"
+            className="festival-card p-6 text-center hover:shadow-lg transition-shadow"
+          >
             <AlertTriangle className="w-10 h-10 text-vermelho-suave mx-auto mb-3" />
             <h3 className="font-semibold text-cinza-chumbo mb-1">Pendências</h3>
             <p className="text-3xl font-bold text-vermelho-suave mb-1">
@@ -271,7 +272,7 @@ export default function AdminDashboard() {
             <p className="text-xs text-cinza-chumbo/70">
               {loading ? "Carregando..." : "requer atenção"}
             </p>
-          </div>
+          </Link>
         </div>
 
         {/* Ações Administrativas */}
@@ -303,17 +304,6 @@ export default function AdminDashboard() {
             </Link>
           ))}
         </div>
-
-        {/* Atividade Recente */}
-        <RecentActivityComponent
-          activities={stats?.recentActivity}
-          loading={loading}
-          className="mb-8"
-          //visible={false}
-        />
-
-        {/* Componente de Logs */}
-        <LogsComponent visible={false} className="mb-8" />
       </main>
     </>
   );

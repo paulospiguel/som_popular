@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import CurrentStatusCard from "@/components/CurrentStatusCard";
 import EventsSection from "@/components/EventsSection";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
@@ -27,7 +28,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
             {/* Botão principal - Dourado */}
             <Link
-              href="/register-participant"
+              href="/participant-registration"
               className="festival-button text-lg px-10 py-4 font-semibold"
             >
               🎤 Ser Participante
@@ -50,21 +51,8 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* Box Estado Atual - Fundo amarelo claro com texto verde escuro */}
-          <div className="festival-card p-8 max-w-md mx-auto bg-slate-50">
-            <h3 className="festival-subtitle text-lg font-semibold mb-4 text-terra">
-              Estado Atual
-            </h3>
-            <div className="flex items-center justify-center space-x-3 mb-3">
-              <div className="w-4 h-4 bg-verde-suave rounded-full animate-pulse"></div>
-              <span className="text-verde-suave font-semibold text-lg">
-                Inscrições Abertas
-              </span>
-            </div>
-            <p className="text-sm text-cinza-chumbo/80">
-              Próxima fase: Classificatórias - 15 de Março
-            </p>
-          </div>
+          {/* Card Estado Atual com Dados Reais */}
+          <CurrentStatusCard />
         </div>
       </section>
 

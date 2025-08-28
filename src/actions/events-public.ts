@@ -342,6 +342,84 @@ export async function registerForEvent(data: EventRegistrationData): Promise<{
 }
 
 /**
+ * Busca eventos disponíveis para inscrição (com inscrições abertas)
+ */
+export async function getAvailableEventsForRegistration(): Promise<{
+  success: boolean;
+  events?: PublicEvent[];
+  error?: string;
+}> {
+  try {
+    const now = new Date();
+
+    // Buscar eventos públicos com inscrições abertas
+    const availableEvents = await db
+      .select({
+        id: events.id,
+        name: events.name,
+        description: events.description,
+        type: events.type,
+        category: events.category,
+        location: events.location,
+        maxParticipants: events.maxParticipants,
+        currentParticipants: events.currentParticipants,
+        startDate: events.startDate,
+        endDate: events.endDate,
+        registrationStartDate: events.registrationStartDate,
+        registrationEndDate: events.registrationEndDate,
+        status: events.status,
+        rules: events.rules,
+        prizes: events.prizes,
+      })
+      .from(events)
+      .where(
+        and(
+          eq(events.isPublic, true),
+          sql`${events.status} IN ('published', 'ongoing')`,
+          // Inscrições devem estar abertas
+          sql`${events.registrationStartDate} <= ${now}`,
+          sql`${events.registrationEndDate} >= ${now}`,
+          // Não deve estar lotado
+          sql`(${events.maxParticipants} IS NULL OR ${events.currentParticipants} < ${events.maxParticipants})`
+        )
+      )
+      .orderBy(events.startDate);
+
+    // Calcular status de inscrição para cada evento
+    const eventsWithStatus: PublicEvent[] = availableEvents.map((event) => {
+      let registrationStatus: PublicEvent["registrationStatus"] = "open";
+      let canRegister = true;
+
+      // Verificar se está lotado
+      if (
+        event.maxParticipants &&
+        event.currentParticipants >= event.maxParticipants
+      ) {
+        registrationStatus = "full";
+        canRegister = false;
+      }
+
+      return {
+        ...event,
+        registrationStatus,
+        canRegister,
+      };
+    });
+
+    return {
+      success: true,
+      events: eventsWithStatus,
+    };
+  } catch (error) {
+    console.error("Erro ao buscar eventos disponíveis:", error);
+    return {
+      success: false,
+      error: "Erro ao buscar eventos disponíveis.",
+    };
+  }
+}
+
+/**
  * Busca inscrição por email e evento
  */
 export async function getRegistrationByEmail(
