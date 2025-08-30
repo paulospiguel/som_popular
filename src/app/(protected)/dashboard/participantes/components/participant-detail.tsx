@@ -1,5 +1,5 @@
 import { Modal } from "@/components/Modal";
-import { Participant } from "@/database/schema";
+import { Participant } from "@/server/database/schema";
 import { FileText, Printer, QrCode, Send } from "lucide-react"; // Adicionado X
 import { useState } from "react"; // Adicionar useState
 import { getCategoryText, getExperienceText } from "../utils";

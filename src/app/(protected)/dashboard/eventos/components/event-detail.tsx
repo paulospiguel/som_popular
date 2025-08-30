@@ -1,29 +1,5 @@
 "use client";
 
-import {
-  cancelEvent,
-  completeEvent,
-  publishEvent,
-  revertToDraft,
-  startEvent,
-  updateEvent,
-} from "@/actions/events";
-import {
-  addJudgeToEvent,
-  createJudge,
-  createSampleJudges,
-  getEventJudges,
-  getJudges,
-  removeJudgeFromEvent,
-} from "@/actions/judges";
-import {
-  createSampleParticipants,
-  getApprovedParticipants,
-  getEventParticipants,
-  registerParticipantInEvent,
-  removeParticipantFromEvent,
-} from "@/actions/participants";
-import { createTestData } from "@/actions/seed-data";
 import { JudgeDetailsModal } from "@/components/JudgeDetailsModal";
 import { Modal } from "@/components/Modal";
 import { ParticipantDetailsModal } from "@/components/ParticipantDetailsModal";
@@ -45,9 +21,33 @@ import {
 import { TagsInput } from "@/components/ui/tags-input";
 import { useToast } from "@/components/ui/toast";
 import { EVENT_CATEGORIES, EVENT_STATUSES, EVENT_TYPES } from "@/constants";
-import { Event, Participant } from "@/database/schema";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useSonner } from "@/hooks/use-sonner";
+import { Event, Participant } from "@/server/database/schema";
+import {
+  cancelEvent,
+  completeEvent,
+  publishEvent,
+  revertToDraft,
+  startEvent,
+  updateEvent,
+} from "@/server/events";
+import {
+  addJudgeToEvent,
+  createJudge,
+  createSampleJudges,
+  getEventJudges,
+  getJudges,
+  removeJudgeFromEvent,
+} from "@/server/judges";
+import {
+  createSampleParticipants,
+  getApprovedParticipants,
+  getEventParticipants,
+  registerParticipantInEvent,
+  removeParticipantFromEvent,
+} from "@/server/participants";
+import { createTestData } from "@/server/seed-data";
 import {
   AlertTriangle,
   Calendar,

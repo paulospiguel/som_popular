@@ -8,9 +8,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Participant } from "@/database/schema";
 import { cn } from "@/lib/utils";
 import { participantSchema } from "@/schemas/participant";
+import { Participant } from "@/server/database/schema";
 import { Updater, useForm } from "@tanstack/react-form";
 import { Plus } from "lucide-react";
 import { useState } from "react";

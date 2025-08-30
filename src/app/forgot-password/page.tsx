@@ -1,7 +1,7 @@
 "use client";
 
-import { logPasswordResetAction } from "@/actions/logs";
 import { requestPasswordReset } from "@/lib/auth-client";
+import { logPasswordReset } from "@/server/logs";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -21,10 +21,11 @@ export default function ForgotPasswordPage() {
 
     try {
       // Log da tentativa inicial
-      await logPasswordResetAction({
+      await logPasswordReset({
         email,
         status: "pending",
         message: "Tentativa de recuperação de senha iniciada",
+        metadata: {},
       });
 
       const result = await requestPasswordReset({
@@ -43,21 +44,21 @@ export default function ForgotPasswordPage() {
           setError("Este e-mail não está registado no sistema.");
 
           // Log específico para e-mail não encontrado
-          await logPasswordResetAction({
+          await logPasswordReset({
             email,
             status: "failed",
             message: "E-mail não encontrado no sistema",
-            details: { errorType: "user_not_found" },
+            metadata: { errorType: "user_not_found" },
           });
         } else {
           setError("Ocorreu um erro. Tenta novamente.");
 
           // Log para outros erros
-          await logPasswordResetAction({
+          await logPasswordReset({
             email,
             status: "failed",
             message: `Erro na recuperação: ${errorMessage}`,
-            details: { error: errorMessage },
+            metadata: { error: errorMessage },
           });
         }
       } else {
@@ -66,10 +67,11 @@ export default function ForgotPasswordPage() {
         );
 
         // Log de sucesso
-        await logPasswordResetAction({
+        await logPasswordReset({
           email,
           status: "success",
           message: "E-mail de recuperação enviado com sucesso",
+          metadata: {},
         });
       }
     } catch (err) {
@@ -77,11 +79,11 @@ export default function ForgotPasswordPage() {
       setError("Erro inesperado. Tenta novamente.");
 
       // Log para erros inesperados
-      await logPasswordResetAction({
+      await logPasswordReset({
         email,
         status: "failed",
         message: "Erro inesperado na recuperação de senha",
-        details: {
+        metadata: {
           error: err instanceof Error ? err.message : "Unknown error",
         },
       });

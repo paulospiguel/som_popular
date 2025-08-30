@@ -1,12 +1,12 @@
 "use server";
 
-import { db } from "@/database";
+import { db } from "@/server/database";
 import {
   eventEvaluations,
   eventJudges,
   events,
   participants,
-} from "@/database/schema";
+} from "@/server/database/schema";
 import { and, eq, gte, sql } from "drizzle-orm";
 
 // Função auxiliar para converter status em texto legível

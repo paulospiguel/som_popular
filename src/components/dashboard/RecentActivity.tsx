@@ -1,9 +1,9 @@
 "use client";
 
-import { getDashboardStats } from "@/actions/dashboard";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatTimeAgo } from "@/lib/utils";
+import { getDashboardStats } from "@/server/dashboard";
 import {
   AlertCircle,
   AlertTriangle,

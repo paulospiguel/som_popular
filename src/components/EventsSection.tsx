@@ -1,8 +1,8 @@
 "use client";
 
-import { getPublicEvents, type PublicEvent } from "@/actions/events-public";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { getPublicEvents, type PublicEvent } from "@/server/events-public";
 import {
   ArrowRight,
   Calendar,

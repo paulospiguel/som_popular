@@ -1,8 +1,8 @@
 "use server";
 
-import { db } from "@/database";
-import { events, type Event, type NewEvent } from "@/database/schema";
 import { checkAdminAccess } from "@/lib/auth-guards";
+import { db } from "@/server/database";
+import { events, type Event, type NewEvent } from "@/server/database/schema";
 import { desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 

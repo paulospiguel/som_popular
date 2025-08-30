@@ -1,7 +1,11 @@
 "use server";
 
-import { db } from "@/database";
-import { eventRegistrations, events, participants } from "@/database/schema";
+import { db } from "@/server/database";
+import {
+  eventRegistrations,
+  events,
+  participants,
+} from "@/server/database/schema";
 import { and, eq, sql } from "drizzle-orm";
 
 export interface PublicEvent {

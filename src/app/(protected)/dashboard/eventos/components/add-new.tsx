@@ -1,6 +1,5 @@
 "use client";
 
-import { createEvent } from "@/actions/events";
 import { Modal } from "@/components/Modal";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DateTimePicker } from "@/components/ui/date-picker";
@@ -13,7 +12,8 @@ import {
 } from "@/components/ui/select";
 import { TagsInput } from "@/components/ui/tags-input";
 import { useToast } from "@/components/ui/toast";
-import { Event } from "@/database/schema";
+import { Event } from "@/server/database/schema";
+import { createEvent } from "@/server/events";
 import { useForm } from "@tanstack/react-form";
 import { Calendar, Plus, Trophy, Upload } from "lucide-react";
 import { useState } from "react";

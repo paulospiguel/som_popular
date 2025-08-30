@@ -1,8 +1,8 @@
 "use server";
 
-import { db } from "@/database";
-import { eventRegistrations, participants } from "@/database/schema";
 import { participantSchema } from "@/schemas/participant";
+import { db } from "@/server/database";
+import { eventRegistrations, participants } from "@/server/database/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 

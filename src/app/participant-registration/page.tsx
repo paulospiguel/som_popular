@@ -1,10 +1,5 @@
 "use client";
 
-import { getAvailableEventsForRegistration } from "@/actions/events-public";
-import {
-  getParticipantByEmail,
-  registerParticipant,
-} from "@/actions/participants-public";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -16,6 +11,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getAvailableEventsForRegistration } from "@/server/events-public";
+import {
+  getParticipantByEmail,
+  registerParticipant,
+} from "@/server/participants-public";
 import {
   ArrowLeft,
   Calendar,

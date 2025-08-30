@@ -1,14 +1,14 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   getPublicEventById,
   registerForEvent,
   type EventRegistrationData,
   type PublicEvent,
-} from "@/actions/events-public";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+} from "@/server/events-public";
 import {
   AlertCircle,
   ArrowLeft,

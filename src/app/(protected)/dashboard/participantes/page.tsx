@@ -2,8 +2,8 @@
 
 import { DataTable } from "@/components/DataTable";
 import Loading from "@/components/loading";
-import { Participant } from "@/database/schema";
 import { useSession } from "@/lib/auth-client";
+import { Participant } from "@/server/database/schema";
 import {
   ArrowLeft,
   Eye,

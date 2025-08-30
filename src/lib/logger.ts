@@ -1,5 +1,5 @@
-import { db } from "../database";
-import { systemLogs, type NewSystemLog } from "../database/schema";
+import { db } from "../server/database";
+import { systemLogs, type NewSystemLog } from "../server/database/schema";
 
 // Tipos de ações que podemos logar
 export type LogAction =

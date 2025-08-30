@@ -1,6 +1,5 @@
 "use client";
 
-import { getLogsStats, getSystemLogs } from "@/actions/logs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatTimeAgo } from "@/lib/utils";
+import { getLogsStats, getSystemLogs } from "@/server/logs";
 import {
   Activity,
   AlertCircle,

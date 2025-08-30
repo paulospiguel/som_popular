@@ -1,12 +1,12 @@
 "use server";
 
-import { db } from "@/database";
+import { db } from "@/server/database";
 import {
   eventLogs,
   systemLogs,
   type NewEventLog,
   type NewSystemLog,
-} from "@/database/schema";
+} from "@/server/database/schema";
 import { and, desc, eq, inArray } from "drizzle-orm";
 
 /**
@@ -221,4 +221,27 @@ export async function updateLogStatus(
     console.error("Erro ao atualizar status do log:", error);
     return { success: false, error: "Erro ao atualizar status do log" };
   }
+}
+
+export async function logPasswordReset({
+  email,
+  status,
+  message,
+  metadata = {},
+}: {
+  email: string;
+  status: string;
+  message?: string;
+  metadata?: Record<string, any>;
+}) {
+  return createSystemLog({
+    action: "password_reset_attempt",
+    category: "auth",
+    status: status,
+    metadata: JSON.stringify({
+      ...metadata,
+      email,
+    }),
+    message,
+  });
 }

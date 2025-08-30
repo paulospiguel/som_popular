@@ -1,7 +1,7 @@
 "use client";
 
-import { getPublicEvents, type PublicEvent } from "@/actions/events-public";
 import { Button } from "@/components/ui/button";
+import { getPublicEvents, type PublicEvent } from "@/server/events-public";
 import { Calendar, Music, Users } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";

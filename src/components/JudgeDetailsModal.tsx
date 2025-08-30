@@ -2,7 +2,7 @@
 
 import { Modal } from "@/components/Modal";
 import { Avatar } from "@/components/ui/avatar";
-import { Judge } from "@/database/schema";
+import { Judge } from "@/server/database/schema";
 import { Calendar, CheckCircle, Star, UserCheck, XCircle } from "lucide-react";
 
 interface JudgeDetailsModalProps {
@@ -44,11 +44,7 @@ export function JudgeDetailsModal({
       <div className="p-6 space-y-6">
         {/* Header com Avatar e Info Principal */}
         <div className="flex items-start space-x-4">
-          <Avatar
-            name={judge.name}
-            size="xl"
-            className="flex-shrink-0"
-          />
+          <Avatar name={judge.name} size="xl" className="flex-shrink-0" />
           <div className="flex-1 min-w-0">
             <h3 className="text-xl font-semibold text-cinza-chumbo">
               {judge.name}

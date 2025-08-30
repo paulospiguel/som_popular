@@ -1,12 +1,12 @@
 "use server";
 
-import { db } from "@/database";
+import { db } from "@/server/database";
 import {
   eventEvaluations,
   events,
   judges,
   participants,
-} from "@/database/schema";
+} from "@/server/database/schema";
 import { and, desc, eq, sql } from "drizzle-orm";
 
 export interface EventRanking {

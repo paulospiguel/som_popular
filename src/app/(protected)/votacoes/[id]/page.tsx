@@ -17,14 +17,6 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { getEventById } from "@/actions/events";
-import {
-  createEvaluation,
-  getEventEvaluationStats,
-  getEventParticipantsWithEvaluations,
-  publishEventResults,
-} from "@/actions/events/evaluations";
-import { getEventJudges } from "@/actions/judges";
 import {
   Select,
   SelectContent,
@@ -33,6 +25,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ROLES } from "@/constants";
+import { getEventById } from "@/server/events";
+import {
+  createEvaluation,
+  getEventEvaluationStats,
+  getEventParticipantsWithEvaluations,
+  publishEventResults,
+} from "@/server/events/evaluations";
+import { getEventJudges } from "@/server/judges";
 
 interface Judge {
   id: string;

@@ -1,9 +1,9 @@
 "use client";
 
-import { getAllEventRankings } from "@/actions/rankings";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getAllEventRankings } from "@/server/rankings";
 import {
   ArrowLeft,
   Calendar,

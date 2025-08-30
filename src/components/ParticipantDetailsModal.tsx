@@ -2,7 +2,7 @@
 
 import { Modal } from "@/components/Modal";
 import { Avatar } from "@/components/ui/avatar";
-import { Participant } from "@/database/schema";
+import { Participant } from "@/server/database/schema";
 import {
   Calendar,
   CheckCircle,

@@ -7,9 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint --fix",
-    "db:studio": "drizzle-kit studio",
-    "db:push": "drizzle-kit push:sqlite",
-    "db:migrate": "drizzle-kit migrate:sqlite"
+    "db:studio": "npx drizzle-kit studio",
+    "db:push": "npx drizzle-kit push",
+    "db:migrate": "npx drizzle-kit migrate",
+    "db:generate": "npx drizzle-kit generate"
   },
   "dependencies": {
     "@base-ui-components/react": "^1.0.0-beta.2",

@@ -1,9 +1,9 @@
 "use client";
 
-import { getRegistrationByEmail } from "@/actions/events-public";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getRegistrationByEmail } from "@/server/events-public";
 import {
   AlertCircle,
   ArrowLeft,

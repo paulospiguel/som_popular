@@ -13,9 +13,9 @@ import {
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { getEvents } from "@/actions/events";
-import { createTestData } from "@/actions/seed-data";
 import { ROLES } from "@/constants";
+import { getEvents } from "@/server/events";
+import { createTestData } from "@/server/seed-data";
 
 interface Event {
   id: string;

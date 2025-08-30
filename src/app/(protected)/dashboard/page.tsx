@@ -1,7 +1,7 @@
 "use client";
 
-import { getDashboardStats } from "@/actions/dashboard";
 import { useSession } from "@/lib/auth-client";
+import { getDashboardStats } from "@/server/dashboard";
 import {
   AlertTriangle,
   BarChart3,

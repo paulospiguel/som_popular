@@ -1,8 +1,8 @@
 "use client";
 
-import { getEventRanking, type EventRankingData } from "@/actions/rankings";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { getEventRanking, type EventRankingData } from "@/server/rankings";
 import {
   ArrowLeft,
   BarChart3,

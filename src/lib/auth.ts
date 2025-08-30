@@ -1,6 +1,6 @@
 import { ROLES } from "@/constants";
-import { db } from "@/database";
-import * as schema from "@/database/auth-schema";
+import { db } from "@/server/database";
+import * as schema from "@/server/database/auth-schema";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
