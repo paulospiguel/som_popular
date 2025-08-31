@@ -29,7 +29,7 @@ interface Event {
   createdAt: Date | null;
 }
 
-export default function VotacoesSelecaoPage() {
+export default function VotingsSelectionPage() {
   const { data: session, isPending } = useSession();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);

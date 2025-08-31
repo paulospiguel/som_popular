@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TagsInput } from "@/components/ui/tags-input";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { useToast } from "@/components/ui/toast";
 import { Event } from "@/server/database/schema";
 import { createEvent } from "@/server/events";
@@ -630,13 +631,11 @@ const AddEventModal = ({
                     </button>
                   </div>
 
-                  <textarea
+                  <RichTextEditor
                     value={field.state.value || ""}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                    rows={4}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-verde-suave focus:border-transparent transition-colors resize-none"
-                    placeholder="Regulamento do evento..."
+                    onChange={field.handleChange}
+                    placeholder="Digite o regulamento do evento..."
+                    className="w-full"
                   />
                   <FieldError field={field} />
                 </div>

@@ -39,6 +39,20 @@ export const participantSchema = z
         return isValidUrl || isBase64;
       }, "Avatar deve ser uma URL válida ou imagem em base64"),
 
+    rankingPhoto: z
+      .string()
+      .optional()
+      .or(z.literal(""))
+      .refine((val) => {
+        if (!val) return true;
+        // Aceita URLs de imagens ou base64
+        const isValidUrl = /^https?:\/\/.+\.(jpg|jpeg|png|webp)$/i.test(val);
+        const isBase64 = /^data:image\/(jpeg|jpg|png|webp);base64,/.test(val);
+        const isLocalPath =
+          /^\/uploaded\/participants\/.+\.(jpg|jpeg|png|webp)$/i.test(val);
+        return isValidUrl || isBase64 || isLocalPath;
+      }, "Foto para ranking deve ser uma imagem válida (JPG, PNG ou WebP)"),
+
     category: z.string().min(1, "Seleciona uma categoria"),
 
     experience: z.string().min(1, "Seleciona um nível de experiência"),

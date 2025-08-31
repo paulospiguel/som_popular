@@ -11,6 +11,7 @@ export interface ParticipantRegistrationData {
   email: string;
   phone?: string;
   avatar?: string;
+  rankingPhoto?: string;
   category: string;
   experience: string;
   additionalInfo?: string;
@@ -25,6 +26,8 @@ export async function registerParticipant(
 ): Promise<{
   success: boolean;
   participantId?: string;
+  isNewParticipant?: boolean;
+  message?: string;
   error?: string;
 }> {
   try {
@@ -38,42 +41,83 @@ export async function registerParticipant(
       .where(eq(participants.email, validatedData.email))
       .limit(1);
 
+    let participantId: string;
+    let isNewParticipant = false;
+
     if (existingParticipant.length > 0) {
-      return {
-        success: false,
-        error:
-          "Já existe um participante registrado com este email. Use a opção 'Já sou participante' para se inscrever em eventos.",
-      };
+      // Participante já existe - usar ID existente
+      participantId = existingParticipant[0].id;
+
+      // Atualizar informações do participante se necessário
+      await db
+        .update(participants)
+        .set({
+          name: validatedData.name,
+          phone: validatedData.phone || existingParticipant[0].phone,
+          category: validatedData.category,
+          experience: validatedData.experience,
+          additionalInfo:
+            validatedData.additionalInfo ||
+            existingParticipant[0].additionalInfo,
+          hasSpecialNeeds: validatedData.hasSpecialNeeds,
+          specialNeedsDescription:
+            validatedData.specialNeedsDescription ||
+            existingParticipant[0].specialNeedsDescription,
+          acceptsEmailNotifications: validatedData.acceptsEmailNotifications,
+          rankingPhoto:
+            validatedData.rankingPhoto || existingParticipant[0].rankingPhoto,
+          updatedAt: new Date(),
+        })
+        .where(eq(participants.id, participantId));
+    } else {
+      // Criar novo participante
+      const newParticipant = await db
+        .insert(participants)
+        .values({
+          name: validatedData.name,
+          email: validatedData.email,
+          phone: validatedData.phone || null,
+          avatar: validatedData.avatar || null,
+          rankingPhoto: validatedData.rankingPhoto || null,
+          category: validatedData.category,
+          experience: validatedData.experience,
+          additionalInfo: validatedData.additionalInfo || null,
+          hasSpecialNeeds: validatedData.hasSpecialNeeds,
+          specialNeedsDescription:
+            validatedData.specialNeedsDescription || null,
+          acceptsEmailNotifications: validatedData.acceptsEmailNotifications,
+          status: "approved", // Auto aprovar para registro público
+          registrationDate: new Date(),
+          approvedAt: new Date(),
+        })
+        .returning();
+
+      participantId = newParticipant[0].id;
+      isNewParticipant = true;
     }
 
-    // Criar novo participante
-    const newParticipant = await db
-      .insert(participants)
-      .values({
-        name: validatedData.name,
-        email: validatedData.email,
-        phone: validatedData.phone || null,
-        avatar: validatedData.avatar || null,
-        category: validatedData.category,
-        experience: validatedData.experience,
-        additionalInfo: validatedData.additionalInfo || null,
-        hasSpecialNeeds: validatedData.hasSpecialNeeds,
-        specialNeedsDescription: validatedData.specialNeedsDescription || null,
-        acceptsEmailNotifications: validatedData.acceptsEmailNotifications,
-        status: "approved", // Auto aprovar para registro público
-        registrationDate: new Date(),
-        approvedAt: new Date(),
-      })
-      .returning();
-
-    // Criar inscrição automática no evento
+    // Verificar se já está inscrito neste evento
     if (validatedData.eventId) {
-      await db.insert(eventRegistrations).values({
-        eventId: validatedData.eventId,
-        participantId: newParticipant[0].id,
-        status: "registered",
-        registrationDate: new Date(),
-      });
+      const existingRegistration = await db
+        .select({ id: eventRegistrations.id })
+        .from(eventRegistrations)
+        .where(
+          and(
+            eq(eventRegistrations.eventId, validatedData.eventId),
+            eq(eventRegistrations.participantId, participantId)
+          )
+        )
+        .limit(1);
+
+      if (existingRegistration.length === 0) {
+        // Criar inscrição no evento
+        await db.insert(eventRegistrations).values({
+          eventId: validatedData.eventId,
+          participantId: participantId,
+          status: "registered",
+          registrationDate: new Date(),
+        });
+      }
     }
 
     revalidatePath("/participantes");
@@ -81,7 +125,11 @@ export async function registerParticipant(
 
     return {
       success: true,
-      participantId: newParticipant[0].id,
+      participantId: participantId,
+      isNewParticipant,
+      message: isNewParticipant
+        ? "Participante registrado com sucesso!"
+        : "Participante atualizado e inscrito no evento com sucesso!",
     };
   } catch (error) {
     console.error("Erro ao registrar participante:", error);

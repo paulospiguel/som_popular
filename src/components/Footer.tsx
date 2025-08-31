@@ -8,12 +8,12 @@ export default function Footer() {
         title: "Participantes",
         links: [
           {
-            name: "Ser Participante",
+            name: "Participar",
             href: "/participant-registration",
           },
           {
             name: "Ver Eventos",
-            href: "/#eventos",
+            href: "/#events",
           },
           {
             name: "Consultar Inscrição",
@@ -36,11 +36,11 @@ export default function Footer() {
           },
           {
             name: "Eventos Atuais",
-            href: "/#eventos",
+            href: "/#events",
           },
           {
-            name: "Apoiadores",
-            href: "/#apoiadores",
+            name: "Parceiros",
+            href: "/#partners",
           },
         ],
       },

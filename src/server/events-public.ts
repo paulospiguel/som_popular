@@ -24,6 +24,7 @@ export interface PublicEvent {
   status: string;
   rules: string | null;
   prizes: string | null;
+  regulationPdf: string | null;
   registrationStatus: "not_open" | "open" | "closed" | "full";
   canRegister: boolean;
 }
@@ -39,6 +40,7 @@ export interface EventRegistrationData {
   hasSpecialNeeds: boolean;
   specialNeedsDescription?: string;
   acceptsEmailNotifications: boolean;
+  avatar?: string;
 }
 
 /**
@@ -70,6 +72,7 @@ export async function getPublicEvents(): Promise<{
         status: events.status,
         rules: events.rules,
         prizes: events.prizes,
+        regulationPdf: events.regulationPdf,
       })
       .from(events)
       .where(
@@ -163,6 +166,7 @@ export async function getPublicEventById(eventId: string): Promise<{
         status: events.status,
         rules: events.rules,
         prizes: events.prizes,
+        regulationPdf: events.regulationPdf,
       })
       .from(events)
       .where(
@@ -273,6 +277,23 @@ export async function registerForEvent(data: EventRegistrationData): Promise<{
     if (existingParticipant.length > 0) {
       participantId = existingParticipant[0].id;
 
+      // Atualizar informações do participante existente
+      await db
+        .update(participants)
+        .set({
+          name: data.name,
+          phone: data.phone,
+          avatar: data.avatar,
+          category: data.category,
+          experience: data.experience,
+          additionalInfo: data.additionalInfo,
+          hasSpecialNeeds: data.hasSpecialNeeds,
+          specialNeedsDescription: data.specialNeedsDescription,
+          acceptsEmailNotifications: data.acceptsEmailNotifications,
+          updatedAt: new Date(),
+        })
+        .where(eq(participants.id, participantId));
+
       // Verificar se já está inscrito neste evento
       const existingRegistration = await db
         .select({ id: eventRegistrations.id })
@@ -299,6 +320,7 @@ export async function registerForEvent(data: EventRegistrationData): Promise<{
           name: data.name,
           email: data.email,
           phone: data.phone,
+          avatar: data.avatar,
           category: data.category,
           experience: data.experience,
           additionalInfo: data.additionalInfo,
@@ -346,7 +368,7 @@ export async function registerForEvent(data: EventRegistrationData): Promise<{
 }
 
 /**
- * Busca eventos disponíveis para inscrição (com inscrições abertas)
+ * Busca eventos disponíveis para inscrição (todos os eventos futuros)
  */
 export async function getAvailableEventsForRegistration(): Promise<{
   success: boolean;
@@ -356,7 +378,7 @@ export async function getAvailableEventsForRegistration(): Promise<{
   try {
     const now = new Date();
 
-    // Buscar eventos públicos com inscrições abertas
+    // Buscar todos os eventos públicos futuros (não apenas os com inscrições abertas)
     const availableEvents = await db
       .select({
         id: events.id,
@@ -379,28 +401,51 @@ export async function getAvailableEventsForRegistration(): Promise<{
       .where(
         and(
           eq(events.isPublic, true),
-          sql`${events.status} IN ('published', 'ongoing')`,
-          // Inscrições devem estar abertas
-          sql`${events.registrationStartDate} <= ${now}`,
-          sql`${events.registrationEndDate} >= ${now}`,
-          // Não deve estar lotado
-          sql`(${events.maxParticipants} IS NULL OR ${events.currentParticipants} < ${events.maxParticipants})`
+          sql`${events.status} IN ('published', 'ongoing')`
         )
       )
       .orderBy(events.startDate);
 
     // Calcular status de inscrição para cada evento
     const eventsWithStatus: PublicEvent[] = availableEvents.map((event) => {
-      let registrationStatus: PublicEvent["registrationStatus"] = "open";
-      let canRegister = true;
+      let registrationStatus: PublicEvent["registrationStatus"] = "not_open";
+      let canRegister = false;
 
-      // Verificar se está lotado
-      if (
-        event.maxParticipants &&
-        event.currentParticipants >= event.maxParticipants
-      ) {
-        registrationStatus = "full";
-        canRegister = false;
+      // Verificar se as inscrições já começaram
+      if (event.registrationStartDate && event.registrationEndDate) {
+        if (now < event.registrationStartDate) {
+          registrationStatus = "not_open";
+          canRegister = false;
+        } else if (now > event.registrationEndDate) {
+          registrationStatus = "closed";
+          canRegister = false;
+        } else if (
+          event.maxParticipants &&
+          event.currentParticipants >= event.maxParticipants
+        ) {
+          registrationStatus = "full";
+          canRegister = false;
+        } else {
+          registrationStatus = "open";
+          canRegister = true;
+        }
+      } else {
+        // Se não há período definido, usar data do evento
+        if (now < event.startDate) {
+          if (
+            !event.maxParticipants ||
+            event.currentParticipants < event.maxParticipants
+          ) {
+            registrationStatus = "open";
+            canRegister = true;
+          } else {
+            registrationStatus = "full";
+            canRegister = false;
+          }
+        } else {
+          registrationStatus = "closed";
+          canRegister = false;
+        }
       }
 
       return {

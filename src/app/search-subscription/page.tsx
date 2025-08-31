@@ -298,7 +298,7 @@ export default function RegistrationLookupPage() {
                         {/* Ações */}
                         <div className="mt-4 pt-4 border-t">
                           <Link
-                            href={`/eventos/${registration.eventId}/inscricao/confirmacao?registration=${registration.id}`}
+                            href={`/events/${registration.eventId}/registration/confirmation?registration=${registration.id}`}
                           >
                             <Button
                               size="sm"

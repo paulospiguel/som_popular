@@ -31,6 +31,7 @@ export const participants = sqliteTable("participants", {
   email: text("email").notNull().unique(),
   phone: text("phone"),
   avatar: text("avatar"),
+  rankingPhoto: text("ranking_photo"), // Foto opcional para exibição no ranking
   category: text("category").notNull(),
   experience: text("experience").notNull(),
   additionalInfo: text("additional_info"),
@@ -122,6 +123,7 @@ export const events = sqliteTable("events", {
     .default(false),
   rules: text("rules"),
   prizes: text("prizes"), // JSON string com informações dos prémios
+  regulationPdf: text("regulation_pdf"), // URL ou caminho para o PDF do regulamento
   notes: text("notes"),
   createdBy: text("created_by").notNull(),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(

@@ -31,12 +31,12 @@ export default function Home() {
               href="/participant-registration"
               className="festival-button text-lg px-10 py-4 font-semibold"
             >
-              🎤 Ser Participante
+              🎤 Participar
             </Link>
 
             {/* Botão secundário - Verde */}
             <Link
-              href="/#eventos"
+              href="/#events"
               className="festival-button-secondary text-lg px-10 py-4 font-semibold"
             >
               📋 Ver Eventos
@@ -102,7 +102,10 @@ export default function Home() {
       <EventsSection />
 
       {/* Seção de Apoiadores com Marquee Elegante */}
-      <section className="py-16 px-6 bg-gradient-to-r from-bege-claro/30 to-verde-suave/5">
+      <section
+        id="partners"
+        className="py-16 px-6 bg-gradient-to-r from-bege-claro/30 to-verde-suave/5"
+      >
         <div className="container mx-auto">
           {/* Título da Seção */}
           <div className="text-center mb-12">

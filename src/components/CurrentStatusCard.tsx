@@ -127,7 +127,7 @@ export default function CurrentStatusCard() {
   return (
     <div className="festival-card p-8 max-w-md mx-auto bg-slate-50">
       <h3 className="festival-subtitle text-lg font-semibold mb-4 text-terra">
-        Estado Atual
+        Nossos Eventos
       </h3>
 
       {/* Status Principal */}

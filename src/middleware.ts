@@ -13,7 +13,14 @@ function isPublicPath(pathname: string) {
     pathname.startsWith("/auth/reset-password") ||
     pathname.startsWith("/api/auth/") || // endpoints do Better Auth
     pathname.startsWith("/_next/") ||
-    pathname.startsWith("/favicon")
+    pathname.startsWith("/favicon") ||
+    pathname.startsWith("/events/") || // Páginas públicas de eventos
+    pathname.startsWith("/ranking/") || // Páginas públicas de ranking
+    pathname.startsWith("/regulation/") || // Páginas públicas de regulamento
+    pathname.startsWith("/help/") || // Páginas de ajuda
+    pathname.startsWith("/search-subscription/") || // Busca de inscrições
+    pathname.startsWith("/participant-registration/") || // Auto-inscrição
+    pathname.startsWith("/registration-lookup/") // Consulta de inscrições
   );
 }
 

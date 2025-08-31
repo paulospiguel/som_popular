@@ -1,0 +1,544 @@
+"use client";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { getPublicEventById } from "@/server/events-public";
+import {
+  ArrowLeft,
+  Award,
+  Calendar,
+  CheckCircle,
+  Clock,
+  MapPin,
+  Music,
+  Share2,
+  Star,
+  Target,
+  Trophy,
+  UserPlus,
+  Users,
+} from "lucide-react";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
+const EVENT_TYPE_LABELS = {
+  classificatoria: "Classificatória",
+  "semi-final": "Semi-Final",
+  final: "Final",
+};
+
+const EVENT_TYPE_COLORS = {
+  classificatoria: "bg-blue-50 text-blue-700 border-blue-200",
+  "semi-final": "bg-orange-50 text-orange-700 border-orange-200",
+  final: "bg-red-50 text-red-700 border-red-200",
+};
+
+const STATUS_LABELS = {
+  not_open: "Inscrições em Breve",
+  open: "Inscrições Abertas",
+  closed: "Inscrições Encerradas",
+  full: "Lotado",
+};
+
+const STATUS_COLORS = {
+  not_open: "bg-gray-50 text-gray-700 border-gray-200",
+  open: "bg-green-50 text-green-700 border-green-200",
+  closed: "bg-red-50 text-red-700 border-red-200",
+  full: "bg-yellow-50 text-yellow-700 border-yellow-200",
+};
+
+const STATUS_ICONS = {
+  not_open: Clock,
+  open: Users,
+  closed: Calendar,
+  full: Users,
+};
+
+const PHASE_COLORS = {
+  classificatoria: "bg-blue-50 border-blue-200 text-blue-700",
+  "semi-final": "bg-orange-50 border-orange-200 text-orange-700",
+  final: "bg-red-50 border-red-200 text-red-700",
+};
+
+export default function EventPage() {
+  const params = useParams();
+  const router = useRouter();
+  const eventId = params.id as string;
+
+  const [event, setEvent] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [shareStatus, setShareStatus] = useState<string>("");
+
+  useEffect(() => {
+    if (eventId) {
+      loadEvent();
+    }
+  }, [eventId]);
+
+  const loadEvent = async () => {
+    try {
+      setLoading(true);
+      const result = await getPublicEventById(eventId);
+
+      if (result.success && result.event) {
+        setEvent(result.event);
+      } else {
+        setError(result.error || "Evento não encontrado");
+      }
+    } catch (error) {
+      setError("Erro ao carregar evento");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleShare = async () => {
+    const eventUrl = `${window.location.origin}/events/${eventId}`;
+    const eventTitle = event?.name || "Evento Som Popular";
+    const eventDescription =
+      event?.description || "Participe neste evento incrível!";
+
+    try {
+      // Tentar usar a Web Share API (disponível em dispositivos móveis)
+      if (navigator.share) {
+        await navigator.share({
+          title: eventTitle,
+          text: eventDescription,
+          url: eventUrl,
+        });
+        setShareStatus("Partilhado com sucesso!");
+      } else {
+        // Fallback: copiar para clipboard
+        await navigator.clipboard.writeText(eventUrl);
+        setShareStatus("Link copiado para a área de transferência!");
+      }
+    } catch (error) {
+      // Se falhar, usar fallback de copiar
+      try {
+        await navigator.clipboard.writeText(eventUrl);
+        setShareStatus("Link copiado para a área de transferência!");
+      } catch (clipboardError) {
+        // Último recurso: mostrar o link
+        setShareStatus("Link: " + eventUrl);
+      }
+    }
+
+    // Limpar a mensagem após 3 segundos
+    setTimeout(() => setShareStatus(""), 3000);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Carregando evento...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !event) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-6">
+          <Button onClick={() => router.back()} variant="outline" size="sm">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Voltar
+          </Button>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            Evento não encontrado
+          </h1>
+          <p className="text-gray-600 mb-6">
+            {error ||
+              "O evento solicitado não foi encontrado ou não está disponível."}
+          </p>
+          <Link href="/">
+            <Button>Voltar à Página Inicial</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(new Date(date));
+  };
+
+  const formatDateOnly = (date: Date) => {
+    return new Intl.DateTimeFormat("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }).format(new Date(date));
+  };
+
+  const StatusIcon =
+    STATUS_ICONS[event.registrationStatus as keyof typeof STATUS_ICONS];
+
+  const getDaysUntilEvent = () => {
+    const now = new Date();
+    const eventDate = new Date(event.startDate);
+    const diffTime = eventDate.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  const daysUntilEvent = getDaysUntilEvent();
+
+  // Gerar cronograma baseado no tipo de evento
+  const generateEventSchedule = () => {
+    const startDate = new Date(event.startDate);
+    const endDate = event.endDate ? new Date(event.endDate) : null;
+
+    const schedule = [];
+
+    if (event.type === "classificatoria") {
+      schedule.push({
+        phase: "classificatoria",
+        title: "Fase Classificatória",
+        description: "Apresentações dos participantes para seleção",
+        startDate: startDate,
+        endDate:
+          endDate || new Date(startDate.getTime() + 2 * 24 * 60 * 60 * 1000), // +2 dias se não houver endDate
+        icon: Target,
+        color: PHASE_COLORS.classificatoria,
+      });
+    } else if (event.type === "semi-final") {
+      schedule.push({
+        phase: "semi-final",
+        title: "Semi-Final",
+        description: "Competição entre participantes selecionados",
+        startDate: startDate,
+        endDate:
+          endDate || new Date(startDate.getTime() + 1 * 24 * 60 * 60 * 1000), // +1 dia
+        icon: Award,
+        color: PHASE_COLORS["semi-final"],
+      });
+    } else if (event.type === "final") {
+      schedule.push({
+        phase: "final",
+        title: "Final",
+        description: "Disputa final pelos prémios principais",
+        startDate: startDate,
+        endDate:
+          endDate || new Date(startDate.getTime() + 1 * 24 * 60 * 60 * 1000), // +1 dia
+        icon: Trophy,
+        color: PHASE_COLORS.final,
+      });
+    }
+
+    return schedule;
+  };
+
+  const eventSchedule = generateEventSchedule();
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-6 py-8 max-w-4xl">
+        {/* Botão Voltar */}
+        <div className="mb-6">
+          <Button onClick={() => router.back()} variant="outline" size="sm">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Voltar
+          </Button>
+        </div>
+
+        {/* Header do Evento */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-8">
+          <div className="flex flex-col lg:flex-row items-start justify-between gap-6">
+            <div className="flex-1 w-full">
+              {/* Badges de Status */}
+              <div className="flex items-center gap-3 mb-4">
+                <Badge
+                  className={
+                    EVENT_TYPE_COLORS[
+                      event.type as keyof typeof EVENT_TYPE_COLORS
+                    ]
+                  }
+                >
+                  {
+                    EVENT_TYPE_LABELS[
+                      event.type as keyof typeof EVENT_TYPE_COLORS
+                    ]
+                  }
+                </Badge>
+                <Badge
+                  className={
+                    STATUS_COLORS[
+                      event.registrationStatus as keyof typeof STATUS_COLORS
+                    ]
+                  }
+                >
+                  <StatusIcon className="w-3 h-3 mr-1" />
+                  {
+                    STATUS_LABELS[
+                      event.registrationStatus as keyof typeof STATUS_COLORS
+                    ]
+                  }
+                </Badge>
+              </div>
+
+              {/* Título */}
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                {event.name}
+              </h1>
+
+              {/* Descrição */}
+              {event.description && (
+                <p className="text-gray-600 mb-6 leading-relaxed">
+                  {event.description}
+                </p>
+              )}
+
+              {/* Informações Principais */}
+              <div className="flex flex-col gap-2 mb-6">
+                <div className="flex items-center gap-3 text-gray-600">
+                  <MapPin className="w-5 h-5 text-green-600" />
+                  <span>{event.location}</span>
+                </div>
+
+                <div className="flex items-center  gap-3 text-gray-600">
+                  <Music className="w-5 h-5 text-purple-600" />
+                  <span className="capitalize">{event.category}</span>
+                </div>
+                <div className="grid grid-cols-1  md:grid-cols-2 gap-6">
+                  {/* Datas de Inscrição */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                      Período de Inscrições
+                    </h3>
+
+                    {event.registrationStartDate && (
+                      <div className="flex items-center gap-6 text-sm text-gray-500">
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4" />
+                          <span>
+                            Início:{" "}
+                            {formatDateOnly(event.registrationStartDate)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {event.registrationEndDate && (
+                      <div className="flex items-center gap-6 text-sm text-gray-500">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4" />
+                          <span>
+                            Fim: {formatDateOnly(event.registrationEndDate)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Datas do Evento */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                      Datas do Evento
+                    </h3>
+
+                    {event.startDate && (
+                      <div className="flex items-center gap-6 text-sm text-gray-500">
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4" />
+                          <span>Início: {formatDateOnly(event.startDate)}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {event.endDate && (
+                      <div className="flex items-center gap-6 text-sm text-gray-500">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4" />
+                          <span>Fim: {formatDateOnly(event.endDate)}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Contador de Dias */}
+              {daysUntilEvent > 0 && (
+                <div className="bg-blue-50 rounded-lg p-4 inline-block border border-blue-200">
+                  <div className="flex items-center gap-3">
+                    <Clock className="w-5 h-5 text-blue-600" />
+                    <div>
+                      <p className="text-sm text-blue-600">Faltam</p>
+                      <p className="text-xl font-bold text-blue-700">
+                        {daysUntilEvent} dias
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Sidebar com Informações Rápidas */}
+            <div className="lg:w-64 space-y-4 w-full">
+              {/* Prémios */}
+              {event.prizes && (
+                <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Star className="w-5 h-5 text-amber-600" />
+                    <h3 className="font-semibold text-amber-800">Prémios</h3>
+                  </div>
+                  <div className="space-y-1">
+                    {event.prizes
+                      .split(",")
+                      .map((prize: string, index: number) => (
+                        <div key={index} className="text-sm text-amber-700">
+                          • {prize.trim()}
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Estatísticas */}
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <h3 className="font-semibold flex items-center gap-2 text-gray-900 mb-3">
+                  <Users className="w-5 h-5 mr-2" />
+                  <span>Participantes inscritos</span>
+                </h3>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {event.currentParticipants}
+                  </div>
+                  {event.maxParticipants && (
+                    <div className="text-sm text-gray-500">
+                      de {event.maxParticipants} vagas
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Cronograma do Evento */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+            <Calendar className="w-6 h-6 text-blue-600" />
+            Cronograma do Evento
+          </h2>
+
+          {/* Fases do Evento */}
+          <div className="space-y-6">
+            {eventSchedule.map((phase, index) => {
+              const PhaseIcon = phase.icon;
+              return (
+                <div key={phase.phase} className="flex items-start gap-4">
+                  {/* Indicador de Fase */}
+                  <div
+                    className={`w-12 h-12 rounded-full ${phase.color} flex items-center justify-center flex-shrink-0`}
+                  >
+                    <PhaseIcon className="w-6 h-6" />
+                  </div>
+
+                  {/* Detalhes da Fase */}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {phase.title}
+                      </h3>
+                      <Badge className={phase.color}>
+                        {
+                          EVENT_TYPE_LABELS[
+                            phase.phase as keyof typeof EVENT_TYPE_LABELS
+                          ]
+                        }
+                      </Badge>
+                    </div>
+
+                    <p className="text-gray-600 mb-3">{phase.description}</p>
+
+                    <div className="flex items-center gap-6 text-sm text-gray-500">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4" />
+                        <span>Início: {formatDateOnly(phase.startDate)}</span>
+                      </div>
+                      {phase.endDate && (
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4" />
+                          <span>Fim: {formatDateOnly(phase.endDate)}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Seção de Inscrição */}
+        {event.canRegister && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Inscreva-se Agora
+            </h2>
+            <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+              Não perca a oportunidade de participar neste evento incrível! A
+              inscrição é gratuita e o processo é rápido.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href={`/events/${event.id}/registration`}>
+                <Button className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3">
+                  <UserPlus className="w-5 h-5 mr-2" />
+                  Inscrever-se
+                </Button>
+              </Link>
+
+              <Button
+                onClick={handleShare}
+                variant="outline"
+                className="text-lg px-8 py-3 relative"
+              >
+                <Share2 className="w-5 h-5 mr-2" />
+                Partilhar
+                {shareStatus && (
+                  <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-green-600 text-white text-sm px-3 py-2 rounded-lg whitespace-nowrap">
+                    {shareStatus}
+                  </div>
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Regulamento (se existir) */}
+        {event.rules && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Regulamento
+            </h2>
+            <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+              <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+                {event.rules}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Footer Simples */}
+        <div className="mt-8 text-center text-gray-500">
+          <p className="text-sm">
+            © 2024 Festival Som Popular. Todos os direitos reservados.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

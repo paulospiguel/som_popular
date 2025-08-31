@@ -86,7 +86,7 @@ interface Event {
   eventDate?: Date;
 }
 
-export default function VotacaoEventoPage() {
+export default function VotingEventPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const params = useParams();

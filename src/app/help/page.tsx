@@ -63,7 +63,7 @@ const FAQ_CATEGORIES = [
       {
         question: "Como me registro como participante?",
         answer:
-          "Para se registrar, acesse a página 'Ser Participante' no menu principal. Preencha o formulário com seus dados pessoais e artísticos, aceite os termos e regulamento, e clique em 'Registrar como Participante'.",
+          "Para se registrar, acesse a página 'Participar' no menu principal. Preencha o formulário com seus dados pessoais e artísticos, aceite os termos e regulamento, e clique em 'Registrar como Participante'.",
       },
       {
         question: "Preciso de experiência musical para participar?",

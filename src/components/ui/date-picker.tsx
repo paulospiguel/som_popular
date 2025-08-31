@@ -84,6 +84,9 @@ export function DateTimePicker({
     if (date) {
       setSelectedDate(date);
       setSelectedTime(format(date, "HH:mm"));
+    } else {
+      setSelectedDate(undefined);
+      setSelectedTime("");
     }
   }, [date]);
 
@@ -146,7 +149,9 @@ export function DateTimePicker({
   const displayValue =
     selectedDate && selectedTime
       ? `${format(selectedDate, "dd/MM/yyyy", { locale: ptBR })} às ${selectedTime}`
-      : placeholder;
+      : selectedDate
+        ? `${format(selectedDate, "dd/MM/yyyy", { locale: ptBR })}`
+        : placeholder;
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>

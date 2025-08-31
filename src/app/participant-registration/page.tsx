@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { DiscreteImageUpload } from "@/components/ui/discrete-image-upload";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -61,6 +62,7 @@ interface FormData {
   acceptsTerms: boolean;
   acceptsRegulation: boolean;
   eventId: string;
+  rankingPhoto: string; // URL da foto para o ranking
 }
 
 export default function ParticipantRegistrationPage() {
@@ -73,6 +75,9 @@ export default function ParticipantRegistrationPage() {
   const [existingParticipant, setExistingParticipant] = useState<any>(null);
   const [availableEvents, setAvailableEvents] = useState<any[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
+  const [emailExists, setEmailExists] = useState(false);
+  const [checkingEmail, setCheckingEmail] = useState(false);
+  const [registrationResult, setRegistrationResult] = useState<any>(null);
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -87,6 +92,7 @@ export default function ParticipantRegistrationPage() {
     acceptsTerms: false,
     acceptsRegulation: false,
     eventId: "",
+    rankingPhoto: "",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -117,6 +123,23 @@ export default function ParticipantRegistrationPage() {
     }
   };
 
+  const checkEmailExists = async (email: string) => {
+    if (!email || !email.includes("@")) {
+      setEmailExists(false);
+      return;
+    }
+
+    try {
+      setCheckingEmail(true);
+      const result = await getParticipantByEmail(email);
+      setEmailExists(result.success);
+    } catch (error) {
+      setEmailExists(false);
+    } finally {
+      setCheckingEmail(false);
+    }
+  };
+
   const handleInputChange = (
     field: keyof FormData,
     value: string | boolean
@@ -144,6 +167,12 @@ export default function ParticipantRegistrationPage() {
         !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
       ) {
         setErrors((prev) => ({ ...prev, email: "Email inválido" }));
+      } else if (
+        value.trim().length > 0 &&
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+      ) {
+        // Verificar se email já existe
+        checkEmailExists(value);
       }
     }
 
@@ -202,6 +231,18 @@ export default function ParticipantRegistrationPage() {
     // Validação do evento
     if (!formData.eventId) {
       newErrors.eventId = "Selecione um evento para inscrição";
+    } else {
+      // Verificar se o evento selecionado permite inscrições
+      const selectedEvent = availableEvents.find(e => e.id === formData.eventId);
+      if (selectedEvent && !selectedEvent.canRegister) {
+        if (selectedEvent.registrationStatus === "not_open") {
+          newErrors.eventId = `As inscrições para este evento abrem em ${selectedEvent.registrationStartDate ? new Date(selectedEvent.registrationStartDate).toLocaleDateString("pt-BR") : "data não definida"}`;
+        } else if (selectedEvent.registrationStatus === "closed") {
+          newErrors.eventId = "As inscrições para este evento já encerraram";
+        } else if (selectedEvent.registrationStatus === "full") {
+          newErrors.eventId = "Este evento já está lotado";
+        }
+      }
     }
 
     setErrors(newErrors);
@@ -292,8 +333,9 @@ export default function ParticipantRegistrationPage() {
 
       if (result.success) {
         setParticipantId(result.participantId || "");
+        setRegistrationResult(result);
         setSuccess(true);
-        toast.success("Registro realizado com sucesso!");
+        toast.success(result.message || "Registro realizado com sucesso!");
       } else {
         toast.error(result.error || "Erro ao registrar participante");
       }
@@ -356,11 +398,14 @@ export default function ParticipantRegistrationPage() {
             <div className="text-center">
               <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
               <h1 className="text-3xl font-bold text-cinza-chumbo mb-4">
-                Registro Concluído!
+                {registrationResult?.isNewParticipant
+                  ? "Registro Concluído!"
+                  : "Atualização Concluída!"}
               </h1>
               <p className="text-lg text-cinza-chumbo/80 mb-6">
-                Seu registro como participante foi realizado com sucesso e você
-                foi automaticamente inscrito no evento selecionado!
+                {registrationResult?.isNewParticipant
+                  ? "Seu registro como participante foi realizado com sucesso e você foi automaticamente inscrito no evento selecionado!"
+                  : "Suas informações foram atualizadas com sucesso e você foi inscrito no evento selecionado!"}
               </p>
 
               {/* Informações do Evento */}
@@ -395,6 +440,25 @@ export default function ParticipantRegistrationPage() {
                               )!.startDate
                             ).toLocaleDateString("pt-BR")
                           : "N/A"}
+                      </p>
+                      <p>
+                        <strong>Status das Inscrições:</strong>{" "}
+                        {(() => {
+                          const event = availableEvents.find((e) => e.id === formData.eventId);
+                          if (!event) return "N/A";
+                          
+                          if (event.registrationStatus === "open") {
+                            return <span className="text-green-600 font-medium">🟢 Inscrições Abertas</span>;
+                          } else if (event.registrationStatus === "not_open") {
+                            const startDate = event.registrationStartDate ? new Date(event.registrationStartDate).toLocaleDateString("pt-BR") : "data não definida";
+                            return <span className="text-blue-600 font-medium">🔵 Inscrições abrem em {startDate}</span>;
+                          } else if (event.registrationStatus === "closed") {
+                            return <span className="text-red-600 font-medium">🔴 Inscrições Encerradas</span>;
+                          } else if (event.registrationStatus === "full") {
+                            return <span className="text-orange-600 font-medium">🟠 Evento Lotado</span>;
+                          }
+                          return "N/A";
+                        })()}
                       </p>
                     </div>
                   </div>
@@ -559,6 +623,49 @@ export default function ParticipantRegistrationPage() {
                         {errors.email}
                       </p>
                     )}
+
+                    {emailExists && !errors.email && (
+                      <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <div className="flex items-start space-x-2">
+                          <Info className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1">
+                            <p className="text-yellow-800 text-sm font-medium mb-2">
+                              Este email já está cadastrado!
+                            </p>
+                            <p className="text-yellow-700 text-sm mb-3">
+                              Você já possui um cadastro no sistema. Deseja
+                              consultar suas inscrições existentes?
+                            </p>
+                            <div className="flex space-x-2">
+                              <Link href="/registration-lookup">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-yellow-700 border-yellow-300 hover:bg-yellow-100"
+                                >
+                                  <Search className="w-4 h-4 mr-1" />
+                                  Consultar Inscrições
+                                </Button>
+                              </Link>
+                              <button
+                                type="button"
+                                onClick={() => setActiveTab("existing")}
+                                className="text-yellow-700 hover:text-yellow-800 text-sm font-medium underline"
+                              >
+                                Já sou participante
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {checkingEmail && (
+                      <p className="text-blue-600 text-sm mt-1 flex items-center">
+                        <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mr-2"></div>
+                        Verificando email...
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -573,6 +680,30 @@ export default function ParticipantRegistrationPage() {
                       }
                       placeholder="(XX) XXXX-XXXX"
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-cinza-chumbo mb-2">
+                      Foto para o Ranking (Opcional)
+                    </label>
+                    <DiscreteImageUpload
+                      value={formData.rankingPhoto}
+                      onChange={(value: string) =>
+                        handleInputChange("rankingPhoto", value)
+                      }
+                      maxSize={3}
+                      acceptedTypes={[
+                        "image/jpeg",
+                        "image/jpg",
+                        "image/png",
+                        "image/webp",
+                      ]}
+                      placeholder="Adicionar foto para ranking"
+                    />
+                    <p className="text-xs text-cinza-chumbo/60 mt-1">
+                      Adicione uma foto para aparecer no ranking. Deixe em
+                      branco se não quiser.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -598,7 +729,7 @@ export default function ParticipantRegistrationPage() {
                       Nenhum evento disponível
                     </h4>
                     <p className="text-cinza-chumbo/70 mb-4">
-                      Não há eventos com inscrições abertas no momento.
+                      Não há eventos futuros disponíveis no momento.
                     </p>
                     <Link href="/#eventos">
                       <Button variant="outline" size="sm">
@@ -631,19 +762,41 @@ export default function ParticipantRegistrationPage() {
                         />
                       </SelectTrigger>
                       <SelectContent>
-                        {availableEvents.map((event) => (
-                          <SelectItem key={event.id} value={event.id}>
-                            <div className="flex flex-col">
-                              <span className="font-medium">{event.name}</span>
-                              <span className="text-xs text-cinza-chumbo/60">
-                                {event.category} •{" "}
-                                {new Date(event.startDate).toLocaleDateString(
-                                  "pt-BR"
-                                )}
-                              </span>
-                            </div>
-                          </SelectItem>
-                        ))}
+                        {availableEvents.map((event) => {
+                          const eventDate = new Date(event.startDate);
+                          const registrationStart = event.registrationStartDate ? new Date(event.registrationStartDate) : null;
+                          
+                          let statusText = "";
+                          let statusColor = "";
+                          
+                          if (event.registrationStatus === "open") {
+                            statusText = "Inscrições Abertas";
+                            statusColor = "text-green-600";
+                          } else if (event.registrationStatus === "not_open") {
+                            statusText = `Inscrições abrem em ${registrationStart?.toLocaleDateString("pt-BR")}`;
+                            statusColor = "text-blue-600";
+                          } else if (event.registrationStatus === "closed") {
+                            statusText = "Inscrições Encerradas";
+                            statusColor = "text-red-600";
+                          } else if (event.registrationStatus === "full") {
+                            statusText = "Evento Lotado";
+                            statusColor = "text-orange-600";
+                          }
+                          
+                          return (
+                            <SelectItem key={event.id} value={event.id}>
+                              <div className="flex flex-col">
+                                <span className="font-medium">{event.name}</span>
+                                <span className="text-xs text-cinza-chumbo/60">
+                                  {event.category} • {eventDate.toLocaleDateString("pt-BR")}
+                                </span>
+                                <span className={`text-xs ${statusColor} font-medium`}>
+                                  {statusText}
+                                </span>
+                              </div>
+                            </SelectItem>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
                     {errors.eventId && (
@@ -654,10 +807,14 @@ export default function ParticipantRegistrationPage() {
                     )}
                     {availableEvents.length === 1 && (
                       <p className="text-xs text-cinza-chumbo/60 mt-1">
-                        Este é o único evento disponível para inscrição no
-                        momento.
+                        Este é o único evento disponível no momento.
                       </p>
                     )}
+                    
+                    <p className="text-xs text-cinza-chumbo/60 mt-2">
+                      💡 Você pode selecionar um evento mesmo que as inscrições ainda não tenham começado. 
+                      O sistema validará se as inscrições estão abertas quando você submeter o formulário.
+                    </p>
                   </div>
                 )}
               </div>
@@ -857,7 +1014,11 @@ export default function ParticipantRegistrationPage() {
                     >
                       Li e aceito o{" "}
                       <Link
-                        href="/regulation"
+                        href={
+                          formData.eventId
+                            ? `/regulation/${formData.eventId}`
+                            : "/regulation"
+                        }
                         className="text-verde-suave hover:text-verde-escuro font-medium inline-flex items-center"
                         target="_blank"
                       >

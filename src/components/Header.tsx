@@ -24,16 +24,10 @@ export default function Header({ transparent = false }: HeaderProps) {
           {/* Navegação Desktop */}
           <nav className="hidden md:flex space-x-6 items-center">
             <Link
-              href="/#about"
-              className="text-neve hover:text-dourado transition-colors font-medium"
-            >
-              Sobre
-            </Link>
-            <Link
               href="/regulation"
               className="text-neve hover:text-dourado transition-colors font-medium"
             >
-              Regulamento
+              Regulamentos
             </Link>
             <Link
               href="/help"
@@ -51,7 +45,7 @@ export default function Header({ transparent = false }: HeaderProps) {
               href="/participant-registration"
               className="festival-button-secondary px-4 py-2 text-sm"
             >
-              Ser Participante
+              Mostrar meu Talento
             </Link>
           </nav>
 

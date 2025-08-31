@@ -1,0 +1,267 @@
+/* Estilos personalizados para o Rich Text Editor */
+.rich-text-editor {
+  direction: ltr !important;
+  text-align: left !important;
+  unicode-bidi: embed !important;
+}
+
+.rich-text-editor .rdw-editor-main {
+  min-height: 200px;
+  padding: 12px;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  line-height: 1.6;
+  direction: ltr !important;
+  text-align: left !important;
+  unicode-bidi: embed !important;
+}
+
+/* Forçar direção LTR em todos os elementos filhos */
+.rich-text-editor * {
+  direction: ltr !important;
+  text-align: left !important;
+  unicode-bidi: embed !important;
+}
+
+.rich-text-editor .rdw-editor-main:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+.rich-text-editor .rdw-toolbar {
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  border-radius: 8px 8px 0 0;
+  padding: 8px 12px;
+}
+
+.rich-text-editor .rdw-option-wrapper {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 4px;
+  margin: 0 2px;
+  min-width: 25px;
+  height: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rich-text-editor .rdw-option-wrapper:hover {
+  background-color: #e5e7eb;
+  border-color: #d1d5db;
+}
+
+.rich-text-editor .rdw-option-active {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+
+.rich-text-editor .rdw-dropdown-wrapper {
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.rich-text-editor .rdw-dropdown-optionwrapper {
+  background: white;
+  border: none;
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+.rich-text-editor .rdw-dropdown-optionwrapper:hover {
+  background-color: #f3f4f6;
+}
+
+.rich-text-editor .rdw-editor-toolbar {
+  border: none;
+  border-radius: 8px 8px 0 0;
+  background-color: #f9fafb;
+}
+
+.rich-text-editor .rdw-editor-wrapper {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  overflow: hidden;
+  direction: ltr !important;
+}
+
+.rich-text-editor .rdw-editor-wrapper:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Estilos para o conteúdo do editor */
+.rich-text-editor .rdw-editor-main {
+  direction: ltr !important;
+  text-align: left !important;
+  unicode-bidi: embed !important;
+}
+
+.rich-text-editor .rdw-editor-main h1,
+.rich-text-editor .rdw-editor-main h2,
+.rich-text-editor .rdw-editor-main h3,
+.rich-text-editor .rdw-editor-main h4,
+.rich-text-editor .rdw-editor-main h5,
+.rich-text-editor .rdw-editor-main h6 {
+  margin: 16px 0 8px 0;
+  font-weight: 600;
+  line-height: 1.25;
+  direction: ltr !important;
+  text-align: left !important;
+}
+
+.rich-text-editor .rdw-editor-main h1 {
+  font-size: 1.5rem;
+}
+.rich-text-editor .rdw-editor-main h2 {
+  font-size: 1.25rem;
+}
+.rich-text-editor .rdw-editor-main h3 {
+  font-size: 1.125rem;
+}
+.rich-text-editor .rdw-editor-main h4 {
+  font-size: 1rem;
+}
+.rich-text-editor .rdw-editor-main h5 {
+  font-size: 0.875rem;
+}
+.rich-text-editor .rdw-editor-main h6 {
+  font-size: 0.75rem;
+}
+
+.rich-text-editor .rdw-editor-main p {
+  margin: 8px 0;
+  line-height: 1.6;
+  direction: ltr !important;
+  text-align: left !important;
+}
+
+.rich-text-editor .rdw-editor-main ul,
+.rich-text-editor .rdw-editor-main ol {
+  margin: 8px 0;
+  padding-left: 24px;
+  direction: ltr !important;
+  text-align: left !important;
+}
+
+.rich-text-editor .rdw-editor-main li {
+  margin: 4px 0;
+  line-height: 1.6;
+}
+
+.rich-text-editor .rdw-editor-main blockquote {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border-left: 4px solid #3b82f6;
+  background-color: #f8fafc;
+  font-style: italic;
+  color: #475569;
+}
+
+.rich-text-editor .rdw-editor-main code {
+  background-color: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+  font-size: 0.875rem;
+  color: #dc2626;
+}
+
+/* Estilos para o placeholder e cursor */
+.rich-text-editor .rdw-editor-main [data-contents="true"] {
+  direction: ltr !important;
+  text-align: left !important;
+  unicode-bidi: embed !important;
+}
+
+.rich-text-editor .rdw-editor-main [data-contents="true"] > div {
+  direction: ltr !important;
+  text-align: left !important;
+  unicode-bidi: embed !important;
+}
+
+/* Estilos específicos para Draft.js */
+.rich-text-editor .DraftEditor-root {
+  direction: ltr !important;
+  text-align: left !important;
+  unicode-bidi: embed !important;
+}
+
+.rich-text-editor .DraftEditor-editorContainer {
+  direction: ltr !important;
+  text-align: left !important;
+  unicode-bidi: embed !important;
+}
+
+.rich-text-editor .public-DraftEditor-content {
+  direction: ltr !important;
+  text-align: left !important;
+  unicode-bidi: embed !important;
+}
+
+.rich-text-editor .public-DraftEditorPlaceholder-root {
+  direction: ltr !important;
+  text-align: left !important;
+  unicode-bidi: embed !important;
+}
+
+/* Estilos para o cursor e área de digitação */
+.rich-text-editor .public-DraftEditor-content[contenteditable="true"] {
+  direction: ltr !important;
+  text-align: left !important;
+  unicode-bidi: embed !important;
+}
+
+.rich-text-editor .public-DraftEditor-content[contenteditable="true"] > div {
+  direction: ltr !important;
+  text-align: left !important;
+  unicode-bidi: embed !important;
+}
+
+/* Forçar direção LTR em todos os spans e divs internos */
+.rich-text-editor .public-DraftEditor-content span,
+.rich-text-editor .public-DraftEditor-content div {
+  direction: ltr !important;
+  text-align: left !important;
+  unicode-bidi: embed !important;
+}
+
+/* Estilos para o cursor e seleção */
+.rich-text-editor
+  .public-DraftEditor-content
+  .public-DraftEditorPlaceholder-root {
+  direction: ltr !important;
+  text-align: left !important;
+  unicode-bidi: embed !important;
+}
+
+.rich-text-editor
+  .public-DraftEditor-content
+  .public-DraftEditorPlaceholder-inner {
+  direction: ltr !important;
+  text-align: left !important;
+  unicode-bidi: embed !important;
+}
+
+/* Estilos para modo somente leitura */
+.rich-text-editor .rdw-editor-wrapper[data-readonly="true"] {
+  background-color: #f9fafb;
+  cursor: default;
+}
+
+.rich-text-editor .rdw-editor-wrapper[data-readonly="true"] .rdw-toolbar {
+  display: none;
+}
+
+.rich-text-editor .rdw-editor-wrapper[data-readonly="true"] .rdw-editor-main {
+  background-color: #f9fafb;
+  cursor: default;
+}

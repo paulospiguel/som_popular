@@ -503,3 +503,6 @@ html {
     max-width: 1440px;
   }
 }
+
+/* Import do Rich Text Editor */
+@import './rich-text-editor.css';

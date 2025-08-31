@@ -7,6 +7,7 @@ import {
   ArrowRight,
   Calendar,
   Clock,
+  FileText,
   MapPin,
   Music,
   Trophy,
@@ -75,7 +76,13 @@ export default function EventsSection() {
 
   const getNextEvents = () => {
     const now = new Date();
-    return events.filter((event) => event.startDate > now).slice(0, 3);
+    return events
+      .filter(
+        (event) =>
+          event.startDate > now &&
+          (event.status === "ongoing" || event.status === "published")
+      )
+      .slice(0, 3);
   };
 
   const getCurrentEvents = () => {
@@ -84,7 +91,7 @@ export default function EventsSection() {
       (event) =>
         event.startDate <= now &&
         (!event.endDate || event.endDate > now) &&
-        event.status === "ongoing"
+        (event.status === "ongoing" || event.status === "published")
     );
   };
 
@@ -119,7 +126,7 @@ export default function EventsSection() {
 
   return (
     <section
-      id="eventos"
+      id="events"
       className="py-20 px-6 bg-gradient-to-br from-verde-muito-suave/30 to-dourado-muito-claro/30"
     >
       <div className="container mx-auto">
@@ -294,6 +301,16 @@ function EventCard({ event, isCurrentEvent = false }: EventCardProps) {
           >
             Ver Detalhes
           </Button>
+          <Link
+            href={`/regulation/${event.id}`}
+            onClick={(e) => e.stopPropagation()}
+            className="flex-1"
+          >
+            <Button variant="outline" size="sm" className="w-full">
+              <FileText className="w-4 h-4 mr-1" />
+              Regulamento
+            </Button>
+          </Link>
           {event.canRegister && (
             <Button
               size="sm"

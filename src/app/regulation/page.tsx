@@ -1,10 +1,89 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, FileText, Home } from "lucide-react";
+import { getPublicEvents, type PublicEvent } from "@/server/events-public";
+import {
+  ArrowLeft,
+  Calendar,
+  FileText,
+  Home,
+  Info,
+  MapPin,
+} from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function RegulationPage() {
+  const [events, setEvents] = useState<PublicEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setLoading(true);
+        const result = await getPublicEvents();
+
+        if (result.success && result.events) {
+          setEvents(result.events);
+        } else {
+          setError(result.error || "Erro ao carregar eventos");
+        }
+      } catch (err) {
+        setError("Erro ao carregar eventos");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat("pt-PT", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }).format(date);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-bege-claro via-verde-muito-suave to-dourado-muito-claro py-12">
+        <div className="container mx-auto px-4">
+          <div className="festival-card p-6 max-w-4xl mx-auto text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-verde-suave mx-auto mb-4"></div>
+            <p className="text-cinza-chumbo">Carregando eventos...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-bege-claro via-verde-muito-suave to-dourado-muito-claro py-12">
+        <div className="container mx-auto px-4">
+          <div className="festival-card p-6 max-w-4xl mx-auto text-center">
+            <div className="text-red-500 mb-4">
+              <Info className="w-16 h-16 mx-auto" />
+            </div>
+            <h1 className="text-2xl font-bold text-cinza-chumbo mb-4">
+              Erro ao carregar eventos
+            </h1>
+            <p className="text-cinza-chumbo/70 mb-6">{error}</p>
+            <Link href="/">
+              <Button className="festival-button">
+                <Home className="w-4 h-4 mr-2" />
+                Voltar à Home
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-bege-claro via-verde-muito-suave to-dourado-muito-claro py-12">
       <div className="container mx-auto px-4">
@@ -18,150 +97,97 @@ export default function RegulationPage() {
 
         <div className="festival-card p-6 max-w-4xl mx-auto">
           <div className="text-center mb-8">
-            <FileText className="w-16 h-16 text-verde-suave mx-auto mb-4" />
+            <Info className="w-16 h-16 text-verde-suave mx-auto mb-4" />
             <h1 className="text-3xl font-bold text-cinza-chumbo mb-2">
-              Regulamento do Festival
+              Regulamentos dos Eventos
             </h1>
             <p className="text-cinza-chumbo/70">
               Festival Som Popular - Prefeitura Municipal do Centenário do Sul
             </p>
           </div>
 
-          {/* PDF Viewer */}
-          <div className="bg-white border border-cinza-chumbo/20 rounded-lg overflow-hidden mb-6">
-            <div className="bg-gray-50 p-4 border-b border-cinza-chumbo/20">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <FileText className="w-5 h-5 text-verde-suave" />
-                  <span className="font-medium text-cinza-chumbo">
-                    regulamento-festival-som-popular.pdf
-                  </span>
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    // Aqui você pode implementar o download do PDF
-                    window.open("/docs/regulamento.pdf", "_blank");
-                  }}
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Baixar PDF
-                </Button>
-              </div>
-            </div>
-
-            {/* PDF Embed */}
-            <div className="relative" style={{ height: "800px" }}>
-              <iframe
-                src="/docs/regulamento.pdf"
-                className="w-full h-full"
-                title="Regulamento do Festival Som Popular"
-                onError={() => {
-                  // Fallback se o PDF não carregar
-                  console.log("Erro ao carregar PDF");
-                }}
-              />
-
-              {/* Fallback content se PDF não carregar */}
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-50 text-center p-8">
-                <div>
-                  <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-cinza-chumbo mb-2">
-                    Visualizador de PDF
-                  </h3>
-                  <p className="text-cinza-chumbo/70 mb-4">
-                    O regulamento será carregado aqui quando o arquivo PDF
-                    estiver disponível.
-                  </p>
-                  <p className="text-sm text-cinza-chumbo/60 mb-6">
-                    Por enquanto, você pode baixar o arquivo usando o botão
-                    acima.
-                  </p>
-
-                  {/* Texto do regulamento como fallback */}
-                  <div className="text-left max-w-2xl mx-auto space-y-4 text-sm">
-                    <h4 className="font-bold text-verde-suave">
-                      REGULAMENTO - FESTIVAL SOM POPULAR
-                    </h4>
-
-                    <div>
-                      <h5 className="font-semibold mb-2">1. DO OBJETIVO</h5>
-                      <p className="text-cinza-chumbo/80">
-                        O Festival Som Popular tem como objetivo promover e
-                        valorizar a música popular brasileira, oferecendo
-                        oportunidades para artistas locais e regionais
-                        demonstrarem seus talentos.
-                      </p>
-                    </div>
-
-                    <div>
-                      <h5 className="font-semibold mb-2">2. DA PARTICIPAÇÃO</h5>
-                      <p className="text-cinza-chumbo/80">
-                        Podem participar do festival artistas maiores de 16
-                        anos, nas categorias: Vocal, Instrumental, Composição e
-                        Grupo/Banda.
-                      </p>
-                    </div>
-
-                    <div>
-                      <h5 className="font-semibold mb-2">3. DAS INSCRIÇÕES</h5>
-                      <p className="text-cinza-chumbo/80">
-                        As inscrições são gratuitas e devem ser realizadas
-                        através do site oficial do festival. É necessário o
-                        preenchimento completo dos dados solicitados.
-                      </p>
-                    </div>
-
-                    <div>
-                      <h5 className="font-semibold mb-2">4. DAS FASES</h5>
-                      <p className="text-cinza-chumbo/80">
-                        O festival será realizado em três fases:
-                        Classificatórias, Semi-finais e Final. Cada fase terá
-                        critérios específicos de avaliação.
-                      </p>
-                    </div>
-
-                    <div>
-                      <h5 className="font-semibold mb-2">5. DA AVALIAÇÃO</h5>
-                      <p className="text-cinza-chumbo/80">
-                        A avaliação será realizada por uma comissão julgadora
-                        composta por profissionais da área musical, considerando
-                        critérios técnicos e artísticos.
-                      </p>
-                    </div>
-
-                    <div>
-                      <h5 className="font-semibold mb-2">6. DOS PRÊMIOS</h5>
-                      <p className="text-cinza-chumbo/80">
-                        Serão premiados os três primeiros colocados de cada
-                        categoria, além de prêmios especiais para melhor
-                        interpretação, melhor composição e escolha do público.
-                      </p>
-                    </div>
-
-                    <div>
-                      <h5 className="font-semibold mb-2">
-                        7. DAS DISPOSIÇÕES GERAIS
-                      </h5>
-                      <p className="text-cinza-chumbo/80">
-                        A participação no festival implica na aceitação integral
-                        deste regulamento. A organização se reserva o direito de
-                        alterar datas e horários se necessário.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+            <div className="flex items-start space-x-3">
+              <Info className="w-6 h-6 text-blue-600 mt-1 flex-shrink-0" />
+              <div>
+                <h3 className="text-lg font-semibold text-blue-800 mb-2">
+                  Como acessar os regulamentos
+                </h3>
+                <p className="text-blue-700 mb-4">
+                  Cada evento do festival possui seu próprio regulamento
+                  específico. Para visualizar o regulamento de um evento, você
+                  deve:
+                </p>
+                <ol className="list-decimal list-inside text-blue-700 space-y-2">
+                  <li>Navegar até a página do evento desejado</li>
+                  <li>
+                    Clicar no botão "Ver Regulamento" ou acessar diretamente a
+                    URL do regulamento
+                  </li>
+                  <li>
+                    O regulamento será exibido em um visualizador PDF integrado
+                  </li>
+                </ol>
               </div>
             </div>
           </div>
 
+          {/* Lista de eventos disponíveis */}
+          <div className="mb-8">
+            <h3 className="text-xl font-semibold text-cinza-chumbo mb-4">
+              Eventos Disponíveis
+            </h3>
+            {events.length > 0 ? (
+              <div className="grid gap-4">
+                {events.map((event) => (
+                  <div
+                    key={event.id}
+                    className="bg-white border border-cinza-chumbo/20 rounded-lg p-4"
+                  >
+                    <h4 className="font-semibold text-cinza-chumbo mb-2">
+                      {event.name}
+                    </h4>
+                    <div className="flex items-center text-sm text-cinza-chumbo/70 mb-3 space-x-4">
+                      <div className="flex items-center">
+                        <Calendar className="w-4 h-4 mr-1" />
+                        <span>{formatDate(event.startDate)}</span>
+                      </div>
+                      <div className="flex items-center">
+                        <MapPin className="w-4 h-4 mr-1" />
+                        <span>{event.location}</span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-cinza-chumbo/70 mb-3">
+                      Categoria: {event.category} | Tipo: {event.type}
+                    </p>
+                    <Link href={`/regulation/${event.id}`}>
+                      <Button size="sm" className="festival-button">
+                        <FileText className="w-4 h-4 mr-2" />
+                        Ver Regulamento
+                      </Button>
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Calendar className="w-16 h-16 text-cinza-chumbo/50 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-cinza-chumbo mb-2">
+                  Nenhum evento disponível
+                </h3>
+                <p className="text-cinza-chumbo/70">
+                  Novos eventos serão anunciados em breve
+                </p>
+              </div>
+            )}
+          </div>
+
           {/* Ações */}
           <div className="flex flex-col sm:flex-row gap-4">
-            <Link href="/participant-registration" className="flex-1">
+            <Link href="/#eventos" className="flex-1">
               <Button className="festival-button w-full">
                 <FileText className="w-4 h-4 mr-2" />
-                Aceitar e Registrar-se
+                Ver Todos os Eventos
               </Button>
             </Link>
 
@@ -176,7 +202,7 @@ export default function RegulationPage() {
           {/* Informações de Contato */}
           <div className="mt-8 pt-6 border-t border-cinza-chumbo/20">
             <h3 className="text-lg font-semibold text-cinza-chumbo mb-4">
-              Dúvidas sobre o Regulamento?
+              Dúvidas sobre os Regulamentos?
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
@@ -189,7 +215,7 @@ export default function RegulationPage() {
               </div>
               <div>
                 <h4 className="font-medium text-cinza-chumbo mb-1">Telefone</h4>
-                <p className="text-cinza-chumbo/70">(XX) XXXX-XXXX0</p>
+                <p className="text-cinza-chumbo/70">(XX) XXXX-XXXX</p>
               </div>
             </div>
           </div>

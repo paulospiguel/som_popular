@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import {
   Select,
   SelectContent,
@@ -48,15 +49,18 @@ import {
   removeParticipantFromEvent,
 } from "@/server/participants";
 import { createTestData } from "@/server/seed-data";
+import { uploadRegulationPDF } from "@/server/upload";
 import {
   AlertTriangle,
   Calendar,
   CalendarDays,
   Clock,
   Copy,
+  Download,
   Edit,
   Eye,
   EyeOff,
+  FileText,
   MapPin,
   MoreVertical,
   Pause,
@@ -67,6 +71,7 @@ import {
   ToggleLeft as Toggle,
   Trash2,
   Trophy,
+  Upload,
   UserCheck,
   UserMinus,
   UserPlus,
@@ -117,6 +122,8 @@ const EventDetailsModal = ({
 
   // Estados para edição
   const [editedEvent, setEditedEvent] = useState<Partial<Event>>({});
+  const [regulationMode, setRegulationMode] = useState<"text" | "pdf">("text");
+  const [showRegulationImport, setShowRegulationImport] = useState(false);
 
   // Estados para modais de detalhes
   const [selectedJudge, setSelectedJudge] = useState<any>(null);
@@ -133,15 +140,33 @@ const EventDetailsModal = ({
       loadEventJudges();
       loadEventParticipants();
 
-      setEditedEvent({
+      // Inicializar o estado de edição com todos os campos do evento
+      const initialEditState = {
         name: event.name,
         description: event.description,
         location: event.location,
         maxParticipants: event.maxParticipants,
+        startDate: event.startDate,
+        endDate: event.endDate,
+        registrationStartDate: event.registrationStartDate,
+        registrationEndDate: event.registrationEndDate,
+        isPublic: event.isPublic,
+        requiresApproval: event.requiresApproval,
         rules: event.rules,
         prizes: event.prizes || "",
+        regulationPdf: event.regulationPdf,
         notes: event.notes,
-      });
+      };
+
+      // Definir modo de regulamento baseado no que está disponível
+      if (event.regulationPdf) {
+        setRegulationMode("pdf");
+      } else {
+        setRegulationMode("text");
+      }
+
+      console.log("Inicializando estado de edição:", initialEditState);
+      setEditedEvent(initialEditState);
     }
   }, [isOpen, event]);
 
@@ -528,6 +553,8 @@ const EventDetailsModal = ({
           onEventUpdated(result.data);
         }
         setIsEditing(false);
+        // Fechar a modal após salvar com sucesso
+        onClose();
       } else {
         showToast({
           type: "error",
@@ -670,6 +697,7 @@ const EventDetailsModal = ({
             title="Cancelar edição"
             onClick={() => {
               setIsEditing(false);
+              // Restaurar todos os campos para os valores originais
               setEditedEvent({
                 name: event.name,
                 description: event.description,
@@ -682,9 +710,17 @@ const EventDetailsModal = ({
                 isPublic: event.isPublic,
                 requiresApproval: event.requiresApproval,
                 rules: event.rules,
-                prizes: event.prizes,
+                prizes: event.prizes || "",
+                regulationPdf: event.regulationPdf,
                 notes: event.notes,
               });
+
+              // Restaurar modo de regulamento
+              if (event.regulationPdf) {
+                setRegulationMode("pdf");
+              } else {
+                setRegulationMode("text");
+              }
             }}
             className="p-2 hover:bg-red-50 rounded-lg transition-colors group"
           >
@@ -693,7 +729,10 @@ const EventDetailsModal = ({
         </>
       ) : (
         <button
-          onClick={() => setIsEditing(true)}
+          onClick={() => {
+            console.log("Ativando modo de edição, estado atual:", editedEvent);
+            setIsEditing(true);
+          }}
           className="p-2 hover:bg-blue-50 rounded-lg transition-colors group"
           title="Editar evento"
         >
@@ -747,6 +786,8 @@ const EventDetailsModal = ({
         onClose={() => {
           onClose();
           setIsEditing(false);
+          // Resetar o estado de edição quando fechar
+          setEditedEvent({});
         }}
         title="Detalhes do Evento"
         subtitle={event.name}
@@ -1144,29 +1185,167 @@ const EventDetailsModal = ({
 
             {/* Regulamento */}
             <div>
-              <h4 className="font-semibold text-cinza-chumbo mb-4">
-                Regulamento
+              <h4 className="font-semibold text-cinza-chumbo mb-4 flex items-center justify-between">
+                <span>Regulamento</span>
+                {isEditing && (
+                  <div className="flex items-center space-x-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowRegulationImport(true)}
+                      className="flex items-center space-x-2 px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <Upload className="w-4 h-4" />
+                      Importar PDF
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setRegulationMode(
+                          regulationMode === "text" ? "pdf" : "text"
+                        )
+                      }
+                      className="flex items-center space-x-2 px-3 py-1.5 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 transition-colors"
+                    >
+                      {regulationMode === "text" ? (
+                        <>
+                          <FileText className="w-4 h-4" />
+                          Modo PDF
+                        </>
+                      ) : (
+                        <>
+                          <Edit className="w-4 h-4" />
+                          Modo Texto
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
               </h4>
+
               {isEditing ? (
-                <textarea
-                  value={editedEvent.rules || ""}
-                  onChange={(e) =>
-                    setEditedEvent({ ...editedEvent, rules: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  rows={4}
-                  placeholder="Regulamento do evento..."
-                />
-              ) : event.rules ? (
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-cinza-chumbo whitespace-pre-wrap text-sm">
-                    {event.rules}
-                  </p>
+                <div className="space-y-4">
+                  {regulationMode === "text" ? (
+                    <div>
+                      <label className="block text-sm font-medium text-cinza-chumbo mb-2">
+                        Regulamento em Texto
+                      </label>
+                      <RichTextEditor
+                        value={editedEvent.rules || ""}
+                        onChange={(content) => {
+                          setEditedEvent({ ...editedEvent, rules: content });
+                        }}
+                        placeholder="Digite o regulamento do evento..."
+                        className="w-full"
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="block text-sm font-medium text-cinza-chumbo mb-2">
+                        Regulamento em PDF
+                      </label>
+                      {editedEvent.regulationPdf ? (
+                        <div className="space-y-3">
+                          <div className="flex items-center space-x-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <FileText className="w-5 h-5 text-green-600" />
+                            <span className="text-green-800 font-medium">
+                              PDF carregado com sucesso
+                            </span>
+                          </div>
+                          <div className="flex space-x-2">
+                            <a
+                              href={editedEvent.regulationPdf}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                              <Eye className="w-4 h-4" />
+                              Visualizar
+                            </a>
+                            <a
+                              href={editedEvent.regulationPdf}
+                              download
+                              className="flex items-center space-x-2 px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
+                            >
+                              <Download className="w-4 h-4" />
+                              Download
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditedEvent({
+                                  ...editedEvent,
+                                  regulationPdf: "",
+                                });
+                                setRegulationMode("text");
+                              }}
+                              className="flex items-center space-x-2 px-3 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Remover
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+                          <Upload className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                          <p className="text-gray-500 mb-2">
+                            Nenhum PDF carregado
+                          </p>
+                          <p className="text-sm text-gray-400">
+                            Clique em "Importar PDF" para carregar um
+                            regulamento
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               ) : (
-                <p className="text-gray-500 text-sm">
-                  Sem regulamento definido
-                </p>
+                <div className="space-y-4">
+                  {event.regulationPdf ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <FileText className="w-5 h-5 text-blue-600" />
+                        <span className="text-blue-800 font-medium">
+                          Regulamento disponível em PDF
+                        </span>
+                      </div>
+                      <div className="flex space-x-2">
+                        <a
+                          href={event.regulationPdf}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                          <Eye className="w-4 h-4" />
+                          Visualizar PDF
+                        </a>
+                        <a
+                          href={event.regulationPdf}
+                          download
+                          className="flex items-center space-x-2 px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
+                        >
+                          <Download className="w-4 h-4" />
+                          Download PDF
+                        </a>
+                      </div>
+                    </div>
+                  ) : event.rules ? (
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <RichTextEditor
+                        value={event.rules}
+                        onChange={() => {}} // Não faz nada em modo somente leitura
+                        readOnly={true}
+                        showHtml={true}
+                        className="w-full"
+                      />
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">
+                      Sem regulamento definido
+                    </p>
+                  )}
+                </div>
               )}
             </div>
 
@@ -1778,6 +1957,107 @@ const EventDetailsModal = ({
         }}
         onSendNotification={handleSendNotification}
       />
+
+      {/* Modal de Importação de Regulamento */}
+      <Modal
+        isOpen={showRegulationImport}
+        onClose={() => setShowRegulationImport(false)}
+        title="Importar Regulamento PDF"
+        subtitle="Faça upload do arquivo PDF do regulamento"
+        icon={<FileText className="w-6 h-6 text-blue-600" />}
+        size="lg"
+      >
+        <div className="p-6">
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold text-cinza-chumbo mb-4">
+                Upload do PDF
+              </h3>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+                <Upload className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-lg font-medium text-cinza-chumbo mb-2">
+                  Arraste e solte o PDF aqui
+                </p>
+                <p className="text-cinza-chumbo/70 mb-4">
+                  ou clique para selecionar um arquivo
+                </p>
+                <input
+                  type="file"
+                  accept=".pdf"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      try {
+                        setLoading(true);
+                        const result = await uploadRegulationPDF(file);
+
+                        if (result.success && result.url) {
+                          setEditedEvent((prev) => ({
+                            ...prev,
+                            regulationPdf: result.url || null,
+                          }));
+                          setRegulationMode("pdf");
+                          setShowRegulationImport(false);
+                          showSuccess("PDF carregado com sucesso!");
+                        } else {
+                          showError(result.error || "Erro ao carregar PDF");
+                        }
+                      } catch (error) {
+                        showError("Erro ao carregar PDF");
+                      } finally {
+                        setLoading(false);
+                      }
+                    }
+                  }}
+                  className="hidden"
+                  id="pdf-upload"
+                />
+                <label
+                  htmlFor="pdf-upload"
+                  className={`inline-flex items-center px-4 py-2 rounded-lg transition-colors cursor-pointer ${
+                    loading
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-blue-600 hover:bg-blue-700"
+                  }`}
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      Carregando...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4 mr-2" />
+                      Selecionar PDF
+                    </>
+                  )}
+                </label>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <h4 className="font-medium text-blue-800 mb-2">
+                Informações Importantes
+              </h4>
+              <ul className="text-sm text-blue-700 space-y-1">
+                <li>• Apenas arquivos PDF são aceitos</li>
+                <li>• Tamanho máximo: 20MB</li>
+                <li>• O arquivo será armazenado no servidor</li>
+                <li>• Após o upload, o modo de texto será desabilitado</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="flex justify-end mt-6 pt-4 border-t">
+            <button
+              onClick={() => setShowRegulationImport(false)}
+              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Dialog de Confirmação */}
       <ConfirmDialog />

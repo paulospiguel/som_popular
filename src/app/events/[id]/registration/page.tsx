@@ -2,7 +2,15 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DiscreteImageUpload } from "@/components/ui/discrete-image-upload";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   getPublicEventById,
   registerForEvent,
@@ -61,6 +69,7 @@ export default function EventRegistrationPage() {
     hasSpecialNeeds: false,
     specialNeedsDescription: "",
     acceptsEmailNotifications: false,
+    avatar: "",
   });
 
   useEffect(() => {
@@ -124,7 +133,7 @@ export default function EventRegistrationPage() {
         toast.success("Inscrição realizada com sucesso!");
         // Redirecionar para página de confirmação com QR code
         router.push(
-          `/eventos/${eventId}/inscricao/confirmacao?registration=${result.registrationId}&participant=${result.participantId}`
+          `/events/${eventId}/registration/confirmation?registration=${result.registrationId}&participant=${result.participantId}`
         );
       } else {
         toast.error(result.error || "Erro ao processar inscrição");
@@ -297,44 +306,68 @@ export default function EventRegistrationPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-cinza-chumbo mb-2">
+                    Foto de Perfil
+                  </label>
+                  <DiscreteImageUpload
+                    value={formData.avatar}
+                    onChange={(value: string) =>
+                      handleInputChange("avatar", value)
+                    }
+                    maxSize={2}
+                    acceptedTypes={[
+                      "image/jpeg",
+                      "image/jpg",
+                      "image/png",
+                      "image/webp",
+                    ]}
+                    placeholder="Adicionar foto"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                     Categoria Musical *
                   </label>
-                  <select
+                  <Select
                     value={formData.category}
-                    onChange={(e) =>
-                      handleInputChange("category", e.target.value)
+                    onValueChange={(value) =>
+                      handleInputChange("category", value)
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-verde-suave"
-                    required
                   >
-                    <option value="">Selecione uma categoria</option>
-                    {CATEGORIES.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecione uma categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CATEGORIES.map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                     Nível de Experiência *
                   </label>
-                  <select
+                  <Select
                     value={formData.experience}
-                    onChange={(e) =>
-                      handleInputChange("experience", e.target.value)
+                    onValueChange={(value) =>
+                      handleInputChange("experience", value)
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-verde-suave"
-                    required
                   >
-                    <option value="">Selecione seu nível</option>
-                    {EXPERIENCE_LEVELS.map((level) => (
-                      <option key={level} value={level}>
-                        {level}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecione seu nível" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {EXPERIENCE_LEVELS.map((level) => (
+                        <SelectItem key={level} value={level}>
+                          {level}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
