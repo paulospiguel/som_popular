@@ -12,7 +12,7 @@
     "db:migrate": "npx drizzle-kit migrate",
     "db:generate": "npx drizzle-kit generate",
     "db:setup": "npm run db:generate && npm run db:migrate",
-    "postdeploy": "node scripts/setup-db.js"
+    "postbuild": "npm run db:setup"
   },
   "dependencies": {
     "@base-ui-components/react": "^1.0.0-beta.2",
