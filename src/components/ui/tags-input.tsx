@@ -1,9 +1,9 @@
 import { X } from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { KeyboardEvent, useEffect, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
-function useDidUpdateEffect(fn: any, inputs: any) {
+function useDidUpdateEffect(fn: () => void, inputs: React.DependencyList) {
   const didMountRef = useRef(false);
 
   useEffect(() => {
@@ -14,7 +14,7 @@ function useDidUpdateEffect(fn: any, inputs: any) {
 
 interface TagProps {
   text: string;
-  remove: any;
+  remove: (text: string) => void;
   disabled?: boolean;
   className?: string;
   icon?: React.ElementType | null;
@@ -25,7 +25,7 @@ export interface TagsInputProps {
   placeHolder?: string;
   value?: string[] | null;
   onChange?: (tags: string[]) => void;
-  onBlur?: any;
+  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   separators?: string[];
   disableBackspaceRemove?: boolean;
   onExisting?: (tag: string) => void;
@@ -45,7 +45,7 @@ export interface TagsInputProps {
 const defaultSeparators = ["Enter", "Tab"];
 
 function Tag({ text, remove, disabled, className, icon }: TagProps) {
-  const handleOnRemove = (e: any) => {
+  const handleOnRemove = (e: React.MouseEvent) => {
     e.stopPropagation();
     remove(text);
   };
@@ -94,11 +94,13 @@ const TagsInput = ({
   maxTagsCount,
   icon,
 }: TagsInputProps) => {
-  const [tags, setTags] = useState<any>(value || []);
+  const [tags, setTags] = useState<string[]>(value || []);
   const [inputValue, setInputValue] = useState("");
 
   useDidUpdateEffect(() => {
-    onChange && onChange(tags);
+    if (onChange) {
+      onChange(tags);
+    }
   }, [tags]);
 
   useDidUpdateEffect(() => {
@@ -112,16 +114,16 @@ const TagsInput = ({
       ? `Máximo de ${maxTagsCount} prêmios atingido`
       : placeHolder;
 
-  const handleOnKeyDown = (e: any) => {
+  const handleOnKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     e.stopPropagation();
 
     if (
-      !e.target.value &&
+      !e.currentTarget.value &&
       !disableBackspaceRemove &&
       tags.length &&
       e.key === "Backspace"
     ) {
-      e.target.value = isEditOnRemove ? `${tags.at(-1)} ` : "";
+      e.currentTarget.value = isEditOnRemove ? `${tags.at(-1)} ` : "";
       setTags([...tags.slice(0, -1)]);
       return;
     }
@@ -131,27 +133,31 @@ const TagsInput = ({
       return;
     }
 
-    const text = e.target.value.trim();
+    const text = e.currentTarget.value.trim();
 
     if (text && (separators || defaultSeparators).includes(e.key)) {
       e.preventDefault();
       if (beforeAddValidate && !beforeAddValidate(text, tags)) return;
 
       if (tags.includes(text)) {
-        onExisting && onExisting(text);
+        if (onExisting) {
+          onExisting(text);
+        }
         return;
       }
 
       setTags([...tags, text]);
       setInputValue("");
-      e.target.value = "";
+      e.currentTarget.value = "";
     }
   };
 
   const onTagRemove = (text: string) => {
     const newTags = tags.filter((tag: string) => tag !== text);
     setTags(newTags);
-    onRemoved && onRemoved(text);
+    if (onRemoved) {
+      onRemoved(text);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -168,7 +174,9 @@ const TagsInput = ({
         }
       }
     }
-    onBlur && onBlur(e);
+    if (onBlur) {
+      onBlur(e);
+    }
   };
 
   return (
@@ -181,7 +189,7 @@ const TagsInput = ({
         disabled && "opacity-50 cursor-not-allowed bg-gray-50"
       )}
     >
-      {tags.map((tag: any) => (
+      {tags.map((tag: string) => (
         <Tag
           key={tag}
           className={classNames?.tag || ""}

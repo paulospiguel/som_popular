@@ -1,4 +1,5 @@
 import { EVENT_STATUSES } from "@/constants";
+import { type Event } from "@/server/database/schema";
 
 export function getStatusText(status: string): string {
   const statusInfo = EVENT_STATUSES.find((s) => s.value === status);
@@ -49,16 +50,18 @@ export function formatEventTime(date: Date): string {
   });
 }
 
-export function isEventActive(event: any): boolean {
+export function isEventActive(event: Event): boolean {
   return event.status === "ongoing";
 }
 
-export function isRegistrationOpen(event: any): boolean {
+export function isRegistrationOpen(event: Event): boolean {
   const now = new Date();
   const registrationStart = event.registrationStartDate || event.createdAt;
   const registrationEnd = event.registrationEndDate || event.startDate;
 
   return (
+    registrationStart != null &&
+    registrationEnd != null &&
     registrationStart <= now &&
     registrationEnd >= now &&
     event.status === "published"

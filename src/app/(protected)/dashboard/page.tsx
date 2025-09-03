@@ -15,7 +15,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { useSession } from "@/lib/auth-client";
-import { getDashboardStats } from "@/server/dashboard";
+import { getDashboardStats, type DashboardStats } from "@/server/dashboard";
 
 const CARDS = [
   {
@@ -67,7 +67,7 @@ const CARDS = [
 
 export default function AdminDashboard() {
   const { data: session, isPending } = useSession();
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -187,9 +187,9 @@ export default function AdminDashboard() {
             <p className="text-xs text-cinza-chumbo/70">
               {loading ? (
                 "Carregando..."
-              ) : stats?.newParticipantsThisWeek > 0 ? (
+              ) : (stats?.newParticipantsThisWeek ?? 0) > 0 ? (
                 <span className="text-green-600">
-                  +{stats.newParticipantsThisWeek} esta semana
+                  +{stats?.newParticipantsThisWeek ?? 0} esta semana
                 </span>
               ) : (
                 <span className="text-gray-500">Nenhum novo esta semana</span>
@@ -231,30 +231,32 @@ export default function AdminDashboard() {
                 ? "Carregando..."
                 : `de ${stats?.totalEvaluations || 0} esperadas`}
             </p>
-            {!loading && stats?.totalEvaluations > 0 && (
-              <div className="mt-2">
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-amarelo-suave h-2 rounded-full transition-all duration-300"
-                    style={{
-                      width: `${Math.round(
-                        ((stats.completedEvaluations || 0) /
-                          stats.totalEvaluations) *
-                          100
-                      )}%`,
-                    }}
-                  ></div>
+            {!loading &&
+              stats?.totalEvaluations &&
+              stats?.totalEvaluations > 0 && (
+                <div className="mt-2">
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-amarelo-suave h-2 rounded-full transition-all duration-300"
+                      style={{
+                        width: `${Math.round(
+                          ((stats.completedEvaluations || 0) /
+                            stats.totalEvaluations) *
+                            100
+                        )}%`,
+                      }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-cinza-chumbo/70 mt-1">
+                    {Math.round(
+                      ((stats.completedEvaluations || 0) /
+                        stats.totalEvaluations) *
+                        100
+                    )}
+                    % completo
+                  </p>
                 </div>
-                <p className="text-xs text-cinza-chumbo/70 mt-1">
-                  {Math.round(
-                    ((stats.completedEvaluations || 0) /
-                      stats.totalEvaluations) *
-                      100
-                  )}
-                  % completo
-                </p>
-              </div>
-            )}
+              )}
           </div>
 
           <Link

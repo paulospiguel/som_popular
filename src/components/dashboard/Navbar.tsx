@@ -16,6 +16,13 @@ export default function NavbarDashboard() {
   const { data: session } = useSession();
   const [isEventModeActive, setIsEventModeActive] = useState(false);
 
+  const userRole = session?.user.role || ROLES.OPERATOR;
+  const isVotingPage = pathname.startsWith("/votacoes");
+
+  useEffect(() => {
+    setIsEventModeActive(isVotingPage);
+  }, [isVotingPage]);
+
   if (!session) {
     return null;
   }
@@ -38,13 +45,6 @@ export default function NavbarDashboard() {
       router.push("/votacoes");
     }
   };
-
-  const userRole = session.user.role || ROLES.OPERATOR;
-  const isVotingPage = pathname.startsWith("/votacoes");
-
-  useEffect(() => {
-    setIsEventModeActive(isVotingPage);
-  }, [isVotingPage]);
 
   return (
     <header className="bg-white/90 backdrop-blur-sm border-b border-verde-suave/20 sticky top-0 z-50 shadow-sm">

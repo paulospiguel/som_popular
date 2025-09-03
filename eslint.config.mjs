@@ -43,14 +43,18 @@ const eslintConfig = [
           },
         },
       ],
-      // Temporário para destravar o build
-      "@typescript-eslint/no-explicit-any": "off",
-      "react/no-children-prop": "off",
-      "react/no-unescaped-entities": "off",
-      "react-hooks/exhaustive-deps": "off",
-      "@typescript-eslint/no-unused-expressions": "off",
-      "react-hooks/rules-of-hooks": "off",
-      "@next/next/no-img-element": "off",
+      // Regras essenciais como erro
+      "react-hooks/rules-of-hooks": "error",
+      "@typescript-eslint/no-unused-expressions": "error",
+
+      // Regras importantes como warning
+      "@typescript-eslint/no-explicit-any": "warn",
+      "react/no-children-prop": "warn",
+      "react-hooks/exhaustive-deps": "warn",
+      "@next/next/no-img-element": "warn",
+
+      // Regras menos críticas como warning
+      "react/no-unescaped-entities": "warn",
     },
   },
 ];

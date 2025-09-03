@@ -36,7 +36,7 @@ interface DataTableProps<T> {
   onArchive?: (id: string) => void;
 }
 
-export function DataTable<T extends Record<string, any>>({
+export function DataTable<T extends Record<string, unknown>>({
   data,
   columns,
   itemsPerPage = 10,
