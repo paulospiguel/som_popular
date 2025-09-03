@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
+import { APP_URL } from "@/constants";
 import { sendResetPasswordEmail } from "@/lib/mailer/resend";
+
+const resetPasswordUrl = `${APP_URL}/auth/reset-password`;
 
 export async function GET() {
   console.log("🧪 Iniciando teste de email...");
@@ -19,7 +22,7 @@ export async function GET() {
     const result = await sendResetPasswordEmail({
       to: "paulospil@hotmail.com",
       name: "Utilizador Teste",
-      resetUrl: "http://localhost:3000/auth/reset-password?token=teste123",
+      resetUrl: resetPasswordUrl + "?token=teste123",
     });
 
     console.log("✅ Resultado do teste:", result);

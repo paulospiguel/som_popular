@@ -1,3 +1,8 @@
+export const APP_URL =
+  process.env.VERCEL_ENV === "development"
+    ? "http://localhost:3000"
+    : `https://${process.env.VERCEL_URL}`;
+
 export enum ROLES {
   ADMIN = "manager",
   OPERATOR = "operator",
