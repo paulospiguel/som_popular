@@ -1,9 +1,10 @@
 "use server";
 
-import { ROLES } from "@/constants";
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+
+import { ROLES } from "@/constants";
+import { auth } from "@/lib/auth";
 
 /**
  * Verificar se o usuário está autenticado

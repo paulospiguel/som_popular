@@ -1,9 +1,5 @@
 "use client";
 
-import { DataTable } from "@/components/DataTable";
-import Loading from "@/components/loading";
-import { useSession } from "@/lib/auth-client";
-import { Participant } from "@/server/database/schema";
 import {
   ArrowLeft,
   Eye,
@@ -16,6 +12,12 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+
+import { DataTable } from "@/components/DataTable";
+import Loading from "@/components/loading";
+import { useSession } from "@/lib/auth-client";
+import { Participant } from "@/server/database/schema";
+
 import AddParticipantModal from "./components/add-new";
 import ParticipantDetailsModal from "./components/participant-detail";
 import {

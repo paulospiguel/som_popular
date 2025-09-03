@@ -1,9 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { formatTimeAgo } from "@/lib/utils";
-import { getDashboardStats } from "@/server/dashboard";
 import {
   AlertCircle,
   AlertTriangle,
@@ -19,6 +15,11 @@ import {
   XCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatTimeAgo } from "@/lib/utils";
+import { getDashboardStats } from "@/server/dashboard";
 
 interface ActivityDetail {
   status?: string;

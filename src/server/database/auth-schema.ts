@@ -1,5 +1,6 @@
-import { ROLES } from "@/constants";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+
+import { ROLES } from "@/constants";
 
 export const user = sqliteTable("user", {
   id: text("id").primaryKey(),

@@ -1,6 +1,7 @@
-import { cn } from "@/lib/utils";
 import { Upload, X, User } from "lucide-react";
 import { useRef, useState } from "react";
+
+import { cn } from "@/lib/utils";
 
 interface ImageUploadProps {
   value?: string;

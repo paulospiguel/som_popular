@@ -1,8 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { getPublicEvents, type PublicEvent } from "@/server/events-public";
 import {
   ArrowRight,
   Calendar,
@@ -15,6 +12,10 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { getPublicEvents, type PublicEvent } from "@/server/events-public";
 
 const EVENT_TYPE_LABELS = {
   classificatoria: "Classificatória",

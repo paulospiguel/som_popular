@@ -1,6 +1,5 @@
 "use client";
 
-import { useSession } from "@/lib/auth-client";
 import {
   ArrowRight,
   Calendar,
@@ -14,6 +13,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { ROLES } from "@/constants";
+import { useSession } from "@/lib/auth-client";
 import { getEvents } from "@/server/events";
 import { createTestData } from "@/server/seed-data";
 

@@ -1,10 +1,11 @@
 'use client';
 
-import * as React from 'react';
-import { cn } from '@/lib/utils';
-import { buttonVariants } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import * as React from 'react';
 import { DayPicker } from 'react-day-picker';
+
+import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 function Calendar({ className, classNames, showOutsideDays = true, ...props }: React.ComponentProps<typeof DayPicker>) {
   return (

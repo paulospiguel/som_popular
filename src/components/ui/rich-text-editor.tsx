@@ -27,15 +27,6 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     return emptyState;
   });
 
-  // Função para forçar direção LTR
-  const forceLTR = (state: EditorState) => {
-    const content = state.getCurrentContent();
-    if (content.getPlainText() === "") {
-      return state;
-    }
-    return state;
-  };
-
   useEffect(() => {
     if (value) {
       try {
@@ -49,7 +40,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           const contentState = ContentState.createFromText(value);
           setEditorState(EditorState.createWithContent(contentState));
         }
-      } catch (error) {
+      } catch (_error) {
         // Se falhar, criar estado vazio
         setEditorState(EditorState.createEmpty());
       }
@@ -57,28 +48,6 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       setEditorState(EditorState.createEmpty());
     }
   }, [value]);
-
-  // Forçar direção LTR sempre que o componente for montado
-  useEffect(() => {
-    const forceLTRStyles = () => {
-      const editorElements = document.querySelectorAll(
-        ".rich-text-editor .public-DraftEditor-content"
-      );
-      editorElements.forEach((element) => {
-        (element as HTMLElement).style.direction = "ltr";
-        (element as HTMLElement).style.textAlign = "left";
-        (element as HTMLElement).style.unicodeBidi = "embed";
-      });
-    };
-
-    // Aplicar imediatamente
-    forceLTRStyles();
-
-    // Aplicar após um pequeno delay para garantir que o DOM esteja pronto
-    const timer = setTimeout(forceLTRStyles, 100);
-
-    return () => clearTimeout(timer);
-  }, []);
 
   const handleEditorStateChange = (newEditorState: EditorState) => {
     // Forçar direção LTR no estado

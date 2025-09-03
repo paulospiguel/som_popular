@@ -1,5 +1,7 @@
 "use server";
 
+import { and, eq, gte, sql } from "drizzle-orm";
+
 import { db } from "@/server/database";
 import {
   eventEvaluations,
@@ -7,7 +9,6 @@ import {
   events,
   participants,
 } from "@/server/database/schema";
-import { and, eq, gte, sql } from "drizzle-orm";
 
 // Função auxiliar para converter status em texto legível
 function getStatusText(status: string): string {

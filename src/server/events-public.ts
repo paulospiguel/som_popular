@@ -1,12 +1,13 @@
 "use server";
 
+import { and, eq, sql } from "drizzle-orm";
+
 import { db } from "@/server/database";
 import {
   eventRegistrations,
   events,
   participants,
 } from "@/server/database/schema";
-import { and, eq, sql } from "drizzle-orm";
 
 export interface PublicEvent {
   id: string;
@@ -396,6 +397,7 @@ export async function getAvailableEventsForRegistration(): Promise<{
         status: events.status,
         rules: events.rules,
         prizes: events.prizes,
+        regulationPdf: events.regulationPdf,
       })
       .from(events)
       .where(

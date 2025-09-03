@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+
 import { ResetPasswordTemplate } from "./templates/reset-password";
 
 const resend = new Resend(process.env.RESEND_API_KEY);

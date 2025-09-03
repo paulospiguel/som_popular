@@ -1,9 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { getRegistrationByEmail } from "@/server/events-public";
 import {
   AlertCircle,
   ArrowLeft,
@@ -19,6 +15,11 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { getRegistrationByEmail } from "@/server/events-public";
 
 const STATUS_ICONS = {
   pending: Clock,
@@ -75,7 +76,7 @@ export default function RegistrationLookupPage() {
       return a & a;
     }, 0);
 
-    let squares = [];
+    const squares = [];
     for (let i = 0; i < modules; i++) {
       for (let j = 0; j < modules; j++) {
         const index = i * modules + j;

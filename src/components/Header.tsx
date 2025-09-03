@@ -1,6 +1,8 @@
-import { cn } from "@/lib/utils";
 import { Menu } from "lucide-react";
 import Link from "next/link";
+
+import { cn } from "@/lib/utils";
+
 import { Logo } from "./logo";
 
 interface HeaderProps {
@@ -45,7 +47,7 @@ export default function Header({ transparent = false }: HeaderProps) {
               href="/participant-registration"
               className="festival-button-secondary px-4 py-2 text-sm"
             >
-              Mostrar meu Talento
+              Quero Participar
             </Link>
           </nav>
 

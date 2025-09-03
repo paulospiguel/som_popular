@@ -1,7 +1,9 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { useState } from "react";
+
+import { cn } from "@/lib/utils";
+
 import { Avatar } from "./avatar";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./hover-card";
 

@@ -1,6 +1,5 @@
 "use client";
 
-import { useSession } from "@/lib/auth-client";
 import {
   ArrowLeft,
   CheckCircle,
@@ -25,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ROLES } from "@/constants";
+import { useSession } from "@/lib/auth-client";
 import { getEventById } from "@/server/events";
 import {
   createEvaluation,

@@ -1,9 +1,10 @@
 "use client";
 
+import { Calendar, CheckCircle, Star, UserCheck, XCircle } from "lucide-react";
+
 import { Modal } from "@/components/Modal";
 import { Avatar } from "@/components/ui/avatar";
 import { Judge } from "@/server/database/schema";
-import { Calendar, CheckCircle, Star, UserCheck, XCircle } from "lucide-react";
 
 interface JudgeDetailsModalProps {
   isOpen: boolean;

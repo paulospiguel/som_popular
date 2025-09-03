@@ -1,8 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { getEventRanking, type EventRankingData } from "@/server/rankings";
 import {
   ArrowLeft,
   BarChart3,
@@ -19,6 +16,10 @@ import {
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { getEventRanking, type EventRankingData } from "@/server/rankings";
 
 const PHASE_STATUS_COLORS = {
   draft: "bg-gray-100 text-gray-800",

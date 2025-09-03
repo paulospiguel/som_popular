@@ -1,5 +1,6 @@
-import { sendResetPasswordEmail } from "@/lib/mailer/resend";
 import { NextResponse } from "next/server";
+
+import { sendResetPasswordEmail } from "@/lib/mailer/resend";
 
 export async function GET() {
   console.log("🧪 Iniciando teste de email...");

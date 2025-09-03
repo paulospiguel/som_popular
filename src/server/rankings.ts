@@ -1,5 +1,7 @@
 "use server";
 
+import { and, desc, eq, sql } from "drizzle-orm";
+
 import { db } from "@/server/database";
 import {
   eventEvaluations,
@@ -7,7 +9,6 @@ import {
   judges,
   participants,
 } from "@/server/database/schema";
-import { and, desc, eq, sql } from "drizzle-orm";
 
 export interface EventRanking {
   participantId: string;

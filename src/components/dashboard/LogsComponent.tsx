@@ -1,18 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { formatTimeAgo } from "@/lib/utils";
-import { getLogsStats, getSystemLogs } from "@/server/logs";
 import {
   Activity,
   AlertCircle,
@@ -28,6 +15,20 @@ import {
   User,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatTimeAgo } from "@/lib/utils";
+import { getLogsStats, getSystemLogs } from "@/server/logs";
 
 interface LogEntry {
   id: string;
@@ -122,12 +123,11 @@ export default function LogsComponent({
       setLoading(true);
       const result = await getSystemLogs({
         limit: 100,
-        offset: 0,
       });
 
-      if (result.success && result.logs) {
-        setLogs(result?.logs);
-        setFilteredLogs(result.logs);
+      if (result.success && result.data) {
+        setLogs(result.data);
+        setFilteredLogs(result.data);
       }
     } catch (error) {
       console.error("Erro ao carregar logs:", error);
@@ -139,8 +139,8 @@ export default function LogsComponent({
   const loadStats = async () => {
     try {
       const result = await getLogsStats();
-      if (result.success) {
-        setStats(result.stats);
+      if (result.success && result.data) {
+        setStats(result.data);
       }
     } catch (error) {
       console.error("Erro ao carregar estatísticas:", error);

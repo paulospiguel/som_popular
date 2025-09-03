@@ -1,9 +1,10 @@
 "use server";
 
-import { db } from "@/server/database";
-import { eventJudges, judges, type NewJudge } from "@/server/database/schema";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+
+import { db } from "@/server/database";
+import { eventJudges, judges, type NewJudge } from "@/server/database/schema";
 
 /**
  * Criar novo jurado

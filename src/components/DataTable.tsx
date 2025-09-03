@@ -1,8 +1,9 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, Filter, Search, X } from "lucide-react";
 import { ReactNode, useMemo, useState } from "react";
+
+import { cn } from "@/lib/utils";
 
 export interface Column<T> {
   key: keyof T | string;
@@ -93,7 +94,7 @@ export function DataTable<T extends Record<string, any>>({
   }, [data, searchTerm, searchFields, columnFilters]);
 
   const sortedAndFilteredData = useMemo(() => {
-    let sorted = [...filteredData];
+    const sorted = [...filteredData];
 
     sorted.sort((a, b) => {
       for (const orderConfig of orderBy) {

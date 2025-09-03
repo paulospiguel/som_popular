@@ -1,7 +1,8 @@
+import { Activity, Calendar } from "lucide-react";
+
 import LogsComponent from "@/components/dashboard/LogsComponent";
 import RecentActivityComponent from "@/components/dashboard/RecentActivity";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Activity, Calendar } from "lucide-react";
 
 export default function LogsPage() {
   return (

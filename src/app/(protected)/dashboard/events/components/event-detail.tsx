@@ -1,5 +1,34 @@
 "use client";
 
+import {
+  AlertTriangle,
+  Calendar,
+  CalendarDays,
+  Clock,
+  Copy,
+  Download,
+  Edit,
+  Eye,
+  EyeOff,
+  FileText,
+  MapPin,
+  MoreVertical,
+  Pause,
+  Plus,
+  Save,
+  SaveOff,
+  Settings,
+  ToggleLeft as Toggle,
+  Trash2,
+  Trophy,
+  Upload,
+  UserCheck,
+  UserMinus,
+  UserPlus,
+  Users,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+
 import { JudgeDetailsModal } from "@/components/JudgeDetailsModal";
 import { Modal } from "@/components/Modal";
 import { ParticipantDetailsModal } from "@/components/ParticipantDetailsModal";
@@ -50,34 +79,7 @@ import {
 } from "@/server/participants";
 import { createTestData } from "@/server/seed-data";
 import { uploadRegulationPDF } from "@/server/upload";
-import {
-  AlertTriangle,
-  Calendar,
-  CalendarDays,
-  Clock,
-  Copy,
-  Download,
-  Edit,
-  Eye,
-  EyeOff,
-  FileText,
-  MapPin,
-  MoreVertical,
-  Pause,
-  Plus,
-  Save,
-  SaveOff,
-  Settings,
-  ToggleLeft as Toggle,
-  Trash2,
-  Trophy,
-  Upload,
-  UserCheck,
-  UserMinus,
-  UserPlus,
-  Users,
-} from "lucide-react";
-import { useEffect, useState } from "react";
+
 import {
   formatEventDate,
   formatEventTime,

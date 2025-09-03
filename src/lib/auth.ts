@@ -1,10 +1,12 @@
-import { ROLES } from "@/constants";
-import { db } from "@/server/database";
-import * as schema from "@/server/database/auth-schema";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { admin as adminPlugin } from "better-auth/plugins";
+
+import { ROLES } from "@/constants";
+import { db } from "@/server/database";
+import * as schema from "@/server/database/auth-schema";
+
 import { sendEmail } from "./mailer/resend";
 import ResetPasswordTemplate from "./mailer/templates/reset-password";
 import { ac, admin, operator } from "./permissions";

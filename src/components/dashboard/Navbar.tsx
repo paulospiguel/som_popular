@@ -1,10 +1,12 @@
 "use client";
 
-import { ROLES } from "@/constants";
-import { signOut, useSession } from "@/lib/auth-client";
 import { LogOut, Play } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+
+import { ROLES } from "@/constants";
+import { signOut, useSession } from "@/lib/auth-client";
+
 import { Logo } from "../logo";
 import { Switch } from "../ui/switch";
 

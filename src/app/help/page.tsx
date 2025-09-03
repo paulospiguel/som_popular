@@ -1,13 +1,6 @@
 "use client";
 
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
-import {
   ArrowLeft,
   Calendar,
   FileText,
@@ -21,6 +14,14 @@ import {
   User,
 } from "lucide-react";
 import Link from "next/link";
+
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
 
 const FAQ_CATEGORIES = [
   {
@@ -36,12 +37,12 @@ const FAQ_CATEGORIES = [
       {
         question: "Quando acontece o festival?",
         answer:
-          "O festival acontece anualmente, geralmente entre os meses de setembro e novembro. As datas específicas são divulgadas com antecedência no site oficial e redes sociais.",
+          "O festival acontece anualmente. As datas específicas são divulgadas com antecedência no site oficial e redes sociais.",
       },
       {
         question: "Onde o festival acontece?",
         answer:
-          "O festival acontece em diferentes locais da cidade de Centenário do Sul, incluindo praças públicas, auditórios e espaços culturais. Cada evento tem sua localização específica divulgada.",
+          "Geralmente o festival acontece na praça central da cidade de Centenário do Sul, mas pode acontecer em outros locais, queu serão divulgados com antecedência.",
       },
       {
         question: "O festival é gratuito?",
@@ -58,23 +59,23 @@ const FAQ_CATEGORIES = [
       {
         question: "Quem pode participar do festival?",
         answer:
-          "Podem participar artistas maiores de 16 anos, nas categorias: Vocal, Instrumental, Composição e Grupo/Banda. Não há restrições de gênero ou localização.",
+          "Podem participar artistas maiores de 16 anos, a modalidade fica descrita no regulamento. Não há restrições de gênero ou localização.",
       },
       {
         question: "Como me registro como participante?",
         answer:
-          "Para se registrar, acesse a página 'Participar' no menu principal. Preencha o formulário com seus dados pessoais e artísticos, aceite os termos e regulamento, e clique em 'Registrar como Participante'.",
+          "Para se registrar, acesse a página específica do evento. Preencha o formulário com seus dados pessoais e artísticos, aceite os termos e regulamento, e clique em 'Registrar como Participante'. Eventualmente em alguns casos específicos pode-se registrar em localidades específicas, mas em geral você poderá se registrar através do sistema de registro geral, que fica na página de inscrições em eventos.",
       },
       {
         question: "Preciso de experiência musical para participar?",
         answer:
           "Não! O festival é aberto a todos os níveis de experiência, desde iniciantes até profissionais. Cada categoria tem critérios específicos de avaliação que consideram o nível do participante.",
       },
-      {
-        question: "Posso participar em mais de uma categoria?",
-        answer:
-          "Sim, você pode se inscrever em múltiplas categorias, desde que cumpra os requisitos de cada uma. Cada inscrição é independente e pode ter critérios específicos.",
-      },
+      // {
+      //   question: "Posso participar em mais de uma categoria?",
+      //   answer:
+      //     "Sim, você pode se inscrever em múltiplas categorias, desde que cumpra os requisitos de cada uma. Cada inscrição é independente e pode ter critérios específicos.",
+      // },
       {
         question: "E se eu tiver necessidades especiais?",
         answer:

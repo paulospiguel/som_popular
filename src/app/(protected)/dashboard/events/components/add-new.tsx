@@ -1,8 +1,14 @@
 "use client";
 
+import { useForm } from "@tanstack/react-form";
+import { Calendar, Plus, Trophy, Upload } from "lucide-react";
+import { useState } from "react";
+import z from "zod";
+
 import { Modal } from "@/components/Modal";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DateTimePicker } from "@/components/ui/date-picker";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import {
   Select,
   SelectContent,
@@ -11,14 +17,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TagsInput } from "@/components/ui/tags-input";
-import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { useToast } from "@/components/ui/toast";
 import { Event } from "@/server/database/schema";
 import { createEvent } from "@/server/events";
-import { useForm } from "@tanstack/react-form";
-import { Calendar, Plus, Trophy, Upload } from "lucide-react";
-import { useState } from "react";
-import z from "zod";
 
 // Schema de validação para eventos
 const eventSchema = z.object({

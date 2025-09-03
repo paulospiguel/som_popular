@@ -1,4 +1,5 @@
 import { defineConfig } from "drizzle-kit";
+import { join } from "path";
 
 export default defineConfig({
   schema: [
@@ -8,6 +9,10 @@ export default defineConfig({
   out: "./drizzle",
   dialect: "sqlite",
   dbCredentials: {
-    url: process.env.DATABASE_URL ?? "file:./src/server/database/sqlite.db",
+    url:
+      process.env.DATABASE_URL ??
+      join(process.cwd(), "src/server/database/sqlite.db"),
   },
+  verbose: process.env.NODE_ENV === "development",
+  strict: true,
 });

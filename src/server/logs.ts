@@ -1,5 +1,7 @@
 "use server";
 
+import { and, desc, eq, inArray } from "drizzle-orm";
+
 import { db } from "@/server/database";
 import {
   eventLogs,
@@ -7,7 +9,6 @@ import {
   type NewEventLog,
   type NewSystemLog,
 } from "@/server/database/schema";
-import { and, desc, eq, inArray } from "drizzle-orm";
 
 /**
  * Criar log do sistema
@@ -63,7 +64,7 @@ export async function getSystemLogs(options?: {
   limit?: number;
 }) {
   try {
-    let whereConditions = [];
+    const whereConditions = [];
 
     // Aplicar filtros (severity temporariamente desabilitado)
     if (options?.category) {
@@ -101,7 +102,7 @@ export async function getEventLogs(options?: {
   limit?: number;
 }) {
   try {
-    let whereConditions = [];
+    const whereConditions = [];
 
     // Aplicar filtros (severity temporariamente desabilitado)
     if (options?.eventId) {

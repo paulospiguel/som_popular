@@ -1,7 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { getPublicEvents, type PublicEvent } from "@/server/events-public";
 import {
   ArrowLeft,
   Calendar,
@@ -12,6 +10,9 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { getPublicEvents, type PublicEvent } from "@/server/events-public";
 
 export default function RegulationPage() {
   const [events, setEvents] = useState<PublicEvent[]>([]);

@@ -1,7 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   ArrowLeft,
   Calendar,
@@ -18,6 +16,9 @@ import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 export default function RegistrationConfirmationPage() {
   const params = useParams();
@@ -78,7 +79,7 @@ export default function RegistrationConfirmationPage() {
       return a & a;
     }, 0);
 
-    let squares = [];
+    const squares = [];
     for (let i = 0; i < modules; i++) {
       for (let j = 0; j < modules; j++) {
         const shouldFill = (hash + i * j) % 3 === 0;

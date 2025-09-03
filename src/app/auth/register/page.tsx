@@ -1,10 +1,11 @@
 "use client";
 
-import { signUp } from "@/lib/auth-client";
 import { Eye, EyeOff, Lock, Mail, Music, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+
+import { signUp } from "@/lib/auth-client";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");

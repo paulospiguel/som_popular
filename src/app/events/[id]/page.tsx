@@ -1,8 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { getPublicEventById } from "@/server/events-public";
 import {
   ArrowLeft,
   Award,
@@ -21,6 +18,10 @@ import {
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { getPublicEventById } from "@/server/events-public";
 
 const EVENT_TYPE_LABELS = {
   classificatoria: "Classificatória",
@@ -162,16 +163,6 @@ export default function EventPage() {
       </div>
     );
   }
-
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(new Date(date));
-  };
 
   const formatDateOnly = (date: Date) => {
     return new Intl.DateTimeFormat("pt-BR", {
@@ -435,7 +426,7 @@ export default function EventPage() {
 
           {/* Fases do Evento */}
           <div className="space-y-6">
-            {eventSchedule.map((phase, index) => {
+            {eventSchedule.map((phase) => {
               const PhaseIcon = phase.icon;
               return (
                 <div key={phase.phase} className="flex items-start gap-4">

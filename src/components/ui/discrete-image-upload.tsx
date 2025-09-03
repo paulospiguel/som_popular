@@ -1,8 +1,9 @@
-import { cn } from "@/lib/utils";
-import { uploadParticipantPhoto } from "@/server/upload";
 import { Camera, Loader2, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
+
+import { cn } from "@/lib/utils";
+import { uploadParticipantPhoto } from "@/server/upload";
 
 interface DiscreteImageUploadProps {
   value?: string;

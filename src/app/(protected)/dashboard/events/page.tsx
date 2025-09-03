@@ -1,10 +1,5 @@
 "use client";
 
-import { DataTable } from "@/components/DataTable";
-import Loading from "@/components/loading";
-import { useSession } from "@/lib/auth-client";
-import { Event } from "@/server/database/schema";
-import { getEvents } from "@/server/events";
 import {
   ArrowLeft,
   Calendar,
@@ -16,6 +11,13 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+
+import { DataTable } from "@/components/DataTable";
+import Loading from "@/components/loading";
+import { useSession } from "@/lib/auth-client";
+import { Event } from "@/server/database/schema";
+import { getEvents } from "@/server/events";
+
 import AddEventModal from "./components/add-new";
 import EventDetailsModal from "./components/event-detail";
 import {

@@ -1,7 +1,9 @@
 "use client";
 
-import { LOG_SEVERITY_LEVELS } from "@/constants";
 import { AlertTriangle, BarChart3 } from "lucide-react";
+
+import { LOG_SEVERITY_LEVELS } from "@/constants";
+
 
 interface LogStats {
   critical: number;
@@ -17,13 +19,6 @@ interface LogStatsCardProps {
 
 export function LogStatsCard({ stats }: LogStatsCardProps) {
   const totalLogs = stats.critical + stats.major + stats.minor + stats.none;
-
-  const getSeverityInfo = (severity: string) => {
-    return (
-      LOG_SEVERITY_LEVELS.find((level) => level.value === severity) ||
-      LOG_SEVERITY_LEVELS[3]
-    );
-  };
 
   const getPercentage = (count: number) => {
     if (totalLogs === 0) return 0;

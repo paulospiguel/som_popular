@@ -1,10 +1,11 @@
 "use server";
 
+import { and, eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
+
 import { checkAdminAccess } from "@/lib/auth-guards";
 import { db } from "@/server/database";
 import { eventRegistrations, participants } from "@/server/database/schema";
-import { and, eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
 
 /**
  * Buscar todos os participantes aprovados

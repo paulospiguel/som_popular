@@ -1,6 +1,5 @@
 "use client";
 
-import { resetPassword } from "@/lib/auth-client";
 import {
   AlertCircle,
   CheckCircle,
@@ -12,6 +11,8 @@ import {
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+
+import { resetPassword } from "@/lib/auth-client";
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");

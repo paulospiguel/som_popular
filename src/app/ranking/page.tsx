@@ -1,9 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getAllEventRankings } from "@/server/rankings";
 import {
   ArrowLeft,
   Calendar,
@@ -18,6 +14,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getAllEventRankings } from "@/server/rankings";
 
 const EVENT_TYPE_LABELS = {
   classificatoria: "Classificatória",
@@ -78,14 +79,6 @@ export default function RankingPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat("pt-PT", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    }).format(date);
   };
 
   const groupEventsByStatus = () => {

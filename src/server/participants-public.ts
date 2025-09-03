@@ -1,10 +1,11 @@
 "use server";
 
+import { and, eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
+
 import { participantSchema } from "@/schemas/participant";
 import { db } from "@/server/database";
 import { eventRegistrations, participants } from "@/server/database/schema";
-import { eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
 
 export interface ParticipantRegistrationData {
   name: string;

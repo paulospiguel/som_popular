@@ -1,5 +1,8 @@
 "use server";
 
+import { and, desc, eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
+
 import { requireOperatorOrAdmin } from "@/lib/action-guards";
 import { db } from "@/server/database";
 import {
@@ -11,8 +14,6 @@ import {
   type NewEvaluationSession,
   type NewEventEvaluation,
 } from "@/server/database/schema";
-import { and, desc, eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
 
 /**
  * Criar nova avaliação

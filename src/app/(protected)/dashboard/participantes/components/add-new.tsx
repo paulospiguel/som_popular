@@ -1,6 +1,13 @@
+import { Updater, useForm } from "@tanstack/react-form";
+import { Plus } from "lucide-react";
+import { useState } from "react";
+import z from "zod";
+
 import { Modal } from "@/components/Modal";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ImageUpload } from "@/components/ui/image-upload";
+import { Input } from "@/components/ui/input";
+import { PhoneInput } from "@/components/ui/phone-input";
 import {
   Select,
   SelectContent,
@@ -11,10 +18,6 @@ import {
 import { cn } from "@/lib/utils";
 import { participantSchema } from "@/schemas/participant";
 import { Participant } from "@/server/database/schema";
-import { Updater, useForm } from "@tanstack/react-form";
-import { Plus } from "lucide-react";
-import { useState } from "react";
-import z from "zod";
 
 const categories = [
   {
@@ -71,6 +74,13 @@ const AddParticipantModal = ({
           registrationDate: new Date(),
           notes: "",
           archived: false,
+          approvedAt: new Date(),
+          approvedBy: null,
+          rejectedAt: null,
+          rejectedBy: null,
+          rejectionReason: null,
+          updatedAt: new Date(),
+          createdAt: new Date(),
         } as Participant;
 
         setParticipant(participant);
@@ -154,16 +164,13 @@ const AddParticipantModal = ({
                   <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                     Nome Completo *
                   </label>
-                  <input
+                  <Input
+                    variant="lg"
+                    isError={field.state.meta.errors.length > 0}
                     type="text"
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
-                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-verde-suave focus:border-transparent transition-colors ${
-                      field.state.meta.errors.length > 0
-                        ? "border-red-300"
-                        : "border-gray-200"
-                    }`}
                     placeholder="Digite o nome completo"
                   />
                   <FieldError field={field} />
@@ -189,7 +196,9 @@ const AddParticipantModal = ({
                   <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                     Email *
                   </label>
-                  <input
+                  <Input
+                    variant="lg"
+                    isError={field.state.meta.errors.length > 0}
                     type="email"
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
@@ -209,32 +218,18 @@ const AddParticipantModal = ({
             {/* Telefone */}
             <form.Field
               name="phone"
-              validators={{
-                onChange: (value) => {
-                  try {
-                    participantSchema.shape.phone.parse(value.value);
-                    return undefined;
-                  } catch (error) {
-                    return (error as z.ZodError).issues[0].message;
-                  }
-                },
-              }}
               children={(field) => (
                 <div>
                   <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                     Telefone
                   </label>
-                  <input
-                    type="tel"
+                  <PhoneInput
                     value={field.state.value || ""}
-                    onChange={(e) => field.handleChange(e.target.value)}
+                    onChange={(value) => field.handleChange(value)}
                     onBlur={field.handleBlur}
-                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-verde-suave focus:border-transparent transition-colors ${
-                      field.state.meta.errors.length > 0
-                        ? "border-red-300"
-                        : "border-gray-200"
-                    }`}
-                    placeholder="+351 912 345 678"
+                    placeholder="(11) 99999-9999"
+                    error={field.state.meta.errors.length > 0}
+                    className="w-full"
                   />
                   <FieldError field={field} />
                 </div>

@@ -1,11 +1,12 @@
 "use client";
 
-import { ROLES } from "@/constants";
-import { signIn, useSession } from "@/lib/auth-client";
 import { Eye, EyeOff, Loader2, Lock, Mail, Music } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+
+import { ROLES } from "@/constants";
+import { signIn, useSession } from "@/lib/auth-client";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");

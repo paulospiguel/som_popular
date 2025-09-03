@@ -1,7 +1,5 @@
 "use client";
 
-import { useSession } from "@/lib/auth-client";
-import { getDashboardStats } from "@/server/dashboard";
 import {
   AlertTriangle,
   BarChart3,
@@ -15,6 +13,9 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+
+import { useSession } from "@/lib/auth-client";
+import { getDashboardStats } from "@/server/dashboard";
 
 const CARDS = [
   {

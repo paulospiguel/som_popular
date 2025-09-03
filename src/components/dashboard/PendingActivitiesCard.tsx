@@ -1,7 +1,8 @@
 "use client";
 
-import { LOG_SEVERITY_LEVELS } from "@/constants";
 import { AlertTriangle, CheckCircle, Clock } from "lucide-react";
+
+import { LOG_SEVERITY_LEVELS } from "@/constants";
 
 interface PendingActivity {
   id: string;

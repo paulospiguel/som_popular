@@ -1,10 +1,11 @@
 "use client";
 
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
 import Loading from "@/components/loading";
 import { ROLES } from "@/constants";
 import { useSession } from "@/lib/auth-client";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 
 export default function ProtectedProvider({
   children,

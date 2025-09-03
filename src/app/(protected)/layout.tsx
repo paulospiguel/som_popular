@@ -1,8 +1,10 @@
+import { ReactNode } from "react";
+
 import FooterDashborad from "@/components/dashboard/Footer";
 import Navbar from "@/components/dashboard/Navbar";
 import { Toaster } from "@/components/ui/sonner";
 import { ToastProvider } from "@/components/ui/toast";
-import { ReactNode } from "react";
+
 import ProtectedProvider from "./Provider";
 
 export const metadata = {

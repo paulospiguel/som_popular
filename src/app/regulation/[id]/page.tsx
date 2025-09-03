@@ -1,28 +1,46 @@
 "use client";
 
-import PDFViewer from "@/components/PDFViewer";
-import { Button } from "@/components/ui/button";
-import { getPublicEventById, PublicEvent } from "@/server/events-public";
 import { AlertCircle, ArrowLeft, FileText, Home } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import PDFViewer from "@/components/PDFViewer";
+import { Button } from "@/components/ui/button";
+import { getPublicEventById, PublicEvent } from "@/server/events-public";
+
 interface RegulationPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default function RegulationPage({ params }: RegulationPageProps) {
   const [event, setEvent] = useState<PublicEvent | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [eventId, setEventId] = useState<string>("");
 
   useEffect(() => {
+    const getParams = async () => {
+      try {
+        const resolvedParams = await params;
+        setEventId(resolvedParams.id);
+      } catch (err) {
+        setError("Erro ao carregar parâmetros");
+        setLoading(false);
+      }
+    };
+
+    getParams();
+  }, [params]);
+
+  useEffect(() => {
+    if (!eventId) return;
+
     const fetchEvent = async () => {
       try {
         setLoading(true);
-        const result = await getPublicEventById(params.id);
+        const result = await getPublicEventById(eventId);
 
         if (result.success && result.event) {
           setEvent(result.event);
@@ -37,7 +55,7 @@ export default function RegulationPage({ params }: RegulationPageProps) {
     };
 
     fetchEvent();
-  }, [params.id]);
+  }, [eventId]);
 
   if (loading) {
     return (
@@ -80,7 +98,7 @@ export default function RegulationPage({ params }: RegulationPageProps) {
     <div className="min-h-screen bg-gradient-to-br from-bege-claro via-verde-muito-suave to-dourado-muito-claro py-12">
       <div className="container mx-auto px-4">
         <Link
-          href={`/events/${params.id}`}
+          href={`/events/${eventId}`}
           className="inline-flex items-center text-verde-suave hover:text-verde-escuro mb-8"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
@@ -131,7 +149,7 @@ export default function RegulationPage({ params }: RegulationPageProps) {
           <div className="flex flex-col sm:flex-row gap-4">
             {event.canRegister && (
               <Link
-                href={`/events/${params.id}/registration`}
+                href={`/events/${eventId}/registration`}
                 className="flex-1"
               >
                 <Button className="festival-button w-full">
@@ -141,7 +159,7 @@ export default function RegulationPage({ params }: RegulationPageProps) {
               </Link>
             )}
 
-            <Link href={`/events/${params.id}`} className="flex-1">
+            <Link href={`/events/${eventId}`} className="flex-1">
               <Button variant="outline" className="w-full">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Voltar ao Evento

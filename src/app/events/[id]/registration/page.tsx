@@ -1,22 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { DiscreteImageUpload } from "@/components/ui/discrete-image-upload";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  getPublicEventById,
-  registerForEvent,
-  type EventRegistrationData,
-  type PublicEvent,
-} from "@/server/events-public";
 import {
   AlertCircle,
   ArrowLeft,
@@ -30,6 +13,25 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { DiscreteImageUpload } from "@/components/ui/discrete-image-upload";
+import { Input } from "@/components/ui/input";
+import { PhoneInput } from "@/components/ui/phone-input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  getPublicEventById,
+  registerForEvent,
+  type EventRegistrationData,
+  type PublicEvent,
+} from "@/server/events-public";
 
 const CATEGORIES = [
   "Fado",
@@ -296,11 +298,11 @@ export default function EventRegistrationPage() {
                   <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                     Telefone
                   </label>
-                  <Input
-                    type="tel"
+                  <PhoneInput
                     value={formData.phone}
-                    onChange={(e) => handleInputChange("phone", e.target.value)}
-                    placeholder="+351 XXX XXX XXX"
+                    onChange={(value) => handleInputChange("phone", value)}
+                    placeholder="(11) 99999-9999"
+                    className="w-full"
                   />
                 </div>
 

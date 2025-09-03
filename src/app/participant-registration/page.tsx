@@ -1,10 +1,29 @@
 "use client";
 
+import {
+  Accessibility,
+  ArrowLeft,
+  Calendar,
+  CheckCircle,
+  ExternalLink,
+  Home,
+  Info,
+  Mail,
+  Music,
+  Search,
+  Star,
+  User,
+} from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DiscreteImageUpload } from "@/components/ui/discrete-image-upload";
 import { Input } from "@/components/ui/input";
+import { PhoneInput } from "@/components/ui/phone-input";
 import {
   Select,
   SelectContent,
@@ -17,23 +36,6 @@ import {
   getParticipantByEmail,
   registerParticipant,
 } from "@/server/participants-public";
-import {
-  ArrowLeft,
-  Calendar,
-  CheckCircle,
-  ExternalLink,
-  Heart,
-  Home,
-  Info,
-  Mail,
-  Music,
-  Search,
-  Star,
-  User,
-} from "lucide-react";
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
 
 const CATEGORIES = [
   { value: "vocal", label: "Vocal" },
@@ -233,7 +235,9 @@ export default function ParticipantRegistrationPage() {
       newErrors.eventId = "Selecione um evento para inscrição";
     } else {
       // Verificar se o evento selecionado permite inscrições
-      const selectedEvent = availableEvents.find(e => e.id === formData.eventId);
+      const selectedEvent = availableEvents.find(
+        (e) => e.id === formData.eventId
+      );
       if (selectedEvent && !selectedEvent.canRegister) {
         if (selectedEvent.registrationStatus === "not_open") {
           newErrors.eventId = `As inscrições para este evento abrem em ${selectedEvent.registrationStartDate ? new Date(selectedEvent.registrationStartDate).toLocaleDateString("pt-BR") : "data não definida"}`;
@@ -444,18 +448,40 @@ export default function ParticipantRegistrationPage() {
                       <p>
                         <strong>Status das Inscrições:</strong>{" "}
                         {(() => {
-                          const event = availableEvents.find((e) => e.id === formData.eventId);
+                          const event = availableEvents.find(
+                            (e) => e.id === formData.eventId
+                          );
                           if (!event) return "N/A";
-                          
+
                           if (event.registrationStatus === "open") {
-                            return <span className="text-green-600 font-medium">🟢 Inscrições Abertas</span>;
+                            return (
+                              <span className="text-green-600 font-medium">
+                                🟢 Inscrições Abertas
+                              </span>
+                            );
                           } else if (event.registrationStatus === "not_open") {
-                            const startDate = event.registrationStartDate ? new Date(event.registrationStartDate).toLocaleDateString("pt-BR") : "data não definida";
-                            return <span className="text-blue-600 font-medium">🔵 Inscrições abrem em {startDate}</span>;
+                            const startDate = event.registrationStartDate
+                              ? new Date(
+                                  event.registrationStartDate
+                                ).toLocaleDateString("pt-BR")
+                              : "data não definida";
+                            return (
+                              <span className="text-blue-600 font-medium">
+                                🔵 Inscrições abrem em {startDate}
+                              </span>
+                            );
                           } else if (event.registrationStatus === "closed") {
-                            return <span className="text-red-600 font-medium">🔴 Inscrições Encerradas</span>;
+                            return (
+                              <span className="text-red-600 font-medium">
+                                🔴 Inscrições Encerradas
+                              </span>
+                            );
                           } else if (event.registrationStatus === "full") {
-                            return <span className="text-orange-600 font-medium">🟠 Evento Lotado</span>;
+                            return (
+                              <span className="text-orange-600 font-medium">
+                                🟠 Evento Lotado
+                              </span>
+                            );
                           }
                           return "N/A";
                         })()}
@@ -669,16 +695,13 @@ export default function ParticipantRegistrationPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                      Telefone
-                    </label>
-                    <Input
-                      type="tel"
+                    <PhoneInput
+                      label="Telefone"
                       value={formData.phone}
-                      onChange={(e) =>
-                        handleInputChange("phone", e.target.value)
-                      }
-                      placeholder="(XX) XXXX-XXXX"
+                      onChange={(value) => handleInputChange("phone", value)}
+                      placeholder="(11) 99999-9999"
+                      error={!!errors.phone}
+                      className="w-full"
                     />
                   </div>
 
@@ -751,7 +774,7 @@ export default function ParticipantRegistrationPage() {
                     >
                       <SelectTrigger
                         id="eventId"
-                        className={`${errors.eventId ? "border-red-500 ring-red-200" : "w-full border-gray-300"} w-full focus:ring-2 focus:ring-verde-suave focus:border-transparent`}
+                        className={`${errors.eventId ? "border-red-500 ring-red-200" : "w-full border-gray-300"} w-full min-h-16 focus:ring-2 focus:ring-verde-suave focus:border-transparent`}
                       >
                         <SelectValue
                           placeholder={
@@ -764,11 +787,13 @@ export default function ParticipantRegistrationPage() {
                       <SelectContent>
                         {availableEvents.map((event) => {
                           const eventDate = new Date(event.startDate);
-                          const registrationStart = event.registrationStartDate ? new Date(event.registrationStartDate) : null;
-                          
+                          const registrationStart = event.registrationStartDate
+                            ? new Date(event.registrationStartDate)
+                            : null;
+
                           let statusText = "";
                           let statusColor = "";
-                          
+
                           if (event.registrationStatus === "open") {
                             statusText = "Inscrições Abertas";
                             statusColor = "text-green-600";
@@ -782,15 +807,20 @@ export default function ParticipantRegistrationPage() {
                             statusText = "Evento Lotado";
                             statusColor = "text-orange-600";
                           }
-                          
+
                           return (
                             <SelectItem key={event.id} value={event.id}>
-                              <div className="flex flex-col">
-                                <span className="font-medium">{event.name}</span>
-                                <span className="text-xs text-cinza-chumbo/60">
-                                  {event.category} • {eventDate.toLocaleDateString("pt-BR")}
+                              <div className="flex flex-col items-start">
+                                <span className="font-medium">
+                                  {event.name}
                                 </span>
-                                <span className={`text-xs ${statusColor} font-medium`}>
+                                <span className="text-xs text-cinza-chumbo/60">
+                                  {event.category} •{" "}
+                                  {eventDate.toLocaleDateString("pt-BR")}
+                                </span>
+                                <span
+                                  className={`text-xs ${statusColor} font-medium`}
+                                >
                                   {statusText}
                                 </span>
                               </div>
@@ -810,10 +840,12 @@ export default function ParticipantRegistrationPage() {
                         Este é o único evento disponível no momento.
                       </p>
                     )}
-                    
+
                     <p className="text-xs text-cinza-chumbo/60 mt-2">
-                      💡 Você pode selecionar um evento mesmo que as inscrições ainda não tenham começado. 
-                      O sistema validará se as inscrições estão abertas quando você submeter o formulário.
+                      💡 Você pode selecionar um evento mesmo que as inscrições
+                      ainda não tenham começado. O sistema validará se as
+                      inscrições estão abertas quando você submeter o
+                      formulário.
                     </p>
                   </div>
                 )}
@@ -917,7 +949,7 @@ export default function ParticipantRegistrationPage() {
               {/* Necessidades Especiais */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-cinza-chumbo flex items-center">
-                  <Heart className="w-5 h-5 mr-2 text-red-400" />
+                  <Accessibility className="w-5 h-5 mr-2 text-gray-600" />
                   Acessibilidade
                 </h3>
 

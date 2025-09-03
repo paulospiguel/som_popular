@@ -1,8 +1,5 @@
 "use client";
 
-import { Modal } from "@/components/Modal";
-import { Avatar } from "@/components/ui/avatar";
-import { Participant } from "@/server/database/schema";
 import {
   Calendar,
   CheckCircle,
@@ -12,6 +9,10 @@ import {
   User,
   XCircle,
 } from "lucide-react";
+
+import { Modal } from "@/components/Modal";
+import { Avatar } from "@/components/ui/avatar";
+import { Participant } from "@/server/database/schema";
 
 interface ParticipantDetailsModalProps {
   isOpen: boolean;
