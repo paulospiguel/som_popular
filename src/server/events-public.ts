@@ -25,7 +25,7 @@ export interface PublicEvent {
   status: string;
   rules: string | null;
   prizes: string | null;
-  regulationPdf: string | null;
+  rulesFile: string | null;
   registrationStatus: "not_open" | "open" | "closed" | "full";
   canRegister: boolean;
 }
@@ -73,7 +73,7 @@ export async function getPublicEvents(): Promise<{
         status: events.status,
         rules: events.rules,
         prizes: events.prizes,
-        regulationPdf: events.regulationPdf,
+        rulesFile: events.rulesFile,
       })
       .from(events)
       .where(
@@ -167,7 +167,7 @@ export async function getPublicEventById(eventId: string): Promise<{
         status: events.status,
         rules: events.rules,
         prizes: events.prizes,
-        regulationPdf: events.regulationPdf,
+        rulesFile: events.rulesFile,
       })
       .from(events)
       .where(
@@ -397,7 +397,7 @@ export async function getAvailableEventsForRegistration(): Promise<{
         status: events.status,
         rules: events.rules,
         prizes: events.prizes,
-        regulationPdf: events.regulationPdf,
+        rulesFile: events.rulesFile,
       })
       .from(events)
       .where(
@@ -520,7 +520,7 @@ export async function getRegistrationByEmail(
         eventId: events.id,
         participantName: participants.name,
         status: eventRegistrations.status,
-        registrationDate: eventRegistrations.registrationDate,
+        registrationDate: eventRegistrations.registeredAt,
         eventDate: events.startDate,
       })
       .from(eventRegistrations)

@@ -1,21 +1,21 @@
 import { createId } from "@paralleldrive/cuid2";
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { boolean, integer, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
 
 /**
  * Tabela de logs do sistema
  */
-export const systemLogs = sqliteTable("system_logs", {
-  id: text("id")
+export const systemLogs = pgTable("system_logs", {
+  id: varchar("id", { length: 128 })
     .primaryKey()
     .$defaultFn(() => createId()),
-  action: text("action").notNull(),
-  category: text("category").notNull().default("system"),
+  action: varchar("action", { length: 255 }).notNull(),
+  category: varchar("category", { length: 100 }).notNull().default("system"),
   metadata: text("metadata"),
-  ipAddress: text("ip_address"),
-  status: text("status").notNull().default("pending"),
+  ipAddress: varchar("ip_address", { length: 45 }),
+  status: varchar("status", { length: 50 }).notNull().default("pending"),
   message: text("message"),
-  severity: text("severity").notNull().default("none"),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+  severity: varchar("severity", { length: 50 }).notNull().default("none"),
+  createdAt: timestamp("created_at", { withTimezone: true }).$defaultFn(
     () => new Date()
   ),
 });
@@ -23,42 +23,38 @@ export const systemLogs = sqliteTable("system_logs", {
 /**
  * Tabela de participantes do festival
  */
-export const participants = sqliteTable("participants", {
-  id: text("id")
+export const participants = pgTable("participants", {
+  id: varchar("id", { length: 128 })
     .primaryKey()
     .$defaultFn(() => createId()),
-  name: text("name").notNull(),
-  email: text("email").notNull().unique(),
-  phone: text("phone"),
+  name: varchar("name", { length: 255 }).notNull(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  phone: varchar("phone", { length: 50 }),
   avatar: text("avatar"),
   rankingPhoto: text("ranking_photo"), // Foto opcional para exibição no ranking
-  category: text("category").notNull(),
-  experience: text("experience").notNull(),
+  category: varchar("category", { length: 100 }).notNull(),
+  experience: varchar("experience", { length: 100 }).notNull(),
   additionalInfo: text("additional_info"),
-  hasSpecialNeeds: integer("has_special_needs", { mode: "boolean" })
+  hasSpecialNeeds: boolean("has_special_needs")
     .notNull()
     .default(false),
   specialNeedsDescription: text("special_needs_description"),
-  status: text("status").notNull().default("approved"),
+  status: varchar("status", { length: 50 }).notNull().default("approved"),
   rejectionReason: text("rejection_reason"),
-  archived: integer("archived", { mode: "boolean" }).notNull().default(false),
-  acceptsEmailNotifications: integer("accepts_email_notifications", {
-    mode: "boolean",
-  })
+  archived: boolean("archived").notNull().default(false),
+  acceptsEmailNotifications: boolean("accepts_email_notifications")
     .notNull()
     .default(false),
-  registrationDate: integer("registration_date", {
-    mode: "timestamp",
-  }).$defaultFn(() => new Date()),
-  approvedAt: integer("approved_at", { mode: "timestamp" }),
-  approvedBy: text("approved_by"),
-  rejectedAt: integer("rejected_at", { mode: "timestamp" }),
-  rejectedBy: text("rejected_by"),
+  registrationDate: timestamp("registration_date", { withTimezone: true }).$defaultFn(() => new Date()),
+  approvedAt: timestamp("approved_at", { withTimezone: true }),
+  approvedBy: varchar("approved_by", { length: 128 }),
+  rejectedAt: timestamp("rejected_at", { withTimezone: true }),
+  rejectedBy: varchar("rejected_by", { length: 128 }),
   notes: text("notes"),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+  createdAt: timestamp("created_at", { withTimezone: true }).$defaultFn(
     () => new Date()
   ),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$defaultFn(
     () => new Date()
   ),
 });
@@ -66,18 +62,18 @@ export const participants = sqliteTable("participants", {
 /**
  * Tabela de jurados do festival
  */
-export const judges = sqliteTable("judges", {
-  id: text("id")
+export const judges = pgTable("judges", {
+  id: varchar("id", { length: 128 })
     .primaryKey()
     .$defaultFn(() => createId()),
-  name: text("name").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
   description: text("description"), // especialidade ou área de conhecimento
-  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  isActive: boolean("is_active").notNull().default(true),
   notes: text("notes"),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+  createdAt: timestamp("created_at", { withTimezone: true }).$defaultFn(
     () => new Date()
   ),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$defaultFn(
     () => new Date()
   ),
 });
@@ -85,13 +81,13 @@ export const judges = sqliteTable("judges", {
 /**
  * Tabela de associação de jurados com eventos
  */
-export const eventJudges = sqliteTable("event_judges", {
-  id: text("id")
+export const eventJudges = pgTable("event_judges", {
+  id: varchar("id", { length: 128 })
     .primaryKey()
     .$defaultFn(() => createId()),
-  eventId: text("event_id").notNull(),
-  judgeId: text("judge_id").notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+  eventId: varchar("event_id", { length: 128 }).notNull(),
+  judgeId: varchar("judge_id", { length: 128 }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).$defaultFn(
     () => new Date()
   ),
 });
@@ -99,37 +95,34 @@ export const eventJudges = sqliteTable("event_judges", {
 /**
  * Tabela de eventos do festival
  */
-export const events = sqliteTable("events", {
-  id: text("id")
+export const events = pgTable("events", {
+  id: varchar("id", { length: 128 })
     .primaryKey()
     .$defaultFn(() => createId()),
-  name: text("name").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
-  type: text("type").notNull(), // 'classificatoria', 'semi-final', 'final'
-  category: text("category").notNull(), // 'fado', 'guitarra', 'cavaquinho', etc.
-  location: text("location").notNull(),
+  type: varchar("type", { length: 100 }).notNull(),
+  category: varchar("category", { length: 100 }).notNull(),
+  location: varchar("location", { length: 255 }).notNull(),
   maxParticipants: integer("max_participants"),
   currentParticipants: integer("current_participants").notNull().default(0),
-  startDate: integer("start_date", { mode: "timestamp" }).notNull(),
-  endDate: integer("end_date", { mode: "timestamp" }),
-  registrationStartDate: integer("registration_start_date", {
-    mode: "timestamp",
-  }),
-  registrationEndDate: integer("registration_end_date", { mode: "timestamp" }),
-  status: text("status").notNull().default("draft"), // 'draft', 'published', 'ongoing', 'completed', 'cancelled'
-  isPublic: integer("is_public", { mode: "boolean" }).notNull().default(true),
-  requiresApproval: integer("requires_approval", { mode: "boolean" })
-    .notNull()
-    .default(false),
+  startDate: timestamp("start_date", { withTimezone: true }).notNull(),
+  endDate: timestamp("end_date", { withTimezone: true }),
+  registrationStartDate: timestamp("registration_start_date", { withTimezone: true }),
+  registrationEndDate: timestamp("registration_end_date", { withTimezone: true }),
+  status: varchar("status", { length: 50 }).notNull().default("draft"),
+  isPublic: boolean("is_public").notNull().default(true),
+  requiresApproval: boolean("requires_approval").notNull().default(false),
+  approvalMode: varchar("approval_mode", { length: 50 }).notNull().default("automatic"),
   rules: text("rules"),
-  prizes: text("prizes"), // JSON string com informações dos prémios
-  regulationPdf: text("regulation_pdf"), // URL ou caminho para o PDF do regulamento
+  rulesFile: text("rules_file"),
+  prizes: text("prizes"),
   notes: text("notes"),
-  createdBy: text("created_by").notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+  createdBy: varchar("created_by", { length: 128 }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).$defaultFn(
     () => new Date()
   ),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$defaultFn(
     () => new Date()
   ),
 });
@@ -137,99 +130,102 @@ export const events = sqliteTable("events", {
 /**
  * Tabela de inscrições em eventos
  */
-export const eventRegistrations = sqliteTable("event_registrations", {
-  id: text("id")
+export const eventRegistrations = pgTable("event_registrations", {
+  id: varchar("id", { length: 128 })
     .primaryKey()
     .$defaultFn(() => createId()),
-  eventId: text("event_id").notNull(),
-  participantId: text("participant_id").notNull(),
-  status: text("status").notNull().default("registered"), // 'registered', 'confirmed', 'cancelled', 'no_show'
-  registrationDate: integer("registration_date", {
-    mode: "timestamp",
-  }).$defaultFn(() => new Date()),
-  notes: text("notes"),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+  eventId: varchar("event_id", { length: 128 }).notNull(),
+  participantId: varchar("participant_id", { length: 128 }).notNull(),
+  status: varchar("status", { length: 50 }).notNull().default("pending"),
+  registeredAt: timestamp("registered_at", { withTimezone: true }).$defaultFn(
     () => new Date()
   ),
+  approvedAt: timestamp("approved_at", { withTimezone: true }),
+  rejectedAt: timestamp("rejected_at", { withTimezone: true }),
 });
 
 /**
- * Tabela de avaliações dos participantes nos eventos
+ * Tabela de logs específicos de eventos
  */
-export const eventEvaluations = sqliteTable("event_evaluations", {
-  id: text("id")
+export const eventLogs = pgTable("event_logs", {
+  id: varchar("id", { length: 128 })
     .primaryKey()
     .$defaultFn(() => createId()),
-  eventId: text("event_id").notNull(),
-  participantId: text("participant_id").notNull(),
-  judgeId: text("judge_id").notNull(), // ID do jurado (da tabela judges)
-  operatorId: text("operator_id").notNull(), // ID do operador que inseriu a nota
-  score: integer("score").notNull(), // Nota de 0 a 100
-  notes: text("notes"), // Observações do juiz
-  criteria: text("criteria"), // JSON com critérios específicos avaliados
-  isPublished: integer("is_published", { mode: "boolean" })
-    .notNull()
-    .default(false),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
-    () => new Date()
-  ),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
-    () => new Date()
-  ),
-});
-
-/**
- * Tabela de sessões de avaliação ativas
- */
-export const evaluationSessions = sqliteTable("evaluation_sessions", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => createId()),
-  eventId: text("event_id").notNull(),
-  judgeId: text("judge_id").notNull(),
-  currentParticipantId: text("current_participant_id"),
-  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
-  startedAt: integer("started_at", { mode: "timestamp" }).$defaultFn(
-    () => new Date()
-  ),
-  endedAt: integer("ended_at", { mode: "timestamp" }),
-});
-
-/**
- * Tabela de logs de eventos
- */
-export const eventLogs = sqliteTable("event_logs", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => createId()),
-  eventId: text("event_id").notNull(),
-  action: text("action").notNull(),
-  category: text("category").notNull().default("event"),
-  severity: text("severity").notNull().default("none"), // 'critical', 'major', 'minor', 'none'
+  eventId: varchar("event_id", { length: 128 }).notNull(),
+  participantId: varchar("participant_id", { length: 128 }),
+  action: varchar("action", { length: 255 }).notNull(),
+  description: text("description"),
   metadata: text("metadata"),
-  userId: text("user_id"), // ID do usuário que executou a ação
-  status: text("status").notNull().default("pending"),
-  message: text("message"),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+  performedBy: varchar("performed_by", { length: 128 }),
+  ipAddress: varchar("ip_address", { length: 45 }),
+  userAgent: text("user_agent"),
+  severity: varchar("severity", { length: 50 }).notNull().default("info"),
+  createdAt: timestamp("created_at", { withTimezone: true }).$defaultFn(
     () => new Date()
   ),
 });
 
+/**
+ * Tabela de sessões de avaliação
+ */
+export const evaluationSessions = pgTable("evaluation_sessions", {
+  id: varchar("id", { length: 128 })
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  eventId: varchar("event_id", { length: 128 }).notNull(),
+  judgeId: varchar("judge_id", { length: 128 }).notNull(),
+  sessionName: varchar("session_name", { length: 255 }).notNull(),
+  status: varchar("status", { length: 50 }).notNull().default("active"),
+  startedAt: timestamp("started_at", { withTimezone: true }).$defaultFn(
+    () => new Date()
+  ),
+  endedAt: timestamp("ended_at", { withTimezone: true }),
+  notes: text("notes"),
+});
+
+/**
+ * Tabela de avaliações de eventos pelos jurados
+ */
+export const eventEvaluations = pgTable("event_evaluations", {
+  id: varchar("id", { length: 128 })
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  eventId: varchar("event_id", { length: 128 }).notNull(),
+  participantId: varchar("participant_id", { length: 128 }).notNull(),
+  judgeId: varchar("judge_id", { length: 128 }).notNull(),
+  sessionId: varchar("session_id", { length: 128 }),
+  technicalScore: integer("technical_score").notNull(),
+  artisticScore: integer("artistic_score").notNull(),
+  presentationScore: integer("presentation_score").notNull(),
+  totalScore: integer("total_score").notNull(),
+  feedback: text("feedback"),
+  isPublic: boolean("is_public").notNull().default(false),
+  evaluatedAt: timestamp("evaluated_at", { withTimezone: true }).$defaultFn(
+    () => new Date()
+  ),
+});
+
+// Tipos derivados dos schemas
 export type SystemLog = typeof systemLogs.$inferSelect;
 export type NewSystemLog = typeof systemLogs.$inferInsert;
+
 export type Participant = typeof participants.$inferSelect;
 export type NewParticipant = typeof participants.$inferInsert;
+
 export type Judge = typeof judges.$inferSelect;
 export type NewJudge = typeof judges.$inferInsert;
-export type EventJudge = typeof eventJudges.$inferSelect;
-export type NewEventJudge = typeof eventJudges.$inferInsert;
+
 export type Event = typeof events.$inferSelect;
 export type NewEvent = typeof events.$inferInsert;
+
 export type EventRegistration = typeof eventRegistrations.$inferSelect;
 export type NewEventRegistration = typeof eventRegistrations.$inferInsert;
-export type EventEvaluation = typeof eventEvaluations.$inferSelect;
-export type NewEventEvaluation = typeof eventEvaluations.$inferInsert;
-export type EvaluationSession = typeof evaluationSessions.$inferSelect;
-export type NewEvaluationSession = typeof evaluationSessions.$inferInsert;
+
 export type EventLog = typeof eventLogs.$inferSelect;
 export type NewEventLog = typeof eventLogs.$inferInsert;
+
+export type EvaluationSession = typeof evaluationSessions.$inferSelect;
+export type NewEvaluationSession = typeof evaluationSessions.$inferInsert;
+
+export type EventEvaluation = typeof eventEvaluations.$inferSelect;
+export type NewEventEvaluation = typeof eventEvaluations.$inferInsert;

@@ -1,15 +1,17 @@
-import { join } from "path";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
-
-const sqlite = new Database(
-  process.env.DATABASE_URL?.replace("file:", "") ??
-    join(process.cwd(), "src/server/database/sqlite.db")
-);
-
+const connectionString = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/som_popular";
 const logger = process.env.NODE_ENV === "development";
 
-export const db = drizzle(sqlite, {
+// Configurar conexão PostgreSQL
+const client = postgres(connectionString, {
+  max: 1,
+  idle_timeout: 20,
+  connect_timeout: 10,
+  onnotice: () => {}, // Silenciar notices
+});
+
+export const db = drizzle(client, {
   logger,
 });

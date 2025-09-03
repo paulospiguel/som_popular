@@ -1,5 +1,4 @@
 import { defineConfig } from "drizzle-kit";
-import { join } from "path";
 
 export default defineConfig({
   schema: [
@@ -7,11 +6,9 @@ export default defineConfig({
     "./src/server/database/auth-schema.ts",
   ],
   out: "./drizzle",
-  dialect: "sqlite",
+  dialect: "postgresql",
   dbCredentials: {
-    url:
-      process.env.DATABASE_URL ??
-      join(process.cwd(), "src/server/database/sqlite.db"),
+    url: process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/som_popular",
   },
   verbose: process.env.NODE_ENV === "development",
   strict: true,
