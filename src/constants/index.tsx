@@ -7,7 +7,6 @@ export enum ROLES {
   OPERATOR = "operator",
 }
 
-// Níveis de severidade dos logs
 export const LOG_SEVERITY_LEVELS = [
   {
     label: "Crítico",
@@ -35,7 +34,6 @@ export const LOG_SEVERITY_LEVELS = [
   },
 ] as const;
 
-// Status dos eventos padronizados
 export const EVENT_STATUSES = [
   { label: "Rascunho", value: "draft", color: "text-gray-600 bg-gray-100" },
   {
@@ -52,7 +50,6 @@ export const EVENT_STATUSES = [
   { label: "Cancelado", value: "cancelled", color: "text-red-600 bg-red-100" },
 ] as const;
 
-// Categorias de participantes padronizadas
 export const PARTICIPANT_CATEGORIES = [
   { label: "Vocal", value: "vocal" },
   { label: "Instrumental", value: "instrumental" },
@@ -60,17 +57,15 @@ export const PARTICIPANT_CATEGORIES = [
   { label: "Grupo/Banda", value: "grupo" },
 ] as const;
 
-// Tipos de eventos padronizados
 export const EVENT_TYPES = [
+  { label: "Festival", value: "festival" },
   { label: "Classificatória", value: "classificatoria" },
   { label: "Semi-Final", value: "semi-final" },
   { label: "Final", value: "final" },
-  { label: "Workshop", value: "workshop" },
-  { label: "Masterclass", value: "masterclass" },
 ] as const;
 
-// Níveis de experiência padronizados
 export const EXPERIENCE_LEVELS = [
+  { label: "Não tem experiência", value: "nao-tem-experiencia" },
   { label: "Iniciante", value: "iniciante" },
   { label: "Intermediário", value: "intermediario" },
   { label: "Avançado", value: "avancado" },
@@ -81,8 +76,7 @@ export const EVENT_CATEGORIES = [
   { label: "Rock", value: "rock" },
   { label: "Pop", value: "pop" },
   { label: "Sertanejo", value: "sertanejo" },
-  { label: "Samba", value: "samba" },
-  { label: "Forró", value: "forró" },
+  { label: "Música Popular", value: "musica-popular" },
   { label: "Livre", value: "livre" },
 ] as const;
 
