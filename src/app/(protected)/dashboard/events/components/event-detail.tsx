@@ -78,7 +78,7 @@ import {
   removeParticipantFromEvent,
 } from "@/server/participants";
 import { createTestData } from "@/server/seed-data";
-import { uploadRegulationPDF } from "@/server/upload";
+import { uploadrulesFile } from "@/server/upload";
 
 import {
   formatEventDate,
@@ -156,12 +156,12 @@ const EventDetailsModal = ({
         requiresApproval: event.requiresApproval,
         rules: event.rules,
         prizes: event.prizes || "",
-        regulationPdf: event.regulationPdf,
+        rulesFile: event.rulesFile,
         notes: event.notes,
       };
 
       // Definir modo de regulamento baseado no que está disponível
-      if (event.regulationPdf) {
+      if (event.rulesFile) {
         setRegulationMode("pdf");
       } else {
         setRegulationMode("text");
@@ -713,12 +713,12 @@ const EventDetailsModal = ({
                 requiresApproval: event.requiresApproval,
                 rules: event.rules,
                 prizes: event.prizes || "",
-                regulationPdf: event.regulationPdf,
+                rulesFile: event.rulesFile,
                 notes: event.notes,
               });
 
               // Restaurar modo de regulamento
-              if (event.regulationPdf) {
+              if (event.rulesFile) {
                 setRegulationMode("pdf");
               } else {
                 setRegulationMode("text");
@@ -1245,7 +1245,7 @@ const EventDetailsModal = ({
                       <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                         Regulamento em PDF
                       </label>
-                      {editedEvent.regulationPdf ? (
+                      {editedEvent.rulesFile ? (
                         <div className="space-y-3">
                           <div className="flex items-center space-x-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                             <FileText className="w-5 h-5 text-green-600" />
@@ -1255,7 +1255,7 @@ const EventDetailsModal = ({
                           </div>
                           <div className="flex space-x-2">
                             <a
-                              href={editedEvent.regulationPdf}
+                              href={editedEvent.rulesFile}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
@@ -1264,7 +1264,7 @@ const EventDetailsModal = ({
                               Visualizar
                             </a>
                             <a
-                              href={editedEvent.regulationPdf}
+                              href={editedEvent.rulesFile}
                               download
                               className="flex items-center space-x-2 px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
                             >
@@ -1276,7 +1276,7 @@ const EventDetailsModal = ({
                               onClick={() => {
                                 setEditedEvent({
                                   ...editedEvent,
-                                  regulationPdf: "",
+                                  rulesFile: "",
                                 });
                                 setRegulationMode("text");
                               }}
@@ -1304,7 +1304,7 @@ const EventDetailsModal = ({
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {event.regulationPdf ? (
+                  {event.rulesFile ? (
                     <div className="space-y-3">
                       <div className="flex items-center space-x-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                         <FileText className="w-5 h-5 text-blue-600" />
@@ -1314,7 +1314,7 @@ const EventDetailsModal = ({
                       </div>
                       <div className="flex space-x-2">
                         <a
-                          href={event.regulationPdf}
+                          href={event.rulesFile}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
@@ -1323,7 +1323,7 @@ const EventDetailsModal = ({
                           Visualizar PDF
                         </a>
                         <a
-                          href={event.regulationPdf}
+                          href={event.rulesFile}
                           download
                           className="flex items-center space-x-2 px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
                         >
@@ -1991,12 +1991,12 @@ const EventDetailsModal = ({
                     if (file) {
                       try {
                         setLoading(true);
-                        const result = await uploadRegulationPDF(file);
+                        const result = await uploadrulesFile(file);
 
                         if (result.success && result.url) {
                           setEditedEvent((prev) => ({
                             ...prev,
-                            regulationPdf: result.url || null,
+                            rulesFile: result.url || null,
                           }));
                           setRegulationMode("pdf");
                           setShowRegulationImport(false);

@@ -41,13 +41,13 @@ export default function ProtectedProvider({
       if (userRole !== ROLES.ADMIN) {
         console.log("ProtectedProvider: Dashboard negado para não-admin");
         if (userRole === ROLES.OPERATOR) {
-          router.push("/votacoes");
+          router.push("/votings");
         } else {
           router.push("/auth/login");
         }
         return;
       }
-    } else if (currentPath.startsWith("/votacoes")) {
+    } else if (currentPath.startsWith("/votings")) {
       // Votações: admins e operadores
       if (userRole !== ROLES.ADMIN && userRole !== ROLES.OPERATOR) {
         console.log(
@@ -80,7 +80,7 @@ export default function ProtectedProvider({
   }
 
   if (
-    currentPath.startsWith("/votacoes") &&
+    currentPath.startsWith("/votings") &&
     userRole !== ROLES.ADMIN &&
     userRole !== ROLES.OPERATOR
   ) {

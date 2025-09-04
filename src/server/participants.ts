@@ -84,12 +84,11 @@ export async function registerParticipantInEvent(
         eventId,
         participantId,
         status: "registered",
-        registrationDate: new Date(),
-        createdAt: new Date(),
+        registeredAt: new Date(),
       })
       .returning();
 
-    revalidatePath("/dashboard/eventos");
+    revalidatePath("/dashboard/events");
     return {
       success: true,
       data: registration,
@@ -123,7 +122,7 @@ export async function removeParticipantFromEvent(
         )
       );
 
-    revalidatePath("/dashboard/eventos");
+    revalidatePath("/dashboard/events");
     return {
       success: true,
       message: "Participante removido do evento com sucesso!",
@@ -216,7 +215,7 @@ export async function createSampleParticipants() {
       .returning();
 
     revalidatePath("/dashboard/participantes");
-    revalidatePath("/dashboard/eventos");
+    revalidatePath("/dashboard/events");
 
     return {
       success: true,

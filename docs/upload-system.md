@@ -68,12 +68,12 @@ const result = await uploadParticipantPhoto(file);
 // Configurações: pasta "participants", max 5MB, tipos de imagem
 ```
 
-### **uploadRegulationPDF(file)**
+### **uploadrulesFile(file)**
 
 Upload específico para regulamentos PDF.
 
 ```typescript
-const result = await uploadRegulationPDF(file);
+const result = await uploadrulesFile(file);
 // Configurações: pasta "regulations", max 20MB, apenas PDF
 ```
 

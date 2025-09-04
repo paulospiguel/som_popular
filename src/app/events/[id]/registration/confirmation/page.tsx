@@ -379,7 +379,7 @@ export default function RegistrationConfirmationPage() {
 
           {/* Links Adicionais */}
           <div className="text-center mt-8 space-y-4">
-            <Link href="/consulta-inscricao">
+            <Link href="/search-registration">
               <Button variant="outline" className="mr-4">
                 Consultar Outras Inscrições
               </Button>

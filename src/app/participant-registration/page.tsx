@@ -31,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { EVENT_CATEGORIES } from "@/constants";
 import { getAvailableEventsForRegistration } from "@/server/events-public";
 import {
   getParticipantByEmail,
@@ -528,7 +529,7 @@ export default function ParticipantRegistrationPage() {
                   </Button>
                 </Link>
 
-                <Link href="/registration-lookup" className="flex-1">
+                <Link href="/search-registration" className="flex-1">
                   <Button className="festival-button-secondary w-full">
                     <Search className="w-4 h-4 mr-2" />
                     Consultar Inscrições
@@ -663,7 +664,7 @@ export default function ParticipantRegistrationPage() {
                               consultar suas inscrições existentes?
                             </p>
                             <div className="flex space-x-2">
-                              <Link href="/registration-lookup">
+                              <Link href="/search-registration">
                                 <Button
                                   size="sm"
                                   variant="outline"
@@ -876,7 +877,7 @@ export default function ParticipantRegistrationPage() {
                         <SelectValue placeholder="Selecione uma categoria" />
                       </SelectTrigger>
                       <SelectContent>
-                        {CATEGORIES.map((category) => (
+                        {EVENT_CATEGORIES.map((category) => (
                           <SelectItem
                             key={category.value}
                             value={category.value}
@@ -1159,7 +1160,7 @@ export default function ParticipantRegistrationPage() {
                     </Badge>
 
                     <div className="space-y-3">
-                      <Link href="/registration-lookup">
+                      <Link href="/search-registration">
                         <Button className="festival-button w-full">
                           <Search className="w-4 h-4 mr-2" />
                           Ver Minhas Inscrições

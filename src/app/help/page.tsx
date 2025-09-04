@@ -373,7 +373,7 @@ export default function HelpPage() {
                 Ver Regulamento
               </Button>
             </Link>
-            <Link href="/registration-lookup">
+            <Link href="/search-registration">
               <Button variant="outline" className="w-full">
                 <Search className="w-4 h-4 mr-2" />
                 Consultar Inscrições

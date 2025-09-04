@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq, gte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, sql } from "drizzle-orm";
 
 import { db } from "@/server/database";
 import {
@@ -79,7 +79,9 @@ export async function getDashboardStats(): Promise<{
     const activeEventsResult = await db
       .select({ count: sql<number>`count(*)` })
       .from(events)
-      .where(sql`${events.status} IN ('published', 'ongoing')`);
+      .where(
+        sql`${events.status} = 'published' OR ${events.status} = 'ongoing'`
+      );
 
     const activeEvents = activeEventsResult[0]?.count || 0;
 
@@ -120,7 +122,7 @@ export async function getDashboardStats(): Promise<{
         status: participants.status,
       })
       .from(participants)
-      .orderBy(sql`${participants.createdAt} DESC`)
+      .orderBy(desc(participants.createdAt))
       .limit(5);
 
     const recentEvents = await db
@@ -132,7 +134,7 @@ export async function getDashboardStats(): Promise<{
         updatedAt: events.updatedAt,
       })
       .from(events)
-      .orderBy(sql`${events.updatedAt || events.createdAt} DESC`)
+      .orderBy(desc(events.updatedAt))
       .limit(5);
 
     // Buscar avaliações recentes
@@ -142,11 +144,11 @@ export async function getDashboardStats(): Promise<{
         eventId: eventEvaluations.eventId,
         judgeId: eventEvaluations.judgeId,
         participantId: eventEvaluations.participantId,
-        score: eventEvaluations.score,
-        createdAt: eventEvaluations.createdAt,
+        score: eventEvaluations.totalScore,
+        createdAt: eventEvaluations.evaluatedAt,
       })
       .from(eventEvaluations)
-      .orderBy(sql`${eventEvaluations.createdAt} DESC`)
+      .orderBy(desc(eventEvaluations.evaluatedAt))
       .limit(3);
 
     // Buscar nomes dos eventos para as avaliações
@@ -159,7 +161,7 @@ export async function getDashboardStats(): Promise<{
               name: events.name,
             })
             .from(events)
-            .where(sql`${events.id} IN (${eventIds.join(",")})`)
+            .where(inArray(events.id, eventIds))
         : [];
 
     // Buscar nomes dos participantes para as avaliações
@@ -174,7 +176,7 @@ export async function getDashboardStats(): Promise<{
               name: participants.name,
             })
             .from(participants)
-            .where(sql`${participants.id} IN (${participantIds.join(",")})`)
+            .where(inArray(participants.id, participantIds))
         : [];
 
     // Construir atividade recente

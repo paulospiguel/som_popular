@@ -87,8 +87,8 @@ export async function getEventRanking(eventId: string): Promise<{
         participantName: participants.name,
         judgeId: eventEvaluations.judgeId,
         judgeName: judges.name,
-        score: eventEvaluations.score,
-        notes: eventEvaluations.notes,
+        score: eventEvaluations.totalScore,
+        notes: eventEvaluations.feedback,
       })
       .from(eventEvaluations)
       .innerJoin(
@@ -99,10 +99,10 @@ export async function getEventRanking(eventId: string): Promise<{
       .where(
         and(
           eq(eventEvaluations.eventId, eventId),
-          eq(eventEvaluations.isPublished, true)
+          eq(eventEvaluations.isPublic, true)
         )
       )
-      .orderBy(desc(eventEvaluations.score));
+      .orderBy(desc(eventEvaluations.totalScore));
 
     // Agrupar avaliações por participante
     const participantEvaluations = new Map<
@@ -252,7 +252,7 @@ export async function getAllEventRankings(): Promise<{
         status: events.status,
         startDate: events.startDate,
         participantCount: sql<number>`count(distinct ${eventEvaluations.participantId})`,
-        evaluatedCount: sql<number>`count(case when ${eventEvaluations.isPublished} = true then 1 end)`,
+        evaluatedCount: sql<number>`count(case when ${eventEvaluations.isPublic} = true then 1 end)`,
       })
       .from(events)
       .leftJoin(eventEvaluations, eq(events.id, eventEvaluations.eventId))
@@ -266,7 +266,7 @@ export async function getAllEventRankings(): Promise<{
         const topParticipantResult = await db
           .select({
             participantName: participants.name,
-            averageScore: sql<number>`avg(${eventEvaluations.score})`,
+            averageScore: sql<number>`avg(${eventEvaluations.totalScore})`,
           })
           .from(eventEvaluations)
           .innerJoin(
@@ -276,11 +276,11 @@ export async function getAllEventRankings(): Promise<{
           .where(
             and(
               eq(eventEvaluations.eventId, event.id),
-              eq(eventEvaluations.isPublished, true)
+              eq(eventEvaluations.isPublic, true)
             )
           )
           .groupBy(eventEvaluations.participantId, participants.name)
-          .orderBy(desc(sql`avg(${eventEvaluations.score})`))
+          .orderBy(desc(sql`avg(${eventEvaluations.totalScore})`))
           .limit(1);
 
         return {

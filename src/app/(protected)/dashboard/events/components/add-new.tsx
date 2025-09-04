@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { TagsInput } from "@/components/ui/tags-input";
 import { useToast } from "@/components/ui/toast";
+import { APPROVAL_MODES, EVENT_CATEGORIES } from "@/constants";
 import { Event } from "@/server/database/schema";
 import { createEvent } from "@/server/events";
 
@@ -54,36 +55,6 @@ const eventSchema = z.object({
     }, "Máximo de 5 prémios permitidos"),
   notes: z.string().optional(),
 });
-
-const eventTypes = [
-  { label: "Classificatória", value: "classificatoria" },
-  { label: "Semi-Final", value: "semi-final" },
-  { label: "Final", value: "final" },
-  { label: "Workshop", value: "workshop" },
-  { label: "Masterclass", value: "masterclass" },
-] as const;
-
-const eventCategories = [
-  { label: "Rock", value: "rock" },
-  { label: "Pop", value: "pop" },
-  { label: "Sertanejo", value: "sertanejo" },
-  { label: "Samba", value: "samba" },
-  { label: "Forró", value: "forró" },
-  { label: "Livre", value: "livre" },
-] as const;
-
-const approvalModes = [
-  {
-    label: "Automática",
-    value: "automatic",
-    description: "Participantes são aprovados automaticamente",
-  },
-  {
-    label: "Revisada",
-    value: "manual",
-    description: "Participantes precisam ser aprovados manualmente",
-  },
-] as const;
 
 interface AddEventModalProps {
   isOpen: boolean;
@@ -204,7 +175,8 @@ const AddEventModal = ({
                   }
                 },
               }}
-              children={(field) => (
+            >
+              {(field) => (
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                     Nome do Evento *
@@ -224,7 +196,7 @@ const AddEventModal = ({
                   <FieldError field={field} />
                 </div>
               )}
-            />
+            </form.Field>
 
             {/* Tipo de Evento */}
             <form.Field
@@ -239,7 +211,8 @@ const AddEventModal = ({
                   }
                 },
               }}
-              children={(field) => (
+            >
+              {(field) => (
                 <div>
                   <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                     Tipo de Evento *
@@ -254,7 +227,7 @@ const AddEventModal = ({
                       <SelectValue placeholder="Selecione o tipo" />
                     </SelectTrigger>
                     <SelectContent>
-                      {eventTypes.map((type) => (
+                      {EVENT_CATEGORIES.map((type) => (
                         <SelectItem key={type.value} value={type.value}>
                           {type.label}
                         </SelectItem>
@@ -264,7 +237,7 @@ const AddEventModal = ({
                   <FieldError field={field} />
                 </div>
               )}
-            />
+            </form.Field>
 
             {/* Categoria */}
             <form.Field
@@ -279,7 +252,8 @@ const AddEventModal = ({
                   }
                 },
               }}
-              children={(field) => (
+            >
+              {(field) => (
                 <div>
                   <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                     Modalidade *
@@ -294,7 +268,7 @@ const AddEventModal = ({
                       <SelectValue placeholder="Selecione a modalidade" />
                     </SelectTrigger>
                     <SelectContent>
-                      {eventCategories.map((category) => (
+                      {EVENT_CATEGORIES.map((category) => (
                         <SelectItem key={category.value} value={category.value}>
                           {category.label}
                         </SelectItem>
@@ -304,7 +278,7 @@ const AddEventModal = ({
                   <FieldError field={field} />
                 </div>
               )}
-            />
+            </form.Field>
 
             {/* Local */}
             <form.Field
@@ -319,7 +293,8 @@ const AddEventModal = ({
                   }
                 },
               }}
-              children={(field) => (
+            >
+              {(field) => (
                 <div>
                   <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                     Local *
@@ -339,12 +314,11 @@ const AddEventModal = ({
                   <FieldError field={field} />
                 </div>
               )}
-            />
+            </form.Field>
 
             {/* Máximo de Participantes */}
-            <form.Field
-              name="maxParticipants"
-              children={(field) => (
+            <form.Field name="maxParticipants">
+              {(field) => (
                 <div>
                   <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                     Máximo de Participantes
@@ -366,13 +340,12 @@ const AddEventModal = ({
                   <FieldError field={field} />
                 </div>
               )}
-            />
+            </form.Field>
           </div>
 
           {/* Descrição */}
-          <form.Field
-            name="description"
-            children={(field) => (
+          <form.Field name="description">
+            {(field) => (
               <div className="mt-4">
                 <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                   Descrição
@@ -388,7 +361,7 @@ const AddEventModal = ({
                 <FieldError field={field} />
               </div>
             )}
-          />
+          </form.Field>
         </div>
 
         {/* Datas e Horários */}
@@ -411,7 +384,8 @@ const AddEventModal = ({
                   }
                 },
               }}
-              children={(field) => (
+            >
+              {(field) => (
                 <div>
                   <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                     Data e Hora de Início *
@@ -425,12 +399,11 @@ const AddEventModal = ({
                   <FieldError field={field} />
                 </div>
               )}
-            />
+            </form.Field>
 
             {/* Data/Hora de Fim */}
-            <form.Field
-              name="endDate"
-              children={(field) => (
+            <form.Field name="endDate">
+              {(field) => (
                 <div>
                   <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                     Data e Hora de Fim
@@ -444,12 +417,11 @@ const AddEventModal = ({
                   <FieldError field={field} />
                 </div>
               )}
-            />
+            </form.Field>
 
             {/* Início das Inscrições */}
-            <form.Field
-              name="registrationStartDate"
-              children={(field) => (
+            <form.Field name="registrationStartDate">
+              {(field) => (
                 <div>
                   <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                     Início das Inscrições
@@ -463,12 +435,11 @@ const AddEventModal = ({
                   <FieldError field={field} />
                 </div>
               )}
-            />
+            </form.Field>
 
             {/* Fim das Inscrições */}
-            <form.Field
-              name="registrationEndDate"
-              children={(field) => (
+            <form.Field name="registrationEndDate">
+              {(field) => (
                 <div>
                   <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                     Fim das Inscrições
@@ -482,7 +453,7 @@ const AddEventModal = ({
                   <FieldError field={field} />
                 </div>
               )}
-            />
+            </form.Field>
           </div>
         </div>
 
@@ -494,9 +465,8 @@ const AddEventModal = ({
 
           <div className="space-y-4">
             {/* Evento Público */}
-            <form.Field
-              name="isPublic"
-              children={(field) => (
+            <form.Field name="isPublic">
+              {(field) => (
                 <div className="flex items-center space-x-3">
                   <Checkbox
                     id="isPublic"
@@ -513,12 +483,11 @@ const AddEventModal = ({
                   </label>
                 </div>
               )}
-            />
+            </form.Field>
 
             {/* Requer Aprovação */}
-            <form.Field
-              name="requiresApproval"
-              children={(field) => (
+            <form.Field name="requiresApproval">
+              {(field) => (
                 <div className="flex items-center space-x-3">
                   <Checkbox
                     id="requiresApproval"
@@ -535,7 +504,7 @@ const AddEventModal = ({
                   </label>
                 </div>
               )}
-            />
+            </form.Field>
 
             {/* Modalidade de Aprovação */}
             {form.state.values.requiresApproval && (
@@ -551,7 +520,8 @@ const AddEventModal = ({
                     }
                   },
                 }}
-                children={(field) => (
+              >
+                {(field) => (
                   <div className="ml-6">
                     <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                       Modalidade de Aprovação
@@ -566,7 +536,7 @@ const AddEventModal = ({
                         <SelectValue placeholder="Selecione a modalidade" />
                       </SelectTrigger>
                       <SelectContent>
-                        {approvalModes.map((mode) => (
+                        {APPROVAL_MODES.map((mode) => (
                           <SelectItem key={mode.value} value={mode.value}>
                             <div>
                               <div className="font-medium">{mode.label}</div>
@@ -581,7 +551,7 @@ const AddEventModal = ({
                     <FieldError field={field} />
                   </div>
                 )}
-              />
+              </form.Field>
             )}
           </div>
         </div>
@@ -594,9 +564,8 @@ const AddEventModal = ({
 
           <div className="space-y-4">
             {/* Regulamento */}
-            <form.Field
-              name="rules"
-              children={(field) => (
+            <form.Field name="rules">
+              {(field) => (
                 <div>
                   <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                     Regulamento
@@ -641,12 +610,11 @@ const AddEventModal = ({
                   <FieldError field={field} />
                 </div>
               )}
-            />
+            </form.Field>
 
             {/* Prémios */}
-            <form.Field
-              name="prizes"
-              children={(field) => (
+            <form.Field name="prizes">
+              {(field) => (
                 <div>
                   <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                     Prémios
@@ -670,12 +638,11 @@ const AddEventModal = ({
                   <FieldError field={field} />
                 </div>
               )}
-            />
+            </form.Field>
 
             {/* Notas */}
-            <form.Field
-              name="notes"
-              children={(field) => (
+            <form.Field name="notes">
+              {(field) => (
                 <div>
                   <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                     Notas Internas
@@ -691,7 +658,7 @@ const AddEventModal = ({
                   <FieldError field={field} />
                 </div>
               )}
-            />
+            </form.Field>
           </div>
         </div>
 

@@ -1,15 +1,3 @@
-import {
-  Body,
-  Container,
-  Head,
-  Heading,
-  Html,
-  Link,
-  Preview,
-  Section,
-  Text,
-} from "@react-email/components";
-
 interface ResetPasswordEmailProps {
   name: string;
   resetUrl: string;
@@ -20,58 +8,57 @@ export const ResetPasswordTemplate = ({
   resetUrl,
 }: ResetPasswordEmailProps) => {
   return (
-    <Html>
-      <Head />
-      <Preview>Redefinir a tua palavra-passe - Som Popular</Preview>
-      <Body style={main}>
-        <Container style={container}>
-          <Section style={header}>
-            <Heading style={h1}>🎵 Som Popular</Heading>
-          </Section>
+    <div>
+      <h1>Redefinir a tua palavra-passe - Som Popular</h1>
+      <div style={main}>
+        <div style={container}>
+          <div style={header}>
+            <h1 style={h1}>🎵 Som Popular</h1>
+          </div>
 
-          <Section style={content}>
-            <Heading style={h2}>Olá, {name}!</Heading>
+          <div style={content}>
+            <h2 style={h2}>Olá, {name}!</h2>
 
-            <Text style={paragraph}>
+            <p style={paragraph}>
               Recebemos um pedido para redefinir a tua palavra-passe.
-            </Text>
+            </p>
 
-            <Text style={paragraph}>
+            <p style={paragraph}>
               Se foste tu que fizeste este pedido, clica no botão abaixo:
-            </Text>
+            </p>
 
-            <Section style={buttonContainer}>
-              <Link href={resetUrl} style={button}>
+            <div style={buttonContainer}>
+              <a href={resetUrl} style={button}>
                 🔑 Redefinir Palavra-passe
-              </Link>
-            </Section>
+              </a>
+            </div>
 
-            <Text style={smallText}>
+            <p style={smallText}>
               Se não conseguires clicar no botão, copia e cola este link no teu
               navegador:
-            </Text>
+            </p>
 
-            <Text style={urlText}>{resetUrl}</Text>
+            <p style={urlText}>{resetUrl}</p>
 
             <hr style={divider} />
 
-            <Text style={smallText}>
+            <p style={smallText}>
               Se não pediste para redefinir a palavra-passe, podes ignorar este
               email. A tua palavra-passe permanecerá inalterada.
-            </Text>
+            </p>
 
-            <Text style={verySmallText}>
+            <p style={verySmallText}>
               Este link expira em 1 hora por motivos de segurança.
-            </Text>
-          </Section>
+            </p>
+          </div>
 
-          <Text style={footer}>
+          <p style={footer}>
             © {new Date().getFullYear()} Som Popular. Todos os direitos
             reservados.
-          </Text>
-        </Container>
-      </Body>
-    </Html>
+          </p>
+        </div>
+      </div>
+    </div>
   );
 };
 

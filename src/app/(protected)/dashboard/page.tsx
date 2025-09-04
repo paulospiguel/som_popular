@@ -30,14 +30,14 @@ const CARDS = [
     color: "dourado-claro",
     title: "Gestão de Eventos",
     description: "Criar, editar e programar eventos",
-    href: "/dashboard/eventos",
+    href: "/dashboard/events",
   },
   {
     icon: Trophy,
     color: "amarelo-suave",
     title: "Sistema de Votações",
     description: "Avaliar e gerir votos",
-    href: "/votacoes",
+    href: "/votings",
   },
   {
     icon: BarChart3,

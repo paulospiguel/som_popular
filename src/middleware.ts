@@ -9,7 +9,7 @@ function isPublicPath(pathname: string) {
     pathname === "/" ||
     pathname.startsWith("/auth/login") ||
     pathname.startsWith("/auth/register") ||
-    pathname.startsWith("/forgot-password") ||
+    pathname.startsWith("/auth/forgot-password") ||
     pathname.startsWith("/auth/reset-password") ||
     pathname.startsWith("/api/auth/") || // endpoints do Better Auth
     pathname.startsWith("/_next/") ||
@@ -20,7 +20,7 @@ function isPublicPath(pathname: string) {
     pathname.startsWith("/help/") || // Páginas de ajuda
     pathname.startsWith("/search-subscription/") || // Busca de inscrições
     pathname.startsWith("/participant-registration/") || // Auto-inscrição
-    pathname.startsWith("/registration-lookup/") // Consulta de inscrições
+    pathname.startsWith("/search-registration/") // Consulta de inscrições
   );
 }
 
@@ -56,7 +56,7 @@ export const config = {
   matcher: [
     // páginas protegidas
     "/dashboard/:path*",
-    "/votacoes/:path*",
+    "/votings/:path*",
     "/settings/:path*",
     "/events/:path*",
     "/profile/:path*",

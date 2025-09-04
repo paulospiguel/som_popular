@@ -139,7 +139,7 @@ O sistema de regulamentos foi atualizado para ser individual por evento, permiti
 
 ## Arquivos Modificados
 
-- `src/server/database/schema.ts` - Adicionado campo regulationPdf e rankingPhoto
+- `src/server/database/schema.ts` - Adicionado campo rulesFile e rankingPhoto
 - `src/server/events-public.ts` - Interface e funções atualizadas
 - `src/server/participants-public.ts` - Sistema de participantes multi-eventos
 - `src/components/EventsSection.tsx` - Botão de regulamento adicionado

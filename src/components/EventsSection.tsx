@@ -173,7 +173,7 @@ export default function EventsSection() {
         {/* Ver Todos os Eventos */}
         {events.length > 3 && (
           <div className="text-center">
-            <Link href="/eventos">
+            <Link href="/events">
               <Button className="festival-button-secondary">
                 Ver Todos os Eventos
                 <ArrowRight className="w-4 h-4 ml-2" />

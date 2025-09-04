@@ -1,3 +1,4 @@
+import { render } from "@react-email/components";
 import { Resend } from "resend";
 
 import { ResetPasswordTemplate } from "./templates/reset-password";
@@ -24,13 +25,15 @@ export async function sendEmail({
   }
   const from = process.env.RESEND_FROM_EMAIL || "no-reply@your-domain.com";
 
+  // Renderizar componente React para HTML se fornecido
+  const htmlContent = react ? await render(react) : html;
+
   return await resend.emails.send({
     from,
     to,
     subject,
     text,
-    react,
-    html,
+    html: htmlContent,
   });
 }
 
@@ -51,10 +54,13 @@ export async function sendResetPasswordEmail({
 
   const from = process.env.RESEND_FROM_EMAIL || "no-reply@your-domain.com";
 
+  // Renderizar o template React para HTML
+  const html = await render(ResetPasswordTemplate({ name, resetUrl }));
+
   return await resend.emails.send({
     from,
     to,
     subject: "Redefinir palavra-passe - Festival Som Popular",
-    react: ResetPasswordTemplate({ name, resetUrl }),
+    html,
   });
 }

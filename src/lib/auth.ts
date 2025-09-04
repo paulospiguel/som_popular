@@ -21,8 +21,6 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     async sendResetPassword({ user, url }) {
-      //const resetLink = `${APP_URL}/reset-password?token=${url}`;
-
       await sendEmail({
         to: user.email,
         subject: "Redefinição de palavra-passe",

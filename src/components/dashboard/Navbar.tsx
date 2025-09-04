@@ -17,7 +17,7 @@ export default function NavbarDashboard() {
   const [isEventModeActive, setIsEventModeActive] = useState(false);
 
   const userRole = session?.user.role || ROLES.OPERATOR;
-  const isVotingPage = pathname.startsWith("/votacoes");
+  const isVotingPage = pathname.startsWith("/votings");
 
   useEffect(() => {
     setIsEventModeActive(isVotingPage);
@@ -35,14 +35,14 @@ export default function NavbarDashboard() {
   const toggleEventMode = () => {
     if (userRole === ROLES.ADMIN) {
       if (!isEventModeActive) {
-        router.push("/votacoes");
+        router.push("/votings");
       } else {
         router.push("/dashboard");
       }
       setIsEventModeActive(!isEventModeActive);
     } else if (userRole === ROLES.OPERATOR) {
       // Operadores só podem ir para votações
-      router.push("/votacoes");
+      router.push("/votings");
     }
   };
 

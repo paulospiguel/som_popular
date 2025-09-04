@@ -17,7 +17,7 @@ export default function Footer() {
           },
           {
             name: "Consultar Inscrição",
-            href: "/registration-lookup",
+            href: "/search-registration",
           },
           {
             name: "Ver Rankings",

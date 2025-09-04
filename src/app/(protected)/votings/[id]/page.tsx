@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import {
   Select,
@@ -50,9 +50,17 @@ interface Participant {
   evaluations: Array<{
     evaluation: {
       id: string;
-      score: number;
-      notes: string | null;
+      eventId: string;
+      participantId: string;
       judgeId: string;
+      sessionId: string | null;
+      technicalScore: number;
+      artisticScore: number;
+      presentationScore: number;
+      totalScore: number;
+      feedback: string | null;
+      isPublic: boolean;
+      evaluatedAt: Date | null;
     };
     judge: Judge;
   }>;
@@ -104,29 +112,7 @@ export default function VotingEventPage() {
   const [saving, setSaving] = useState(false);
   const [currentEvent, setCurrentEvent] = useState<Event | null>(null);
 
-  useEffect(() => {
-    // Verificar permissões de acesso
-    if (!session) {
-      router.push("/auth/login");
-      return;
-    }
-
-    const userRole = session?.user?.role || ROLES.OPERATOR;
-    if (userRole !== ROLES.ADMIN && userRole !== ROLES.OPERATOR) {
-      router.push("/auth/login");
-      return;
-    }
-
-    // Verificar se temos um eventId válido
-    if (!eventId) {
-      router.push("/votacoes");
-      return;
-    }
-
-    loadEventData();
-  }, [session, router, eventId]);
-
-  const loadEventData = async () => {
+  const loadEventData = useCallback(async () => {
     if (!eventId) return;
 
     setLoading(true);
@@ -134,7 +120,7 @@ export default function VotingEventPage() {
       // Carregar dados do evento
       const eventResult = await getEventById(eventId);
       if (!eventResult.success || !eventResult.data) {
-        router.push("/votacoes");
+        router.push("/votings");
         return;
       }
 
@@ -153,7 +139,7 @@ export default function VotingEventPage() {
         setJudges(judgesResult.data.map((j) => j.judge));
       }
 
-      if (participantsResult.success && participantsResult.data) {
+      if (participantsResult.success && participantsResult?.data) {
         setParticipants(participantsResult.data);
       }
 
@@ -162,11 +148,33 @@ export default function VotingEventPage() {
       }
     } catch (error) {
       console.error("Erro ao carregar dados do evento:", error);
-      router.push("/votacoes");
+      router.push("/votings");
     } finally {
       setLoading(false);
     }
-  };
+  }, [eventId, router]);
+
+  useEffect(() => {
+    // Verificar permissões de acesso
+    if (!session) {
+      router.push("/auth/login");
+      return;
+    }
+
+    const userRole = session?.user?.role || ROLES.OPERATOR;
+    if (userRole !== ROLES.ADMIN && userRole !== ROLES.OPERATOR) {
+      router.push("/auth/login");
+      return;
+    }
+
+    // Verificar se temos um eventId válido
+    if (!eventId) {
+      router.push("/votings");
+      return;
+    }
+
+    loadEventData();
+  }, [session, router, eventId, loadEventData]);
 
   const currentParticipant = participants[currentParticipantIndex];
 
@@ -181,8 +189,8 @@ export default function VotingEventPage() {
       return {
         judgeId: judge.id,
         judgeName: judge.name,
-        score: existing?.evaluation.score || 0,
-        notes: existing?.evaluation.notes || null,
+        score: existing?.evaluation.totalScore || 0,
+        notes: existing?.evaluation.feedback || null,
         isComplete: !!existing,
       };
     });
@@ -208,11 +216,13 @@ export default function VotingEventPage() {
         eventId: eventId,
         participantId: currentParticipant.id,
         judgeId: selectedJudge,
-        operatorId: session.user.id,
-        score: currentScore,
-        notes: currentNotes,
-        criteria: JSON.stringify({}),
-        isPublished: false,
+        sessionId: null,
+        technicalScore: currentScore,
+        artisticScore: currentScore,
+        presentationScore: currentScore,
+        totalScore: currentScore,
+        feedback: currentNotes,
+        isPublic: false,
       });
 
       if (result.success) {
@@ -297,7 +307,7 @@ export default function VotingEventPage() {
             <div className="flex-1">
               <div className="flex items-center space-x-4 mb-2">
                 <Link
-                  href="/votacoes"
+                  href="/votings"
                   className="flex items-center space-x-2 text-cinza-chumbo hover:text-verde-suave transition-colors"
                 >
                   <ArrowLeft className="w-5 h-5" />

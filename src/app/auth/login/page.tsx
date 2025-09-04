@@ -44,7 +44,7 @@ export default function LoginPage() {
           router.push("/dashboard");
         } else if (userRole === ROLES.OPERATOR) {
           console.log("Login page: Redirecionando operador para votações");
-          router.push("/votacoes");
+          router.push("/votings");
         } else {
           // Usuário sem role válido, manter na página de login
           console.log("Login page: Usuário sem role válido:", userRole);
@@ -122,7 +122,7 @@ export default function LoginPage() {
             )}
             {(userRole === ROLES.ADMIN || userRole === ROLES.OPERATOR) && (
               <button
-                onClick={() => router.push("/votacoes")}
+                onClick={() => router.push("/votings")}
                 className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Ir para Votações
@@ -258,7 +258,7 @@ export default function LoginPage() {
 
             <div className="text-center space-y-2">
               <Link
-                href="/forgot-password"
+                href="/auth/forgot-password"
                 className="text-sm text-blue-600 hover:text-blue-500 transition-colors"
               >
                 Esqueci a palavra-passe

@@ -116,13 +116,13 @@ export async function registerParticipant(
           eventId: validatedData.eventId,
           participantId: participantId,
           status: "registered",
-          registrationDate: new Date(),
+          registeredAt: new Date(),
         });
       }
     }
 
     revalidatePath("/participantes");
-    revalidatePath("/eventos");
+    revalidatePath("/events");
 
     return {
       success: true,

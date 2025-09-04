@@ -1,7 +1,8 @@
-export const APP_URL =
-  process.env.VERCEL_ENV === "development"
-    ? "http://localhost:3000"
-    : `https://${process.env.VERCEL_URL}`;
+export const APP_URL = "http://localhost:3000";
+
+// process.env.VERCEL_ENV === "development"
+//   ? "http://localhost:3000"
+//   : `https://${process.env.VERCEL_URL || "your-domain.com"}`;
 
 export enum ROLES {
   ADMIN = "manager",
@@ -53,20 +54,6 @@ export const EVENT_STATUSES = [
   { label: "Cancelado", value: "cancelled", color: "text-red-600 bg-red-100" },
 ] as const;
 
-// Categorias de eventos padronizadas
-export const EVENT_CATEGORIES = [
-  { label: "Pop", value: "pop" },
-  { label: "Rock", value: "rock" },
-  { label: "Samba", value: "samba" },
-  { label: "Forró", value: "forró" },
-  { label: "Sertanejo", value: "sertanejo" },
-  { label: "Composição", value: "composicao" },
-  { label: "Grupo/Banda", value: "grupo" },
-  { label: "Vocal", value: "vocal" },
-  { label: "Instrumental", value: "instrumental" },
-  { label: "Livre", value: "livre" },
-] as const;
-
 // Categorias de participantes padronizadas
 export const PARTICIPANT_CATEGORIES = [
   { label: "Vocal", value: "vocal" },
@@ -90,4 +77,33 @@ export const EXPERIENCE_LEVELS = [
   { label: "Intermediário", value: "intermediario" },
   { label: "Avançado", value: "avancado" },
   { label: "Profissional", value: "profissional" },
+] as const;
+
+export const EVENT_CATEGORIES = [
+  { label: "Rock", value: "rock" },
+  { label: "Pop", value: "pop" },
+  { label: "Sertanejo", value: "sertanejo" },
+  { label: "Samba", value: "samba" },
+  { label: "Forró", value: "forró" },
+  { label: "Livre", value: "livre" },
+] as const;
+
+export const APPROVAL_MODES = [
+  {
+    label: "Automática",
+    value: "automatic",
+    description: "Participantes são aprovados automaticamente",
+  },
+  {
+    label: "Revisada",
+    value: "manual",
+    description: "Participantes precisam ser aprovados manualmente",
+  },
+] as const;
+
+export const REGULATION_FILE_EXTENSIONS = [
+  "pdf",
+  "txt",
+  "doc",
+  "docx",
 ] as const;

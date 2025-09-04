@@ -162,7 +162,7 @@ export async function uploadParticipantPhoto(
 /**
  * Upload específico para regulamentos PDF
  */
-export async function uploadRegulationPDF(file: File): Promise<UploadResult> {
+export async function uploadrulesFile(file: File): Promise<UploadResult> {
   return uploadFile(file, {
     folder: "regulations",
     allowedTypes: ["application/pdf"],

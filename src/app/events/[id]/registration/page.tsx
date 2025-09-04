@@ -1,11 +1,14 @@
 "use client";
 
 import {
+  Accessibility,
   AlertCircle,
   ArrowLeft,
   Calendar,
   CheckCircle,
   Clock,
+  FileText,
+  Mail,
   MapPin,
   Users,
 } from "lucide-react";
@@ -16,6 +19,7 @@ import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { DiscreteImageUpload } from "@/components/ui/discrete-image-upload";
 import { Input } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
@@ -26,30 +30,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { EVENT_CATEGORIES, EXPERIENCE_LEVELS } from "@/constants";
 import {
   getPublicEventById,
   registerForEvent,
   type EventRegistrationData,
   type PublicEvent,
 } from "@/server/events-public";
-
-const CATEGORIES = [
-  "Fado",
-  "Guitarra Portuguesa",
-  "Cavaquinho",
-  "Concertina",
-  "Viola Campaniça",
-  "Cante Alentejano",
-  "Outro",
-];
-
-const EXPERIENCE_LEVELS = [
-  "Iniciante (menos de 1 ano)",
-  "Amador (1-3 anos)",
-  "Intermédio (3-7 anos)",
-  "Avançado (7+ anos)",
-  "Profissional",
-];
 
 export default function EventRegistrationPage() {
   const params = useParams();
@@ -72,6 +59,7 @@ export default function EventRegistrationPage() {
     specialNeedsDescription: "",
     acceptsEmailNotifications: false,
     avatar: "",
+    acceptsRegulation: false,
   });
 
   useEffect(() => {
@@ -340,9 +328,9 @@ export default function EventRegistrationPage() {
                       <SelectValue placeholder="Selecione uma categoria" />
                     </SelectTrigger>
                     <SelectContent>
-                      {CATEGORIES.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
+                      {EVENT_CATEGORIES.map((category) => (
+                        <SelectItem key={category.value} value={category.value}>
+                          {category.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -364,8 +352,8 @@ export default function EventRegistrationPage() {
                     </SelectTrigger>
                     <SelectContent>
                       {EXPERIENCE_LEVELS.map((level) => (
-                        <SelectItem key={level} value={level}>
-                          {level}
+                        <SelectItem key={level.value} value={level.value}>
+                          {level.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -392,19 +380,18 @@ export default function EventRegistrationPage() {
               {/* Necessidades Especiais */}
               <div>
                 <div className="flex items-center space-x-2 mb-2">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     id="hasSpecialNeeds"
                     checked={formData.hasSpecialNeeds}
-                    onChange={(e) =>
-                      handleInputChange("hasSpecialNeeds", e.target.checked)
+                    onCheckedChange={(checked) =>
+                      handleInputChange("hasSpecialNeeds", !!checked)
                     }
-                    className="rounded border-gray-300 text-verde-suave focus:ring-verde-suave"
                   />
                   <label
                     htmlFor="hasSpecialNeeds"
-                    className="text-sm font-medium text-cinza-chumbo"
+                    className="text-sm gap-2 text-cinza-chumbo flex items-center"
                   >
+                    <Accessibility className="w-4 h-4 mr-2" />
                     Tenho necessidades especiais
                   </label>
                 </div>
@@ -429,25 +416,45 @@ export default function EventRegistrationPage() {
               {/* Notificações */}
               <div>
                 <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     id="acceptsEmailNotifications"
                     checked={formData.acceptsEmailNotifications}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "acceptsEmailNotifications",
-                        e.target.checked
-                      )
+                    onCheckedChange={(checked) =>
+                      handleInputChange("acceptsEmailNotifications", !!checked)
                     }
-                    className="rounded border-gray-300 text-verde-suave focus:ring-verde-suave"
                   />
                   <label
                     htmlFor="acceptsEmailNotifications"
-                    className="text-sm text-cinza-chumbo"
+                    className="text-sm text-cinza-chumbo flex items-center"
                   >
+                    <Mail className="w-4 h-4 mr-2" />
                     Aceito receber notificações por email sobre o evento
                   </label>
                 </div>
+              </div>
+
+              {/* Regulamento */}
+              <div>
+                <label className="block text-sm font-medium text-cinza-chumbo mb-2">
+                  Regulamento
+                </label>
+                <p className="text-sm gap-2 text-cinza-chumbo flex items-center">
+                  <Checkbox
+                    required
+                    id="acceptsRegulation"
+                    checked={formData.acceptsRegulation}
+                    onCheckedChange={(checked) =>
+                      handleInputChange("acceptsRegulation", !!checked)
+                    }
+                  />
+                  <Link
+                    href={`/regulation/${event.id}`}
+                    className="text-sm text-cinza-chumbo flex items-center hover:text-verde-suave"
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    Regulamento do evento *
+                  </Link>
+                </p>
               </div>
 
               {/* Botão de Submissão */}

@@ -170,7 +170,7 @@ export default function VotingsSelectionPage() {
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               {session.user?.role === ROLES.ADMIN && (
                 <Link
-                  href="/dashboard/eventos"
+                  href="/dashboard/events"
                   className="px-4 py-2 bg-verde-suave text-white rounded-lg hover:bg-verde-suave/90 transition-colors inline-flex items-center justify-center"
                 >
                   <Calendar className="w-4 h-4 mr-2" />
@@ -233,7 +233,7 @@ export default function VotingsSelectionPage() {
                     </div>
 
                     <Link
-                      href={`/votacoes/${event.id}`}
+                      href={`/votings/${event.id}`}
                       className="ml-4 px-4 py-2 bg-verde-suave text-white rounded-lg hover:bg-verde-suave/90 transition-colors flex items-center space-x-2 whitespace-nowrap"
                     >
                       <span>Iniciar Votação</span>

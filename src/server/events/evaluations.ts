@@ -18,23 +18,17 @@ import {
 /**
  * Criar nova avaliação
  */
-export async function createEvaluation(
-  data: Omit<NewEventEvaluation, "id" | "createdAt" | "updatedAt">
-) {
+export async function createEvaluation(data: Omit<NewEventEvaluation, "id">) {
   try {
     // Verificar permissões (admin ou operador)
     await requireOperatorOrAdmin();
 
     const [evaluation] = await db
       .insert(eventEvaluations)
-      .values({
-        ...data,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      })
+      .values(data)
       .returning();
 
-    revalidatePath("/votacoes");
+    revalidatePath("/votings");
     return { success: true, data: evaluation };
   } catch (error) {
     console.error("Erro ao criar avaliação:", error);
@@ -53,7 +47,7 @@ export async function getEventEvaluations(eventId: string) {
       .select()
       .from(eventEvaluations)
       .where(eq(eventEvaluations.eventId, eventId))
-      .orderBy(desc(eventEvaluations.createdAt));
+      .orderBy(desc(eventEvaluations.evaluatedAt));
 
     return { success: true, data: evaluations };
   } catch (error) {
@@ -79,7 +73,7 @@ export async function getParticipantEvaluations(
           eq(eventEvaluations.eventId, eventId)
         )
       )
-      .orderBy(desc(eventEvaluations.createdAt));
+      .orderBy(desc(eventEvaluations.evaluatedAt));
 
     return { success: true, data: evaluations };
   } catch (error) {
@@ -99,13 +93,13 @@ export async function startEvaluationSession(
     await db
       .update(evaluationSessions)
       .set({
-        isActive: false,
+        status: "inactive",
         endedAt: new Date(),
       })
       .where(
         and(
           eq(evaluationSessions.judgeId, data.judgeId),
-          eq(evaluationSessions.isActive, true)
+          eq(evaluationSessions.status, "active")
         )
       );
 
@@ -133,7 +127,7 @@ export async function endEvaluationSession(sessionId: string) {
     const [session] = await db
       .update(evaluationSessions)
       .set({
-        isActive: false,
+        status: "inactive",
         endedAt: new Date(),
       })
       .where(eq(evaluationSessions.id, sessionId))
@@ -157,7 +151,7 @@ export async function getActiveSession(judgeId: string) {
       .where(
         and(
           eq(evaluationSessions.judgeId, judgeId),
-          eq(evaluationSessions.isActive, true)
+          eq(evaluationSessions.status, "active")
         )
       )
       .orderBy(desc(evaluationSessions.startedAt));
@@ -200,7 +194,7 @@ export async function getEventParticipantsWithEvaluations(eventId: string) {
 
         const avgScore =
           evaluations.length > 0
-            ? evaluations.reduce((sum, e) => sum + e.evaluation.score, 0) /
+            ? evaluations.reduce((sum, e) => sum + e.evaluation.totalScore, 0) /
               evaluations.length
             : 0;
 
@@ -254,7 +248,7 @@ export async function checkParticipantEvaluationStatus(
 
     // Calcular média se completo
     const avgScore = isComplete
-      ? existingEvaluations.reduce((sum, e) => sum + e.score, 0) /
+      ? existingEvaluations.reduce((sum, e) => sum + e.totalScore, 0) /
         completedEvaluations
       : 0;
 
@@ -330,12 +324,12 @@ export async function publishEventResults(eventId: string) {
     // Marcar todas as avaliações como publicadas
     await db
       .update(eventEvaluations)
-      .set({ isPublished: true })
+      .set({ isPublic: true })
       .where(eq(eventEvaluations.eventId, eventId));
 
     revalidatePath("/dashboard/evento-em-curso");
-    revalidatePath("/dashboard/eventos");
-    revalidatePath("/votacoes");
+    revalidatePath("/dashboard/events");
+    revalidatePath("/votings");
 
     return { success: true };
   } catch (error) {

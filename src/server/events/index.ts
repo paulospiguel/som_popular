@@ -27,7 +27,7 @@ export async function createEvent(
       })
       .returning();
 
-    revalidatePath("/dashboard/eventos");
+    revalidatePath("/dashboard/events");
     return { success: true, data: event };
   } catch (error) {
     console.error("Erro ao criar evento:", error);
@@ -77,7 +77,7 @@ export async function updateEvent(id: string, data: Partial<Event>) {
       .where(eq(events.id, id))
       .returning();
 
-    revalidatePath("/dashboard/eventos");
+    revalidatePath("/dashboard/events");
     return { success: true, data: event };
   } catch (error) {
     console.error("Erro ao atualizar evento:", error);
@@ -91,7 +91,7 @@ export async function updateEvent(id: string, data: Partial<Event>) {
 export async function deleteEvent(id: string) {
   try {
     await db.delete(events).where(eq(events.id, id));
-    revalidatePath("/dashboard/eventos");
+    revalidatePath("/dashboard/events");
     return { success: true };
   } catch (error) {
     console.error("Erro ao eliminar evento:", error);
@@ -152,8 +152,8 @@ export async function publishEvent(id: string, _publishedBy: string) {
       .where(eq(events.id, id))
       .returning();
 
-    revalidatePath("/dashboard/eventos");
-    revalidatePath("/votacoes");
+    revalidatePath("/dashboard/events");
+    revalidatePath("/votings");
 
     return {
       success: true,
@@ -203,8 +203,8 @@ export async function startEvent(id: string, _startedBy: string) {
       .where(eq(events.id, id))
       .returning();
 
-    revalidatePath("/dashboard/eventos");
-    revalidatePath("/votacoes");
+    revalidatePath("/dashboard/events");
+    revalidatePath("/votings");
 
     return {
       success: true,
@@ -251,8 +251,8 @@ export async function completeEvent(id: string, _completedBy: string) {
       .where(eq(events.id, id))
       .returning();
 
-    revalidatePath("/dashboard/eventos");
-    revalidatePath("/votacoes");
+    revalidatePath("/dashboard/events");
+    revalidatePath("/votings");
 
     return {
       success: true,
@@ -304,8 +304,8 @@ export async function cancelEvent(
       .where(eq(events.id, id))
       .returning();
 
-    revalidatePath("/dashboard/eventos");
-    revalidatePath("/votacoes");
+    revalidatePath("/dashboard/events");
+    revalidatePath("/votings");
 
     return {
       success: true,
@@ -350,8 +350,8 @@ export async function revertToDraft(id: string, _revertedBy: string) {
       .where(eq(events.id, id))
       .returning();
 
-    revalidatePath("/dashboard/eventos");
-    revalidatePath("/votacoes");
+    revalidatePath("/dashboard/events");
+    revalidatePath("/votings");
 
     return {
       success: true,

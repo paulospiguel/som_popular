@@ -17,6 +17,10 @@ export async function createSystemLog(
   data: Omit<NewSystemLog, "id" | "createdAt">
 ) {
   try {
+    if (process.env.NODE_ENV !== "production") {
+      return;
+    }
+
     const [log] = await db
       .insert(systemLogs)
       .values({
@@ -108,12 +112,7 @@ export async function getEventLogs(options?: {
     if (options?.eventId) {
       whereConditions.push(eq(eventLogs.eventId, options.eventId));
     }
-    if (options?.category) {
-      whereConditions.push(eq(eventLogs.category, options.category));
-    }
-    if (options?.status) {
-      whereConditions.push(eq(eventLogs.status, options.status));
-    }
+    // Note: eventLogs table doesn't have category and status fields
 
     const whereClause =
       whereConditions.length > 0 ? and(...whereConditions) : undefined;
@@ -171,12 +170,7 @@ export async function getLogsStats() {
     const pendingCriticalEventLogs = await db
       .select()
       .from(eventLogs)
-      .where(
-        and(
-          eq(eventLogs.status, "pending"),
-          inArray(eventLogs.severity, ["critical", "major"])
-        )
-      )
+      .where(inArray(eventLogs.severity, ["critical", "major"]))
       .orderBy(desc(eventLogs.createdAt))
       .limit(10);
 
@@ -202,6 +196,10 @@ export async function updateLogStatus(
   status: string,
   logType: "system" | "event"
 ) {
+  if (process.env.NODE_ENV !== "production") {
+    return;
+  }
+
   try {
     if (logType === "system") {
       const [log] = await db
@@ -211,12 +209,11 @@ export async function updateLogStatus(
         .returning();
       return { success: true, data: log };
     } else {
-      const [log] = await db
-        .update(eventLogs)
-        .set({ status })
-        .where(eq(eventLogs.id, logId))
-        .returning();
-      return { success: true, data: log };
+      // eventLogs table doesn't have status field
+      return {
+        success: false,
+        error: "Event logs don't support status updates",
+      };
     }
   } catch (error) {
     console.error("Erro ao atualizar status do log:", error);

@@ -35,7 +35,7 @@ export default function ResetPasswordPage() {
       );
     }
     if (!token && !errorParam) {
-      router.push("/forgot-password");
+      router.push("/auth/forgot-password");
     }
   }, [token, errorParam, router]);
 
@@ -129,7 +129,7 @@ export default function ResetPasswordPage() {
             </p>
             <div className="mt-6 space-y-3">
               <Link
-                href="/forgot-password"
+                href="/auth/forgot-password"
                 className="block w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Solicitar Novo Link
