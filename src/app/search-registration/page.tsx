@@ -7,6 +7,8 @@ import {
   CheckCircle,
   Clock,
   Home,
+  IdCard,
+  Mail,
   QrCode,
   Search,
   User,
@@ -19,7 +21,10 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getRegistrationByEmail } from "@/server/events-public";
+import {
+  getRegistrationByEmail,
+  getRegistrationById,
+} from "@/server/events-public";
 
 const STATUS_ICONS = {
   pending: Clock,
@@ -43,8 +48,22 @@ const STATUS_LABELS = {
 };
 
 export default function RegistrationLookupPage() {
-  const [email, setEmail] = useState("");
-  const [registrations, setRegistrations] = useState<any[]>([]);
+  const [searchType, setSearchType] = useState<"email" | "registrationId">(
+    "email"
+  );
+  const [searchValue, setSearchValue] = useState("");
+  const [registrations, setRegistrations] = useState<
+    Array<{
+      id: string;
+      eventName: string;
+      eventId: string;
+      participantName: string;
+      status: string;
+      registrationDate: Date | null;
+      eventDate: Date;
+      qrData: string;
+    }>
+  >([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -123,8 +142,10 @@ export default function RegistrationLookupPage() {
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email) {
-      toast.error("Por favor, insira um email");
+    if (!searchValue) {
+      toast.error(
+        `Por favor, insira ${searchType === "email" ? "um email" : "um número de inscrição"}`
+      );
       return;
     }
 
@@ -132,16 +153,29 @@ export default function RegistrationLookupPage() {
     setError("");
 
     try {
-      const result = await getRegistrationByEmail(email);
+      let result;
 
-      if (result.success && result.registrations) {
-        setRegistrations(result.registrations);
-        if (result.registrations.length === 0) {
-          setError("Nenhuma inscrição encontrada para este email");
+      if (searchType === "email") {
+        result = await getRegistrationByEmail(searchValue);
+
+        if (result.success && result.registrations) {
+          setRegistrations(result.registrations);
+          if (result.registrations.length === 0) {
+            setError("Nenhuma inscrição encontrada para este email");
+          }
+        } else {
+          setError(result.error || "Erro ao buscar inscrições");
+          setRegistrations([]);
         }
       } else {
-        setError(result.error || "Erro ao buscar inscrições");
-        setRegistrations([]);
+        result = await getRegistrationById(searchValue);
+
+        if (result.success && result.registration) {
+          setRegistrations([result.registration]);
+        } else {
+          setError(result.error || "Erro ao buscar inscrição");
+          setRegistrations([]);
+        }
       }
     } catch (error) {
       setError("Erro interno do servidor");
@@ -167,7 +201,8 @@ export default function RegistrationLookupPage() {
             Consultar Inscrições
           </h1>
           <p className="text-cinza-chumbo/70 mb-8">
-            Digite seu email para consultar todas as suas inscrições em eventos
+            Digite seu email ou número de inscrição para consultar suas
+            inscrições em eventos
           </p>
 
           <form
@@ -175,17 +210,62 @@ export default function RegistrationLookupPage() {
             className="festival-card p-6 max-w-xl mx-auto mb-8"
           >
             <div className="space-y-4">
+              {/* Toggle para tipo de busca */}
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchType("email");
+                    setSearchValue("");
+                    setError("");
+                    setRegistrations([]);
+                  }}
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                    searchType === "email"
+                      ? "bg-white text-verde-escuro shadow-sm"
+                      : "text-cinza-chumbo/70 hover:text-cinza-chumbo"
+                  }`}
+                >
+                  Por Email
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchType("registrationId");
+                    setSearchValue("");
+                    setError("");
+                    setRegistrations([]);
+                  }}
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                    searchType === "registrationId"
+                      ? "bg-white text-verde-escuro shadow-sm"
+                      : "text-cinza-chumbo/70 hover:text-cinza-chumbo"
+                  }`}
+                >
+                  Por Número de Inscrição
+                </button>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                  Email de Cadastro
+                  {searchType === "email"
+                    ? "Email de Cadastro"
+                    : "Número de Inscrição"}
                 </label>
                 <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="seu@email.com"
+                  type={searchType === "email" ? "email" : "text"}
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  placeholder={
+                    searchType === "email" ? "seu@email.com" : "Ex: ABC123456"
+                  }
                   required
                 />
+                {searchType === "registrationId" && (
+                  <p className="text-xs text-cinza-chumbo/60 mt-1">
+                    Digite o número de inscrição que aparece na sua credencial
+                  </p>
+                )}
               </div>
 
               <Button
@@ -223,11 +303,22 @@ export default function RegistrationLookupPage() {
                   Nenhuma Inscrição Encontrada
                 </h3>
                 <p className="text-cinza-chumbo/70 mb-6">
-                  Não encontramos inscrições para o email{" "}
-                  <strong>{email}</strong>.
-                  <br />
-                  Verifique se o email está correto ou se você já se inscreveu
-                  em algum evento.
+                  {searchType === "email" ? (
+                    <>
+                      Não encontramos inscrições para o email{" "}
+                      <strong>{searchValue}</strong>.
+                      <br />
+                      Verifique se o email está correto ou se você já se
+                      inscreveu em algum evento.
+                    </>
+                  ) : (
+                    <>
+                      Não encontramos inscrições para o número{" "}
+                      <strong>{searchValue}</strong>.
+                      <br />
+                      Verifique se o número de inscrição está correto.
+                    </>
+                  )}
                 </p>
 
                 <div className="space-y-3">
@@ -242,12 +333,13 @@ export default function RegistrationLookupPage() {
                     variant="outline"
                     onClick={() => {
                       setError("");
-                      setEmail("");
+                      setSearchValue("");
                     }}
                     className="w-full"
                   >
                     <Search className="w-4 h-4 mr-2" />
-                    Tentar Outro Email
+                    Tentar{" "}
+                    {searchType === "email" ? "Outro Email" : "Outro Número"}
                   </Button>
                 </div>
               </div>
@@ -326,9 +418,11 @@ export default function RegistrationLookupPage() {
                               Data da Inscrição:
                             </span>
                             <br />
-                            {formatDateShort(
-                              new Date(registration.registrationDate)
-                            )}
+                            {registration.registrationDate
+                              ? formatDateShort(
+                                  new Date(registration.registrationDate)
+                                )
+                              : "N/A"}
                           </div>
                         </div>
                       </div>
@@ -357,27 +451,40 @@ export default function RegistrationLookupPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
             <div>
-              <h4 className="font-semibold text-cinza-chumbo mb-2">
-                Email Correto?
+              <h4 className="font-semibold text-cinza-chumbo mb-2 flex items-center">
+                {searchType === "email" ? (
+                  <>
+                    <Mail className="w-4 h-4 mr-2" />
+                    Email Correto?
+                  </>
+                ) : (
+                  <>
+                    <IdCard className="w-4 h-4 mr-2" />
+                    Número Correto?
+                  </>
+                )}
               </h4>
               <p className="text-cinza-chumbo/70">
-                Verifique se o email usado está correto. Use exatamente o mesmo
-                email que usou na inscrição.
+                {searchType === "email"
+                  ? "Verifique se o email usado está correto. Use exatamente o mesmo email que usou na inscrição."
+                  : "Verifique se o número de inscrição está correto. Use o número que aparece na sua credencial."}
               </p>
             </div>
 
             <div>
-              <h4 className="font-semibold text-cinza-chumbo mb-2">
-                Problemas com QR Code?
+              <h4 className="font-semibold text-cinza-chumbo mb-2 flex items-center">
+                <QrCode className="w-4 h-4 mr-2" />
+                Problemas com sua credencial?
               </h4>
               <p className="text-cinza-chumbo/70">
-                Se o QR code não funcionar no evento, mostre o ID da inscrição
-                para nossa equipe.
+                Se o QR code não funcionar no evento, mostre o ID da inscrição e
+                o nome do participante para nossa equipe.
               </p>
             </div>
 
             <div>
-              <h4 className="font-semibold text-cinza-chumbo mb-2">
+              <h4 className="font-semibold text-cinza-chumbo mb-2 flex items-center">
+                <XCircle className="w-4 h-4 mr-2" />
                 Cancelar Inscrição?
               </h4>
               <p className="text-cinza-chumbo/70">

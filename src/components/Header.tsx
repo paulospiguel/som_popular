@@ -9,6 +9,21 @@ interface HeaderProps {
   transparent?: boolean;
 }
 
+const MENU = [
+  {
+    name: "Eventos",
+    href: "/#events",
+  },
+  {
+    name: "Consultar Inscrição",
+    href: "/search-registration",
+  },
+  {
+    name: "Ajuda",
+    href: "/help",
+  },
+];
+
 export default function Header({ transparent = false }: HeaderProps) {
   return (
     <header
@@ -25,24 +40,15 @@ export default function Header({ transparent = false }: HeaderProps) {
 
           {/* Navegação Desktop */}
           <nav className="hidden md:flex space-x-6 items-center">
-            <Link
-              href="/regulation"
-              className="text-neve hover:text-dourado transition-colors font-medium"
-            >
-              Regulamentos
-            </Link>
-            <Link
-              href="/help"
-              className="text-neve hover:text-dourado transition-colors font-medium"
-            >
-              Ajuda
-            </Link>
-            <Link
-              href="/ranking"
-              className="text-neve hover:text-dourado transition-colors font-medium"
-            >
-              Classificação
-            </Link>
+            {MENU.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className="text-neve hover:text-dourado transition-colors font-medium"
+              >
+                {item.name}
+              </Link>
+            ))}
             <Link
               href="/participant-registration"
               className="festival-button-secondary px-4 py-2 text-sm"

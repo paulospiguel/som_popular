@@ -560,3 +560,82 @@ export async function getRegistrationByEmail(
     };
   }
 }
+
+/**
+ * Busca inscrição por número de inscrição (ID)
+ */
+export async function getRegistrationById(registrationId: string): Promise<{
+  success: boolean;
+  registration?: {
+    id: string;
+    eventName: string;
+    eventId: string;
+    participantName: string;
+    participantEmail: string;
+    status: string;
+    registrationDate: Date | null;
+    eventDate: Date;
+    qrData: string;
+  };
+  error?: string;
+}> {
+  try {
+    // Buscar inscrição pelo ID
+    const registration = await db
+      .select({
+        registrationId: eventRegistrations.id,
+        eventName: events.name,
+        eventId: events.id,
+        participantName: participants.name,
+        participantEmail: participants.email,
+        status: eventRegistrations.status,
+        registrationDate: eventRegistrations.registeredAt,
+        eventDate: events.startDate,
+      })
+      .from(eventRegistrations)
+      .innerJoin(events, eq(eventRegistrations.eventId, events.id))
+      .innerJoin(
+        participants,
+        eq(eventRegistrations.participantId, participants.id)
+      )
+      .where(eq(eventRegistrations.id, registrationId))
+      .limit(1);
+
+    if (registration.length === 0) {
+      return {
+        success: false,
+        error: "Nenhuma inscrição encontrada com este número",
+      };
+    }
+
+    const reg = registration[0];
+    const registrationWithQR = {
+      id: reg.registrationId,
+      eventName: reg.eventName,
+      eventId: reg.eventId,
+      participantName: reg.participantName,
+      participantEmail: reg.participantEmail,
+      status: reg.status,
+      registrationDate: reg.registrationDate,
+      eventDate: reg.eventDate,
+      qrData: JSON.stringify({
+        registrationId: reg.registrationId,
+        participantName: reg.participantName,
+        eventName: reg.eventName,
+        eventDate: reg.eventDate.toISOString(),
+        email: reg.participantEmail,
+      }),
+    };
+
+    return {
+      success: true,
+      registration: registrationWithQR,
+    };
+  } catch (error) {
+    console.error("Erro ao buscar inscrição por ID:", error);
+    return {
+      success: false,
+      error: "Erro ao buscar inscrição",
+    };
+  }
+}

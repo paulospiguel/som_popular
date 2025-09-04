@@ -53,6 +53,10 @@ export default function Footer() {
             name: "Ajuda",
             href: "/help",
           },
+          {
+            name: "Login",
+            href: "/auth/login",
+          },
           // {
           //   name: "WhatsApp",
           //   href: "https://wa.me/5511999999999",
