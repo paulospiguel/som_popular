@@ -6,6 +6,13 @@ import { sendResetPasswordEmail } from "@/lib/mailer/resend";
 const resetPasswordUrl = `${APP_URL}/auth/reset-password`;
 
 export async function GET() {
+  if (process.env.NODE_ENV !== "development") {
+    return NextResponse.json({
+      success: false,
+      message: "Teste de email não permitido em produção",
+    });
+  }
+
   console.log("🧪 Iniciando teste de email...");
 
   try {
