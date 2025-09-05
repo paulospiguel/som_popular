@@ -44,12 +44,12 @@ export default function ResetPasswordPage() {
     setError("");
 
     if (password !== confirmPassword) {
-      setError("As palavras-passe não coincidem");
+      setError("As senhas não coincidem");
       return;
     }
 
     if (password.length < 6) {
-      setError("A palavra-passe deve ter pelo menos 6 caracteres");
+      setError("A senha deve ter pelo menos 6 caracteres");
       return;
     }
 
@@ -67,7 +67,7 @@ export default function ResetPasswordPage() {
       });
 
       if (result.error) {
-        setError(result.error.message || "Erro ao redefinir palavra-passe");
+        setError(result.error.message || "Erro ao redefinir senha");
       } else {
         setSuccess(true);
         setTimeout(() => {
@@ -94,8 +94,8 @@ export default function ResetPasswordPage() {
               Senha Redefinida com Sucesso! 🎉
             </h2>
             <p className="mt-2 text-gray-600">
-              A tua palavra-passe foi alterada. Serás redirecionado para o login
-              em 3 segundos...
+              A tua senha foi alterada. Serás redirecionado para o login em 3
+              segundos...
             </p>
             <div className="mt-4">
               <Link
@@ -156,10 +156,10 @@ export default function ResetPasswordPage() {
               <Lock className="h-6 w-6 text-blue-600" />
             </div>
             <h2 className="mt-6 text-3xl font-bold text-gray-900">
-              Nova Palavra-passe
+              Nova Senha
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              Introduz a tua nova palavra-passe
+              Introduz a tua nova senha
             </p>
           </div>
 
@@ -169,7 +169,7 @@ export default function ResetPasswordPage() {
                 htmlFor="password"
                 className="block text-sm font-medium text-gray-700"
               >
-                Nova Palavra-passe
+                Nova Senha
               </label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -204,7 +204,7 @@ export default function ResetPasswordPage() {
                 htmlFor="confirmPassword"
                 className="block text-sm font-medium text-gray-700"
               >
-                Confirmar Palavra-passe
+                Confirmar Senha
               </label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -218,7 +218,7 @@ export default function ResetPasswordPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Repete a palavra-passe"
+                  placeholder="Repete a senha"
                 />
                 <button
                   type="button"
@@ -251,7 +251,7 @@ export default function ResetPasswordPage() {
                   redefinir...
                 </>
               ) : (
-                "Redefinir Palavra-passe"
+                "Redefinir Senha"
               )}
             </button>
 

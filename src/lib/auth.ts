@@ -23,8 +23,8 @@ export const auth = betterAuth({
     async sendResetPassword({ user, url }) {
       await sendEmail({
         to: user.email,
-        subject: "Redefinição de palavra-passe",
-        text: `Para redefinir a tua password, abre: ${url}`,
+        subject: "Redefinição de senha",
+        text: `Para redefinir a tua senha, abre: ${url}`,
         react: ResetPasswordTemplate({
           name: user.name || "utilizador",
           resetUrl: url,

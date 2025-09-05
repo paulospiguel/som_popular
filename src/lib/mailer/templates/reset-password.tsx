@@ -9,7 +9,7 @@ export const ResetPasswordTemplate = ({
 }: ResetPasswordEmailProps) => {
   return (
     <div>
-      <h1>Redefinir a tua palavra-passe - Som Popular</h1>
+      <h1>Redefinir a tua senha - Som Popular</h1>
       <div style={main}>
         <div style={container}>
           <div style={header}>
@@ -20,7 +20,7 @@ export const ResetPasswordTemplate = ({
             <h2 style={h2}>Olá, {name}!</h2>
 
             <p style={paragraph}>
-              Recebemos um pedido para redefinir a tua palavra-passe.
+              Recebemos um pedido para redefinir a tua senha.
             </p>
 
             <p style={paragraph}>
@@ -29,7 +29,7 @@ export const ResetPasswordTemplate = ({
 
             <div style={buttonContainer}>
               <a href={resetUrl} style={button}>
-                🔑 Redefinir Palavra-passe
+                🔑 Redefinir Senha
               </a>
             </div>
 
@@ -43,8 +43,8 @@ export const ResetPasswordTemplate = ({
             <hr style={divider} />
 
             <p style={smallText}>
-              Se não pediste para redefinir a palavra-passe, podes ignorar este
-              email. A tua palavra-passe permanecerá inalterada.
+              Se não pediste para redefinir a senha, podes ignorar este email. A
+              tua senha permanecerá inalterada.
             </p>
 
             <p style={verySmallText}>

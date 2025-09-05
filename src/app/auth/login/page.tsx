@@ -206,7 +206,7 @@ export default function LoginPage() {
                 htmlFor="password"
                 className="block text-sm font-medium text-cinza-chumbo mb-2"
               >
-                Password
+                Senha
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-cinza-chumbo/50" />
@@ -261,7 +261,7 @@ export default function LoginPage() {
                 href="/auth/forgot-password"
                 className="text-sm text-blue-600 hover:text-blue-500 transition-colors"
               >
-                Esqueci a palavra-passe
+                Esqueci minha senha
               </Link>
             </div>
           </form>

@@ -60,7 +60,7 @@ export async function sendResetPasswordEmail({
   return await resend.emails.send({
     from,
     to,
-    subject: "Redefinir palavra-passe - Festival Som Popular",
+    subject: "Redefinir Senha - Festival Som Popular",
     html,
   });
 }
