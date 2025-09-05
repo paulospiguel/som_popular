@@ -4,8 +4,13 @@ import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { checkAdminAccess } from "@/lib/auth-guards";
+import { sendEmail } from "@/lib/mailer/resend";
 import { db } from "@/server/database";
-import { eventRegistrations, participants } from "@/server/database/schema";
+import {
+  eventRegistrations,
+  events,
+  participants,
+} from "@/server/database/schema";
 
 /**
  * Buscar todos os participantes aprovados
@@ -35,6 +40,152 @@ export async function getAllParticipants() {
   } catch (error) {
     console.error("Erro ao buscar todos os participantes:", error);
     return { success: false, error: "Erro ao buscar participantes" };
+  }
+}
+
+/**
+ * Aprovar inscrição do participante
+ */
+export async function approveParticipant(participantId: string) {
+  try {
+    await checkAdminAccess();
+
+    const [updated] = await db
+      .update(participants)
+      .set({
+        status: "approved",
+        approvedAt: new Date(),
+        rejectedAt: null,
+        rejectionReason: null,
+      })
+      .where(eq(participants.id, participantId))
+      .returning();
+
+    if (!updated)
+      return { success: false, error: "Participante não encontrado" };
+
+    try {
+      await sendEmail({
+        to: updated.email,
+        subject: "Inscrição aprovada - Festival Som Popular",
+        text: `Olá ${updated.name},\n\nA sua inscrição foi aprovada.\n\nAté breve!`,
+      });
+    } catch (e) {
+      console.error("Falha ao enviar email de aprovação:", e);
+      // não falhar a ação por causa do email
+    }
+
+    revalidatePath("/dashboard/participants");
+    return { success: true, data: updated };
+  } catch (error) {
+    console.error("Erro ao aprovar participante:", error);
+    return { success: false, error: "Erro ao aprovar inscrição" };
+  }
+}
+
+/**
+ * Rejeitar/Indeferir inscrição do participante (com justificativa)
+ */
+export async function rejectParticipant(participantId: string, reason: string) {
+  try {
+    await checkAdminAccess();
+    if (!reason || reason.trim().length < 5)
+      return { success: false, error: "Justificativa é obrigatória" };
+
+    const [updated] = await db
+      .update(participants)
+      .set({
+        status: "rejected",
+        rejectionReason: reason,
+        rejectedAt: new Date(),
+      })
+      .where(eq(participants.id, participantId))
+      .returning();
+
+    if (!updated)
+      return { success: false, error: "Participante não encontrado" };
+
+    try {
+      await sendEmail({
+        to: updated.email,
+        subject: "Inscrição indeferida - Festival Som Popular",
+        text: `Olá ${updated.name},\n\nA sua inscrição foi indeferida. Motivo: ${reason}.\n\nQualquer dúvida, responda este email.`,
+      });
+    } catch (e) {
+      console.error("Falha ao enviar email de indeferimento:", e);
+    }
+
+    revalidatePath("/dashboard/participants");
+    return { success: true, data: updated };
+  } catch (error) {
+    console.error("Erro ao rejeitar participante:", error);
+    return { success: false, error: "Erro ao rejeitar inscrição" };
+  }
+}
+
+/**
+ * Inativar participante (com justificativa), sem alterar histórico de inscrição
+ */
+export async function deactivateParticipant(
+  participantId: string,
+  reason: string
+) {
+  try {
+    await checkAdminAccess();
+    if (!reason || reason.trim().length < 5)
+      return { success: false, error: "Justificativa é obrigatória" };
+
+    const [updated] = await db
+      .update(participants)
+      .set({ archived: true, notes: reason, updatedAt: new Date() })
+      .where(eq(participants.id, participantId))
+      .returning();
+
+    if (!updated)
+      return { success: false, error: "Participante não encontrado" };
+
+    try {
+      await sendEmail({
+        to: updated.email,
+        subject: "Conta inativada - Festival Som Popular",
+        text: `Olá ${updated.name},\n\nA sua conta foi inativada pelos seguintes motivos: ${reason}.`,
+      });
+    } catch (e) {
+      console.error("Falha ao enviar email de inativação:", e);
+    }
+
+    revalidatePath("/dashboard/participants");
+    return { success: true, data: updated };
+  } catch (error) {
+    console.error("Erro ao inativar participante:", error);
+    return { success: false, error: "Erro ao inativar participante" };
+  }
+}
+
+/**
+ * Detalhes do participante com inscrições e eventos relacionados
+ */
+export async function getParticipantDetails(participantId: string) {
+  try {
+    const participantRows = await db
+      .select()
+      .from(participants)
+      .where(eq(participants.id, participantId));
+
+    const participant = participantRows[0];
+    if (!participant)
+      return { success: false, error: "Participante não encontrado" };
+
+    const registrations = await db
+      .select({ registration: eventRegistrations, event: events })
+      .from(eventRegistrations)
+      .innerJoin(events, eq(eventRegistrations.eventId, events.id))
+      .where(eq(eventRegistrations.participantId, participantId));
+
+    return { success: true, data: { participant, registrations } };
+  } catch (error) {
+    console.error("Erro ao buscar detalhes do participante:", error);
+    return { success: false, error: "Erro ao buscar detalhes" };
   }
 }
 

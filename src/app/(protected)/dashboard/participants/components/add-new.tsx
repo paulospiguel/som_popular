@@ -102,27 +102,22 @@ const AddParticipantModal = ({
             </h4>
 
             <div className="mb-6">
-              <div>
-                <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                  Foto de Perfil (Opcional)
-                </label>
-                <FormField
-                  control={form.control}
-                  name="avatar"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Foto de Perfil (Opcional)</FormLabel>
-                      <FormControl>
-                        <ImageUpload
-                          value={field.value}
-                          onChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="avatar"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Foto de Perfil (Opcional)</FormLabel>
+                    <FormControl>
+                      <ImageUpload
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
