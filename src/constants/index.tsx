@@ -1,6 +1,6 @@
-export const APP_URL = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : "http://localhost:3000";
+import { getBaseUrl } from "@/lib/base-url";
+
+export const APP_URL = getBaseUrl();
 
 export enum ROLES {
   ADMIN = "manager",
