@@ -499,8 +499,8 @@ const AddParticipantModal = ({
             )}
           />
           <p className="text-xs text-cinza-chumbo/60 mt-2">
-            Ao aceitar, receberá informações sobre o estado da sua inscrição,
-            detalhes do evento e convites para futuros festivais.
+            O participante aceitará receber notificações sobre o estado da sua
+            inscrição, detalhes do evento e convites para futuros festivais.
           </p>
         </div>
 

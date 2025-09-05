@@ -25,6 +25,20 @@ export async function getApprovedParticipants() {
 }
 
 /**
+ * Buscar todos os participantes (qualquer status)
+ */
+export async function getAllParticipants() {
+  try {
+    const allParticipants = await db.select().from(participants);
+
+    return { success: true, data: allParticipants };
+  } catch (error) {
+    console.error("Erro ao buscar todos os participantes:", error);
+    return { success: false, error: "Erro ao buscar participantes" };
+  }
+}
+
+/**
  * Buscar participantes registrados em um evento específico
  */
 export async function getEventParticipants(eventId: string) {

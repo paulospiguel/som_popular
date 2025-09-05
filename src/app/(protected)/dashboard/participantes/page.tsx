@@ -11,12 +11,13 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { DataTable } from "@/components/DataTable";
 import Loading from "@/components/loading";
 import { useSession } from "@/lib/auth-client";
 import { Participant } from "@/server/database/schema";
+import { getAllParticipants } from "@/server/participants";
 
 import AddParticipantModal from "./components/add-new";
 import ParticipantDetailsModal from "./components/participant-detail";
@@ -27,87 +28,11 @@ import {
   getStatusText,
 } from "./utils";
 
-// Mock data atualizado sem age, city, district e com additionalInfo
-const mockParticipants = [
-  {
-    id: "1",
-    name: "João Silva",
-    email: "joao.silva@email.com",
-    phone: "+351 912 345 678",
-    category: "fado",
-    experience: "intermedio",
-    additionalInfo:
-      "Canto fado há 5 anos, participei em vários eventos locais.",
-    status: "approved", // Alterado de 'pending' para 'approved' (auto-aprovação)
-    archived: false,
-    acceptsEmailNotifications: true,
-    registrationDate: new Date("2024-01-15"),
-    notes: "",
-  },
-  {
-    id: "2",
-    name: "Maria Santos",
-    email: "maria.santos@email.com",
-    phone: "+351 913 456 789",
-    category: "guitarra",
-    experience: "avancado",
-    additionalInfo: "Guitarrista profissional com 15 anos de experiência.",
-    status: "approved",
-    archived: false,
-    acceptsEmailNotifications: false,
-    registrationDate: new Date("2024-01-10"),
-    notes: "Excelente candidata, muito experiente.",
-  },
-  {
-    id: "3",
-    name: "António Costa",
-    email: "antonio.costa@email.com",
-    phone: "+351 914 567 890",
-    category: "concertina",
-    experience: "avancado",
-    additionalInfo: "Toco concertina desde criança, ensino música tradicional.",
-    status: "approved",
-    archived: false,
-    registrationDate: new Date("2024-01-08"),
-    notes: "",
-  },
-  {
-    id: "4",
-    name: "Ana Ferreira",
-    email: "ana.ferreira@email.com",
-    phone: "+351 915 678 901",
-    category: "fado",
-    experience: "iniciante",
-    additionalInfo: "Sempre gostei de cantar, quero começar no fado.",
-    status: "rejected",
-    archived: false,
-    registrationDate: new Date("2024-01-12"),
-    rejectionReason:
-      "Necessita de mais experiência prática antes de participar no evento.",
-    rejectedAt: new Date("2024-01-13"),
-    rejectedBy: "admin@somopopular.pt",
-    notes: "Precisa de mais experiência antes de participar.",
-  },
-  {
-    id: "5",
-    name: "Carlos Mendes",
-    email: "carlos.mendes@email.com",
-    phone: "+351 916 789 012",
-    category: "cavaquinho",
-    experience: "intermedio",
-    additionalInfo: "Toco cavaquinho há 3 anos, gosto muito de música popular.",
-    status: "approved",
-    archived: false,
-    acceptsEmailNotifications: true,
-    registrationDate: new Date("2024-01-20"),
-    notes: "",
-  },
-];
-
 export default function ParticipantsManagement() {
   const { isPending } = useSession();
-  const [participants, setParticipants] =
-    useState<Partial<Participant>[]>(mockParticipants);
+  const [participants, setParticipants] = useState<Partial<Participant>[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedParticipant, setSelectedParticipant] = useState<any>(null);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -161,17 +86,24 @@ export default function ParticipantsManagement() {
     {
       key: "registrationDate",
       header: "Data de Registro",
-      render: (participant: any) => (
-        <span className="text-sm text-cinza-chumbo">
-          {participant.registrationDate.toLocaleDateString("pt-PT", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </span>
-      ),
+      render: (participant: any) => {
+        const dateValue = participant.registrationDate
+          ? new Date(participant.registrationDate)
+          : null;
+        return (
+          <span className="text-sm text-cinza-chumbo">
+            {dateValue
+              ? dateValue.toLocaleDateString("pt-PT", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : "-"}
+          </span>
+        );
+      },
     },
     {
       key: "status",
@@ -221,6 +153,30 @@ export default function ParticipantsManagement() {
 
   const activeParticipants = participants.filter((p) => !p.archived);
 
+  const loadParticipants = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await getAllParticipants();
+      if (result.success && result.data) {
+        setParticipants(result.data as Partial<Participant>[]);
+      } else {
+        setError(result.error || "Erro ao carregar participantes");
+      }
+    } catch (err) {
+      console.error("Erro ao carregar participantes:", err);
+      setError("Erro ao carregar participantes");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isPending) {
+      loadParticipants();
+    }
+  }, [isPending]);
+
   const stats = {
     total: participants.length,
     active: activeParticipants.length,
@@ -230,7 +186,7 @@ export default function ParticipantsManagement() {
     archived: participants.filter((p) => p.archived).length,
   };
 
-  if (isPending) {
+  if (isPending || loading) {
     return <Loading />;
   }
 
@@ -369,6 +325,12 @@ export default function ParticipantsManagement() {
               </div>
             </div>
           </div>
+
+          {error && (
+            <div className="festival-card p-4 mb-6 border-l-4 border-vermelho-suave bg-vermelho-suave/5">
+              <p className="text-sm text-cinza-chumbo">{error}</p>
+            </div>
+          )}
 
           <DataTable
             className="min-h-[calc(100vh-400px)]"

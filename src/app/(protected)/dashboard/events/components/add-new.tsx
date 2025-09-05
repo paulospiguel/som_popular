@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { TagsInput } from "@/components/ui/tags-input";
 import { useToast } from "@/components/ui/toast";
-import { APPROVAL_MODES, EVENT_CATEGORIES } from "@/constants";
+import { APPROVAL_MODES, EVENT_CATEGORIES, EVENT_TYPES } from "@/constants";
 import { Event } from "@/server/database/schema";
 import { createEvent } from "@/server/events";
 
@@ -26,13 +26,7 @@ import { createEvent } from "@/server/events";
 const eventSchema = z.object({
   name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
   description: z.string().optional(),
-  type: z.enum([
-    "classificatoria",
-    "semi-final",
-    "final",
-    "workshop",
-    "masterclass",
-  ]),
+  type: z.enum(EVENT_TYPES.map((type) => type.value)),
   category: z.enum(["pop", "rock", "sertanejo", "samba", "forró", "livre"]),
   location: z.string().min(3, "Local é obrigatório"),
   maxParticipants: z.number().min(1).optional(),
@@ -227,7 +221,7 @@ const AddEventModal = ({
                       <SelectValue placeholder="Selecione o tipo" />
                     </SelectTrigger>
                     <SelectContent>
-                      {EVENT_CATEGORIES.map((type) => (
+                      {EVENT_TYPES.map((type) => (
                         <SelectItem key={type.value} value={type.value}>
                           {type.label}
                         </SelectItem>
