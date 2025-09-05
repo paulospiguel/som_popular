@@ -11,6 +11,7 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -205,6 +206,7 @@ interface EventCardProps {
 }
 
 function EventCard({ event, isCurrentEvent = false }: EventCardProps) {
+  const router = useRouter();
   const StatusIcon = STATUS_ICONS[event.registrationStatus];
 
   const formatDate = (date: Date) => {
@@ -216,7 +218,18 @@ function EventCard({ event, isCurrentEvent = false }: EventCardProps) {
   };
 
   return (
-    <Link href={`/events/${event.id}`} className="block">
+    <div
+      role="link"
+      tabIndex={0}
+      onClick={() => router.push(`/events/${event.id}`)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          router.push(`/events/${event.id}`);
+        }
+      }}
+      className="block"
+    >
       <div
         className={`festival-card p-6 hover:shadow-lg transition-all duration-300 cursor-pointer ${
           isCurrentEvent
@@ -298,27 +311,32 @@ function EventCard({ event, isCurrentEvent = false }: EventCardProps) {
             variant="outline"
             size="sm"
             className="flex-1"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push(`/events/${event.id}`);
+            }}
           >
             Ver Detalhes
           </Button>
-          <Link
-            href={`/regulation/${event.id}`}
-            onClick={(e) => e.stopPropagation()}
+          <Button
+            variant="outline"
+            size="sm"
             className="flex-1"
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push(`/regulation/${event.id}`);
+            }}
           >
-            <Button variant="outline" size="sm" className="w-full">
-              <FileText className="w-4 h-4 mr-1" />
-              Regulamento
-            </Button>
-          </Link>
+            <FileText className="w-4 h-4 mr-1" />
+            Regulamento
+          </Button>
           {event.canRegister && (
             <Button
               size="sm"
               className="flex-1 festival-button"
               onClick={(e) => {
                 e.stopPropagation();
-                window.location.href = `/events/${event.id}/registration`;
+                router.push(`/events/${event.id}/registration`);
               }}
             >
               Inscrever-me
@@ -326,6 +344,6 @@ function EventCard({ event, isCurrentEvent = false }: EventCardProps) {
           )}
         </div>
       </div>
-    </Link>
+    </div>
   );
 }

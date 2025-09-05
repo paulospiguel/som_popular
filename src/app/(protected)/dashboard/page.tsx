@@ -23,7 +23,7 @@ const CARDS = [
     color: "verde-suave",
     title: "Gestão de Participantes",
     description: "Aprovar, editar e gerir inscrições",
-    href: "/dashboard/participantes",
+    href: "/dashboard/participants",
   },
   {
     icon: Calendar,

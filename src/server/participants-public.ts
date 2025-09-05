@@ -121,7 +121,7 @@ export async function registerParticipant(
       }
     }
 
-    revalidatePath("/participantes");
+    revalidatePath("/participants");
     revalidatePath("/events");
 
     return {

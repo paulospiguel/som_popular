@@ -522,7 +522,7 @@ const EventDetailsModal = ({
     });
 
     if (confirmed) {
-      window.location.href = "/dashboard/participantes";
+      window.location.href = "/dashboard/participants";
     }
   };
 

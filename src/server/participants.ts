@@ -228,7 +228,7 @@ export async function createSampleParticipants() {
       .values(sampleParticipants)
       .returning();
 
-    revalidatePath("/dashboard/participantes");
+    revalidatePath("/dashboard/participants");
     revalidatePath("/dashboard/events");
 
     return {
