@@ -1,7 +1,3 @@
-import { getBaseUrl } from "@/lib/base-url";
-
-export const APP_URL = getBaseUrl();
-
 export enum ROLES {
   ADMIN = "manager",
   OPERATOR = "operator",

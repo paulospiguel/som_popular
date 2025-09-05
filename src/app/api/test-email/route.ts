@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { APP_URL } from "@/constants";
+import { getBaseUrl } from "@/lib/base-url";
 import { sendResetPasswordEmail } from "@/lib/mailer/resend";
 
-const resetPasswordUrl = `${APP_URL}/auth/reset-password`;
+const resetPasswordUrl = `${getBaseUrl()}/auth/reset-password`;
 
 export async function GET() {
   if (process.env.NODE_ENV !== "development") {
