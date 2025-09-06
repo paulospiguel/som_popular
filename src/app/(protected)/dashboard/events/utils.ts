@@ -1,4 +1,4 @@
-import { EVENT_STATUSES } from "@/constants";
+import { EVENT_CATEGORIES, EVENT_STATUSES } from "@/constants";
 import { type Event } from "@/server/database/schema";
 
 export function getStatusText(status: string): string {
@@ -23,14 +23,13 @@ export function getTypeText(type: string): string {
 }
 
 export function getCategoryText(category: string): string {
-  const categoryMap: Record<string, string> = {
-    fado: "Fado",
-    guitarra: "Guitarra Portuguesa",
-    cavaquinho: "Cavaquinho",
-    concertina: "Concertina",
-    viola: "Viola Campaniça",
-    cante: "Cante Alentejano",
-  };
+  const categoryMap: Record<string, string> = EVENT_CATEGORIES.reduce(
+    (acc, category) => {
+      acc[category.value] = category.label;
+      return acc;
+    },
+    {} as Record<string, string>
+  );
   return categoryMap[category] || category;
 }
 

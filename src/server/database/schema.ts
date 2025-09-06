@@ -1,5 +1,12 @@
 import { createId } from "@paralleldrive/cuid2";
-import { boolean, integer, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  integer,
+  pgTable,
+  text,
+  timestamp,
+  varchar,
+} from "drizzle-orm/pg-core";
 
 /**
  * Tabela de logs do sistema
@@ -35,9 +42,7 @@ export const participants = pgTable("participants", {
   category: varchar("category", { length: 100 }).notNull(),
   experience: varchar("experience", { length: 100 }).notNull(),
   additionalInfo: text("additional_info"),
-  hasSpecialNeeds: boolean("has_special_needs")
-    .notNull()
-    .default(false),
+  hasSpecialNeeds: boolean("has_special_needs").notNull().default(false),
   specialNeedsDescription: text("special_needs_description"),
   status: varchar("status", { length: 50 }).notNull().default("approved"),
   rejectionReason: text("rejection_reason"),
@@ -45,7 +50,9 @@ export const participants = pgTable("participants", {
   acceptsEmailNotifications: boolean("accepts_email_notifications")
     .notNull()
     .default(false),
-  registrationDate: timestamp("registration_date", { withTimezone: true }).$defaultFn(() => new Date()),
+  registrationDate: timestamp("registration_date", {
+    withTimezone: true,
+  }).$defaultFn(() => new Date()),
   approvedAt: timestamp("approved_at", { withTimezone: true }),
   approvedBy: varchar("approved_by", { length: 128 }),
   rejectedAt: timestamp("rejected_at", { withTimezone: true }),
@@ -67,9 +74,10 @@ export const judges = pgTable("judges", {
     .primaryKey()
     .$defaultFn(() => createId()),
   name: varchar("name", { length: 255 }).notNull(),
-  description: text("description"), // especialidade ou área de conhecimento
+  description: text("description"),
   isActive: boolean("is_active").notNull().default(true),
   notes: text("notes"),
+  imageUrl: text("image_url"),
   createdAt: timestamp("created_at", { withTimezone: true }).$defaultFn(
     () => new Date()
   ),
@@ -108,12 +116,18 @@ export const events = pgTable("events", {
   currentParticipants: integer("current_participants").notNull().default(0),
   startDate: timestamp("start_date", { withTimezone: true }).notNull(),
   endDate: timestamp("end_date", { withTimezone: true }),
-  registrationStartDate: timestamp("registration_start_date", { withTimezone: true }),
-  registrationEndDate: timestamp("registration_end_date", { withTimezone: true }),
+  registrationStartDate: timestamp("registration_start_date", {
+    withTimezone: true,
+  }),
+  registrationEndDate: timestamp("registration_end_date", {
+    withTimezone: true,
+  }),
   status: varchar("status", { length: 50 }).notNull().default("draft"),
   isPublic: boolean("is_public").notNull().default(true),
   requiresApproval: boolean("requires_approval").notNull().default(false),
-  approvalMode: varchar("approval_mode", { length: 50 }).notNull().default("automatic"),
+  approvalMode: varchar("approval_mode", { length: 50 })
+    .notNull()
+    .default("automatic"),
   rules: text("rules"),
   rulesFile: text("rules_file"),
   prizes: text("prizes"),

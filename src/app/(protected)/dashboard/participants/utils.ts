@@ -1,3 +1,5 @@
+import { EVENT_CATEGORIES } from "@/constants";
+
 export const getStatusText = (status: string) => {
   switch (status) {
     case "approved":
@@ -12,16 +14,14 @@ export const getStatusText = (status: string) => {
 };
 
 export const getCategoryText = (category: string) => {
-  switch (category) {
-    case "fado":
-      return "Fado";
-    case "guitarra":
-      return "Guitarra";
-    case "concertina":
-      return "Concertina";
-    default:
-      return category;
-  }
+  const categories = EVENT_CATEGORIES.reduce(
+    (acc, category) => {
+      acc[category.value] = category.label;
+      return acc;
+    },
+    {} as Record<string, string>
+  );
+  return categories[category as keyof typeof categories] || category;
 };
 
 export const getExperienceText = (experience: string) => {

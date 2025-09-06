@@ -160,66 +160,6 @@ export async function updateJudge(
 }
 
 /**
- * Criar jurados de exemplo
- */
-export async function createSampleJudges() {
-  try {
-    const sampleJudges = [
-      {
-        name: "Mariza Silva",
-        description: "Fadista profissional e professora de canto",
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        name: "António Ferreira",
-        description: "Guitarrista de fado com 30 anos de experiência",
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        name: "Maria Santos",
-        description: "Crítica musical e especialista em fado",
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        name: "João Oliveira",
-        description: "Produtor musical e compositor",
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        name: "Ana Costa",
-        description: "Violinista e professora de música",
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ];
-
-    const createdJudges = await db
-      .insert(judges)
-      .values(sampleJudges)
-      .returning();
-
-    revalidatePath("/dashboard");
-    return {
-      success: true,
-      data: createdJudges,
-      message: `${createdJudges.length} jurados criados com sucesso!`,
-    };
-  } catch (error) {
-    console.error("Erro ao criar jurados de exemplo:", error);
-    return { success: false, error: "Erro ao criar jurados de exemplo" };
-  }
-}
-
-/**
  * Desativar jurado
  */
 export async function deactivateJudge(judgeId: string) {

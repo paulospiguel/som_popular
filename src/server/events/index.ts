@@ -86,16 +86,43 @@ export async function updateEvent(id: string, data: Partial<Event>) {
 }
 
 /**
- * Eliminar evento
+ * Eliminar evento (apenas rascunhos)
  */
 export async function deleteEvent(id: string) {
   try {
+    // Verificar permissões de admin
+    await checkAdminAccess();
+
+    // Verificar se o evento existe e está em rascunho
+    const [existingEvent] = await db
+      .select()
+      .from(events)
+      .where(eq(events.id, id));
+
+    if (!existingEvent) {
+      return { success: false, error: "Evento não encontrado" };
+    }
+
+    if (existingEvent.status !== "draft") {
+      return {
+        success: false,
+        error: `Não é possível excluir evento com status "${existingEvent.status}". Apenas eventos em rascunho podem ser excluídos.`,
+      };
+    }
+
+    // Excluir o evento
     await db.delete(events).where(eq(events.id, id));
+
     revalidatePath("/dashboard/events");
-    return { success: true };
+    return {
+      success: true,
+      message: "Evento excluído com sucesso!",
+    };
   } catch (error) {
-    console.error("Erro ao eliminar evento:", error);
-    return { success: false, error: "Erro ao eliminar evento" };
+    console.error("Erro ao excluir evento:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Erro ao excluir evento";
+    return { success: false, error: errorMessage };
   }
 }
 

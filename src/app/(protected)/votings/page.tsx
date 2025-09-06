@@ -1,21 +1,12 @@
 "use client";
 
-import {
-  ArrowRight,
-  Calendar,
-  Clock,
-  MapPin,
-  Plus,
-  Users,
-  Vote,
-} from "lucide-react";
+import { ArrowRight, Calendar, Clock, MapPin, Users, Vote } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { ROLES } from "@/constants";
 import { useSession } from "@/lib/auth-client";
 import { getEvents } from "@/server/events";
-import { createTestData } from "@/server/seed-data";
 
 interface Event {
   id: string;
@@ -33,7 +24,6 @@ export default function VotingsSelectionPage() {
   const { data: session, isPending } = useSession();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
-  const [creatingTestData, setCreatingTestData] = useState(false);
 
   useEffect(() => {
     // ProtectedProvider já faz a validação de permissões
@@ -69,24 +59,6 @@ export default function VotingsSelectionPage() {
       setEvents([]);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleCreateTestData = async () => {
-    setCreatingTestData(true);
-    try {
-      const result = await createTestData();
-      if (result.success) {
-        alert("Dados de teste criados com sucesso!");
-        await loadEvents();
-      } else {
-        alert("Erro ao criar dados de teste");
-      }
-    } catch (error) {
-      console.error("Erro ao criar dados de teste:", error);
-      alert("Erro ao criar dados de teste");
-    } finally {
-      setCreatingTestData(false);
     }
   };
 
@@ -177,14 +149,6 @@ export default function VotingsSelectionPage() {
                   Ir para Gestão de Eventos
                 </Link>
               )}
-              <button
-                onClick={handleCreateTestData}
-                disabled={creatingTestData}
-                className="px-4 py-2 bg-amarelo-dourado text-white rounded-lg hover:bg-amarelo-dourado/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                {creatingTestData ? "A criar..." : "Criar Dados de Teste"}
-              </button>
             </div>
           </div>
         ) : (

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { EVENT_CATEGORIES } from "@/constants";
 import { cn } from "@/lib/utils";
 
 import { Avatar } from "./avatar";
@@ -55,14 +56,13 @@ export function AvatarGroup({
   };
 
   const formatCategory = (category: string) => {
-    const categories = {
-      fado: "Fado",
-      guitarra: "Guitarra Portuguesa",
-      cavaquinho: "Cavaquinho",
-      concertina: "Concertina",
-      viola: "Viola Campaniça",
-      cante: "Cante Alentejano",
-    };
+    const categories = EVENT_CATEGORIES.reduce(
+      (acc, category) => {
+        acc[category.value] = category.label;
+        return acc;
+      },
+      {} as Record<string, string>
+    );
     return categories[category as keyof typeof categories] || category;
   };
 

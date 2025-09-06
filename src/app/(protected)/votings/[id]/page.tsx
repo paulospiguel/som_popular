@@ -7,15 +7,22 @@ import {
   ChevronRight,
   Clock,
   FileText,
+  Pause,
+  Plus,
+  RefreshCw,
   Save,
+  Settings,
   Upload,
   User,
-  Users,
+  UserCheck,
+  UserPlus,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
+import { Avatar } from "@/components/ui/avatar";
+import { ExpandedTabs } from "@/components/ui/expanded-tabs";
 import {
   Select,
   SelectContent,
@@ -25,6 +32,7 @@ import {
 } from "@/components/ui/select";
 import { ROLES } from "@/constants";
 import { useSession } from "@/lib/auth-client";
+import { Judge } from "@/server/database/schema";
 import { getEventById } from "@/server/events";
 import {
   createEvaluation,
@@ -32,13 +40,7 @@ import {
   getEventParticipantsWithEvaluations,
   publishEventResults,
 } from "@/server/events/evaluations";
-import { getEventJudges } from "@/server/judges";
-
-interface Judge {
-  id: string;
-  name: string;
-  description: string | null;
-}
+import { addJudgeToEvent, createJudge, getEventJudges } from "@/server/judges";
 
 interface Participant {
   id: string;
@@ -110,6 +112,9 @@ export default function VotingEventPage() {
     useState<EvaluationStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showCreateJudgeModal, setShowCreateJudgeModal] = useState(false);
+  const [newJudgeName, setNewJudgeName] = useState("");
+  const [newJudgeDescription, setNewJudgeDescription] = useState("");
   const [currentEvent, setCurrentEvent] = useState<Event | null>(null);
 
   const loadEventData = useCallback(async () => {
@@ -283,6 +288,38 @@ export default function VotingEventPage() {
       (e) => e.evaluation.judgeId
     );
     return judges.filter((judge) => !evaluatedJudgeIds.includes(judge.id));
+  };
+
+  const handleCreateTemporaryJudge = async () => {
+    if (!newJudgeName.trim() || !eventId) return;
+
+    try {
+      const result = await createJudge({
+        name: newJudgeName.trim(),
+        description: newJudgeDescription.trim() || null,
+        isActive: true,
+      });
+
+      if (result.success && result.data) {
+        // Adicionar o jurado ao evento
+        const addResult = await addJudgeToEvent(eventId, result.data.id);
+
+        if (addResult.success) {
+          // Recarregar dados do evento
+          await loadEventData();
+          setShowCreateJudgeModal(false);
+          setNewJudgeName("");
+          setNewJudgeDescription("");
+          console.log("Jurado temporário criado e adicionado com sucesso!");
+        } else {
+          console.error("Erro ao adicionar jurado ao evento:", addResult.error);
+        }
+      } else {
+        console.error("Erro ao criar jurado:", result.error);
+      }
+    } catch (error) {
+      console.error("Erro ao criar jurado temporário:", error);
+    }
   };
 
   if (!session || loading) {
@@ -494,7 +531,16 @@ export default function VotingEventPage() {
                   Adicionar Nova Avaliação
                 </h3>
 
-                {getAvailableJudges().length === 0 ? (
+                {judges.length === 0 ? (
+                  <div className="text-center py-8 text-cinza-chumbo/70">
+                    <UserCheck className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                    <p>Não há jurados associados a este evento.</p>
+                    <p className="text-sm mt-2">
+                      Adicione jurados ao evento para poder avaliar os
+                      participantes.
+                    </p>
+                  </div>
+                ) : getAvailableJudges().length === 0 ? (
                   <div className="text-center py-8 text-cinza-chumbo/70">
                     <CheckCircle className="w-12 h-12 mx-auto mb-3 text-verde-suave" />
                     <p>Todos os jurados já avaliaram este participante!</p>
@@ -623,14 +669,34 @@ export default function VotingEventPage() {
                     </div>
                   </div>
 
-                  {evaluationStats.isComplete && (
-                    <div className="text-center p-4 bg-verde-suave/10 rounded-lg">
-                      <CheckCircle className="w-8 h-8 text-verde-suave mx-auto mb-2" />
-                      <p className="text-verde-suave font-medium">
-                        Todas as avaliações foram concluídas!
-                      </p>
-                    </div>
-                  )}
+                  {evaluationStats.isComplete &&
+                    evaluationStats.totalJudges > 0 &&
+                    evaluationStats.totalParticipants > 0 && (
+                      <div className="text-center p-4 bg-verde-suave/10 rounded-lg">
+                        <CheckCircle className="w-8 h-8 text-verde-suave mx-auto mb-2" />
+                        <p className="text-verde-suave font-medium">
+                          Todas as avaliações foram concluídas!
+                        </p>
+                      </div>
+                    )}
+
+                  {evaluationStats.isComplete &&
+                    (evaluationStats.totalJudges === 0 ||
+                      evaluationStats.totalParticipants === 0) && (
+                      <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                        <Clock className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
+                        <p className="text-yellow-700 font-medium">
+                          Aguardando votações
+                        </p>
+                        <p className="text-yellow-600 text-sm mt-1">
+                          {evaluationStats.totalJudges === 0 &&
+                            "Adicione jurados ao evento"}
+                          {evaluationStats.totalJudges > 0 &&
+                            evaluationStats.totalParticipants === 0 &&
+                            "Aguarde participantes se inscreverem"}
+                        </p>
+                      </div>
+                    )}
                 </div>
               )}
             </div>
@@ -641,55 +707,166 @@ export default function VotingEventPage() {
                 Jurados do Evento
               </h3>
 
-              <div className="space-y-3">
-                {judges.map((judge) => (
-                  <div
-                    key={judge.id}
-                    className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg"
-                  >
-                    <div className="w-8 h-8 bg-amarelo-dourado rounded-full flex items-center justify-center">
-                      <Users className="w-4 h-4 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="font-medium text-cinza-chumbo">
-                        {judge.name}
-                      </div>
-                      {judge.description && (
-                        <div className="text-sm text-cinza-chumbo/70">
-                          {judge.description}
-                        </div>
-                      )}
-                    </div>
+              {judges.length === 0 ? (
+                <div className="text-center py-8 text-cinza-chumbo/70">
+                  <UserCheck className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                  <p className="font-medium mb-2">Nenhum jurado associado</p>
+                  <p className="text-sm mb-4">
+                    Este evento não possui jurados. Adicione jurados ao evento
+                    para poder realizar as avaliações.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Link
+                      href={`/dashboard/events`}
+                      className="flex items-center justify-center space-x-2 bg-verde-suave text-white px-4 py-2 rounded-lg hover:bg-verde-suave/90 transition-colors"
+                    >
+                      <UserPlus className="w-4 h-4" />
+                      <span>Gerenciar Jurados</span>
+                    </Link>
+                    <button
+                      onClick={() => setShowCreateJudgeModal(true)}
+                      className="flex items-center justify-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>Jurado Temporário</span>
+                    </button>
                   </div>
-                ))}
-              </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {judges.map((judge) => (
+                    <div
+                      key={judge.id}
+                      className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg"
+                    >
+                      <div className="w-8 h-8 bg-amarelo-dourado rounded-full flex items-center justify-center">
+                        <Avatar
+                          src={judge.imageUrl}
+                          name={judge.name}
+                          size="sm"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-cinza-chumbo">
+                          {judge.name}
+                        </div>
+                        {judge.description && (
+                          <div className="text-sm text-cinza-chumbo/70">
+                            {judge.description}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Ações */}
+            {/* Ações Rápidas */}
             <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-cinza-chumbo mb-4">
-                Ações
+              <h3 className="text-lg font-semibold text-cinza-chumbo mb-4 flex items-center">
+                <Settings className="w-5 h-5 mr-2" />
+                Ações Rápidas
               </h3>
 
-              <div className="space-y-3">
-                <button
-                  onClick={handlePublishResults}
-                  disabled={!evaluationStats?.isComplete}
-                  className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-amarelo-dourado text-white rounded-lg hover:bg-amarelo-dourado/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Upload className="w-5 h-5" />
-                  <span>Publicar Resultados</span>
-                </button>
-
-                <button className="w-full flex items-center justify-center space-x-2 px-4 py-2 border border-gray-300 text-cinza-chumbo rounded-lg hover:bg-gray-50 transition-colors">
-                  <FileText className="w-5 h-5" />
-                  <span>Relatório Detalhado</span>
-                </button>
-              </div>
+              <ExpandedTabs
+                tabs={[
+                  {
+                    title: "Publicar Resultados",
+                    icon: Upload,
+                    action: handlePublishResults,
+                    disabled: !evaluationStats?.isComplete,
+                    variant: "default",
+                  },
+                  {
+                    title: "Relatório Detalhado",
+                    icon: FileText,
+                    action: () => console.log("Relatório detalhado"),
+                    variant: "default",
+                  },
+                  {
+                    type: "separator",
+                  },
+                  {
+                    title: "Pausar Evento",
+                    icon: Pause,
+                    action: () => console.log("Pausar evento"),
+                    disabled: currentEvent?.status !== "ongoing",
+                    variant: "warning",
+                  },
+                  {
+                    title: "Resetar Votações",
+                    icon: RefreshCw,
+                    action: () => console.log("Resetar votações"),
+                    disabled: currentEvent?.status === "draft",
+                    variant: "destructive",
+                  },
+                ]}
+                className="flex-wrap"
+              />
             </div>
           </div>
         </div>
       </div>
+
+      {/* Modal para Criar Jurado Temporário */}
+      {showCreateJudgeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-cinza-chumbo mb-4">
+              Criar Jurado Temporário
+            </h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-cinza-chumbo mb-2">
+                  Nome do Jurado *
+                </label>
+                <input
+                  type="text"
+                  value={newJudgeName}
+                  onChange={(e) => setNewJudgeName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-verde-suave"
+                  placeholder="Digite o nome do jurado"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-cinza-chumbo mb-2">
+                  Descrição (opcional)
+                </label>
+                <textarea
+                  value={newJudgeDescription}
+                  onChange={(e) => setNewJudgeDescription(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-verde-suave"
+                  rows={3}
+                  placeholder="Descrição do jurado (opcional)"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowCreateJudgeModal(false);
+                  setNewJudgeName("");
+                  setNewJudgeDescription("");
+                }}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleCreateTemporaryJudge}
+                disabled={!newJudgeName.trim()}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Criar e Adicionar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

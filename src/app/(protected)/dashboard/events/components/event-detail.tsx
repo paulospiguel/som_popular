@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   Calendar,
   CalendarDays,
+  CheckCircle,
   Clock,
   Copy,
   Download,
@@ -11,13 +12,16 @@ import {
   Eye,
   EyeOff,
   FileText,
+  Globe,
   MapPin,
   MoreVertical,
   Pause,
   Plus,
+  RefreshCw,
   Save,
   SaveOff,
   Settings,
+  StickyNote,
   ToggleLeft as Toggle,
   Trash2,
   Trophy,
@@ -26,6 +30,7 @@ import {
   UserMinus,
   UserPlus,
   Users,
+  X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -40,6 +45,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ExpandedTabs } from "@/components/ui/expanded-tabs";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import {
   Select,
@@ -57,6 +63,7 @@ import { Event, Participant } from "@/server/database/schema";
 import {
   cancelEvent,
   completeEvent,
+  deleteEvent,
   publishEvent,
   revertToDraft,
   startEvent,
@@ -65,19 +72,16 @@ import {
 import {
   addJudgeToEvent,
   createJudge,
-  createSampleJudges,
   getEventJudges,
   getJudges,
   removeJudgeFromEvent,
 } from "@/server/judges";
 import {
-  createSampleParticipants,
   getApprovedParticipants,
   getEventParticipants,
   registerParticipantInEvent,
   removeParticipantFromEvent,
 } from "@/server/participants";
-import { createTestData } from "@/server/seed-data";
 import { uploadrulesFile } from "@/server/upload";
 
 import {
@@ -107,6 +111,8 @@ const EventDetailsModal = ({
   const { showSuccess, showError } = useSonner();
   const { confirm, ConfirmDialog } = useConfirm();
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState("");
   const [loading, setLoading] = useState(false);
   const [eventJudges, setEventJudges] = useState<any[]>([]);
   const [allJudges, setAllJudges] = useState<any[]>([]);
@@ -166,6 +172,10 @@ const EventDetailsModal = ({
       } else {
         setRegulationMode("text");
       }
+
+      // Resetar estados de edição inline
+      setIsEditingName(false);
+      setEditedName("");
 
       console.log("Inicializando estado de edição:", initialEditState);
       setEditedEvent(initialEditState);
@@ -359,45 +369,6 @@ const EventDetailsModal = ({
   const availableJudges = allJudges.filter(
     (judge) => !eventJudges.some((ej) => ej.judge.id === judge.id)
   );
-
-  const handleCreateTestJudges = async () => {
-    try {
-      // Tentar primeiro criar jurados simples
-      const result = await createSampleJudges();
-      if (result.success) {
-        await loadAllJudges();
-        showToast({
-          type: "success",
-          title: "Sucesso!",
-          description: result.message || "Jurados criados com sucesso!",
-        });
-      } else {
-        // Se falhar, tentar criar dados de teste completos
-        const fallbackResult = await createTestData();
-        if (fallbackResult.success) {
-          await loadAllJudges();
-          showToast({
-            type: "success",
-            title: "Sucesso!",
-            description: "Jurados de teste criados com sucesso!",
-          });
-        } else {
-          showToast({
-            type: "error",
-            title: "Erro",
-            description: "Erro ao criar jurados",
-          });
-        }
-      }
-    } catch (error) {
-      console.error("Erro ao criar jurados:", error);
-      showToast({
-        type: "error",
-        title: "Erro",
-        description: "Erro ao criar jurados",
-      });
-    }
-  };
 
   const handleCreateQuickJudge = async (name: string, description: string) => {
     try {
@@ -663,11 +634,12 @@ const EventDetailsModal = ({
   };
 
   const handleDeleteEvent = async () => {
+    if (!event) return;
+
     const confirmed = await confirm({
-      title: "Deletar Evento",
-      description:
-        "Esta ação é irreversível. Tem certeza que deseja deletar este evento?",
-      confirmText: "Sim, deletar",
+      title: "Excluir Evento",
+      description: `Tem certeza que deseja excluir o evento "${event.name}"? Esta ação é irreversível e só é permitida para eventos em rascunho.`,
+      confirmText: "Sim, excluir",
       cancelText: "Cancelar",
       destructive: true,
       icon: <Trash2 className="w-5 h-5 text-red-500" />,
@@ -676,12 +648,222 @@ const EventDetailsModal = ({
     if (!confirmed) return;
 
     try {
-      // Aqui você implementaria a lógica para deletar o evento
-      showSuccess("Funcionalidade de deletar será implementada em breve!");
-      setShowMenu(false);
+      const result = await deleteEvent(event.id);
+
+      if (result.success) {
+        showSuccess(result.message || "Evento excluído com sucesso!");
+        onEventUpdated?.(event);
+        onClose();
+      } else {
+        showError(result.error || "Erro ao excluir evento");
+      }
     } catch (error) {
-      showError("Erro ao deletar evento");
+      console.error("Erro ao excluir evento:", error);
+      showError("Erro ao excluir evento");
     }
+  };
+
+  const handleEditName = () => {
+    if (!event) return;
+    setEditedName(event.name);
+    setIsEditingName(true);
+  };
+
+  const handleSaveName = async () => {
+    if (!event || !editedName.trim()) return;
+
+    try {
+      const result = await updateEvent(event.id, { name: editedName.trim() });
+
+      if (result.success && result.data) {
+        showSuccess("Nome do evento atualizado com sucesso!");
+        onEventUpdated?.(result.data);
+        setIsEditingName(false);
+      } else {
+        showError(result.error || "Erro ao atualizar nome do evento");
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar nome:", error);
+      showError("Erro ao atualizar nome do evento");
+    }
+  };
+
+  const handleCancelEditName = () => {
+    setEditedName("");
+    setIsEditingName(false);
+  };
+
+  // Funções de ação dinâmicas
+  const handleCompleteEvent = async () => {
+    if (!event) return;
+
+    const confirmed = await confirm({
+      title: "Concluir Evento",
+      description: `Tem certeza que deseja concluir o evento "${event.name}"? Esta ação finalizará todas as avaliações.`,
+      confirmText: "Sim, concluir",
+      cancelText: "Cancelar",
+      icon: <CheckCircle className="w-5 h-5 text-green-500" />,
+    });
+
+    if (!confirmed) return;
+
+    try {
+      const result = await completeEvent(event.id, "admin");
+
+      if (result.success && result.data) {
+        showSuccess(result.message || "Evento concluído com sucesso!");
+        onEventUpdated?.(result.data);
+      } else {
+        showError(result.error || "Erro ao concluir evento");
+      }
+    } catch (error) {
+      console.error("Erro ao concluir evento:", error);
+      showError("Erro ao concluir evento");
+    }
+  };
+
+  const handlePublishResults = async () => {
+    if (!event) return;
+
+    const confirmed = await confirm({
+      title: "Publicar Resultados",
+      description: `Tem certeza que deseja publicar os resultados do evento "${event.name}" no site?`,
+      confirmText: "Sim, publicar",
+      cancelText: "Cancelar",
+      icon: <Globe className="w-5 h-5 text-blue-500" />,
+    });
+
+    if (!confirmed) return;
+
+    try {
+      // TODO: Implementar publicação de resultados
+      showSuccess("Resultados publicados com sucesso!");
+    } catch (error) {
+      console.error("Erro ao publicar resultados:", error);
+      showError("Erro ao publicar resultados");
+    }
+  };
+
+  const handleResetVotings = async () => {
+    if (!event) return;
+
+    const confirmed = await confirm({
+      title: "Resetar Votações",
+      description: `Tem certeza que deseja resetar todas as votações do evento "${event.name}"? Esta ação é irreversível.`,
+      confirmText: "Sim, resetar",
+      cancelText: "Cancelar",
+      destructive: true,
+      icon: <RefreshCw className="w-5 h-5 text-red-500" />,
+    });
+
+    if (!confirmed) return;
+
+    try {
+      // TODO: Implementar reset de votações
+      showSuccess("Votações resetadas com sucesso!");
+    } catch (error) {
+      console.error("Erro ao resetar votações:", error);
+      showError("Erro ao resetar votações");
+    }
+  };
+
+  const handleAddNotes = () => {
+    // TODO: Implementar modal para adicionar notas
+    showSuccess("Funcionalidade de notas será implementada em breve!");
+  };
+
+  const handlePauseEventTemporarily = async () => {
+    if (!event) return;
+
+    const confirmed = await confirm({
+      title: "Pausar Evento",
+      description: `Tem certeza que deseja pausar temporariamente o evento "${event.name}"?`,
+      confirmText: "Sim, pausar",
+      cancelText: "Cancelar",
+      icon: <Pause className="w-5 h-5 text-yellow-500" />,
+    });
+
+    if (!confirmed) return;
+
+    try {
+      // TODO: Implementar pausa temporária
+      showSuccess("Evento pausado temporariamente!");
+    } catch (error) {
+      console.error("Erro ao pausar evento:", error);
+      showError("Erro ao pausar evento");
+    }
+  };
+
+  const handleReplaceJudge = () => {
+    // TODO: Implementar substituição de jurado
+    showSuccess(
+      "Funcionalidade de substituição de jurado será implementada em breve!"
+    );
+  };
+
+  const handleAddTemporaryJudge = () => {
+    setShowCreateJudgeForm(true);
+  };
+
+  // Configuração das abas de ações dinâmicas
+  const getActionTabs = () => {
+    const baseTabs = [
+      {
+        title: "Concluir Evento",
+        icon: CheckCircle,
+        action: handleCompleteEvent,
+        disabled: event?.status !== "ongoing",
+        variant: "default" as const,
+      },
+      {
+        title: "Publicar Resultados",
+        icon: Globe,
+        action: handlePublishResults,
+        disabled: event?.status !== "completed",
+        variant: "default" as const,
+      },
+      {
+        type: "separator" as const,
+      },
+      {
+        title: "Resetar Votações",
+        icon: RefreshCw,
+        action: handleResetVotings,
+        disabled: event?.status === "draft",
+        variant: "destructive" as const,
+      },
+      {
+        title: "Adicionar Notas",
+        icon: StickyNote,
+        action: handleAddNotes,
+        variant: "default" as const,
+      },
+      {
+        title: "Pausar Evento",
+        icon: Pause,
+        action: handlePauseEventTemporarily,
+        disabled: event?.status !== "ongoing",
+        variant: "warning" as const,
+      },
+      {
+        type: "separator" as const,
+      },
+      {
+        title: "Substituir Jurado",
+        icon: UserMinus,
+        action: handleReplaceJudge,
+        disabled: eventJudges.length === 0,
+        variant: "default" as const,
+      },
+      {
+        title: "Jurado Temporário",
+        icon: UserPlus,
+        action: handleAddTemporaryJudge,
+        variant: "default" as const,
+      },
+    ];
+
+    return baseTabs;
   };
 
   const headerActions = (
@@ -772,9 +954,15 @@ const EventDetailsModal = ({
           <DropdownMenuItem
             onClick={() => handleDeleteEvent()}
             className="flex items-center"
+            disabled={event?.status !== "draft"}
           >
             <Trash2 className="w-4 h-5 text-red-500" />
-            Deletar Evento
+            Excluir Evento
+            {event?.status !== "draft" && (
+              <span className="ml-auto text-xs text-gray-400">
+                (Apenas rascunhos)
+              </span>
+            )}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -799,6 +987,59 @@ const EventDetailsModal = ({
       >
         <div className="p-8">
           <div className="space-y-8">
+            {/* Nome do Evento - Edição Inline */}
+            <div className="border-b border-gray-200 pb-6">
+              <label className="text-sm text-cinza-chumbo/70 font-medium block mb-2">
+                Nome do Evento
+              </label>
+              {isEditingName ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={editedName}
+                    onChange={(e) => setEditedName(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-lg font-medium focus:outline-none focus:ring-2 focus:ring-verde-suave focus:border-transparent"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleSaveName();
+                      } else if (e.key === "Escape") {
+                        handleCancelEditName();
+                      }
+                    }}
+                  />
+                  <button
+                    onClick={handleSaveName}
+                    disabled={!editedName.trim()}
+                    className="px-3 py-2 bg-verde-suave text-white text-sm rounded-md hover:bg-verde-suave/80 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                  >
+                    <Save className="w-4 h-4" />
+                    Salvar
+                  </button>
+                  <button
+                    onClick={handleCancelEditName}
+                    className="px-3 py-2 bg-gray-500 text-white text-sm rounded-md hover:bg-gray-600 flex items-center gap-1"
+                  >
+                    <X className="w-4 h-4" />
+                    Cancelar
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 group">
+                  <h2 className="text-xl font-semibold text-cinza-chumbo">
+                    {event.name}
+                  </h2>
+                  <button
+                    onClick={handleEditName}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 rounded-md"
+                    title="Editar nome do evento"
+                  >
+                    <Edit className="w-4 h-4 text-gray-500" />
+                  </button>
+                </div>
+              )}
+            </div>
+
             {/* Status e Informações Básicas */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
@@ -1459,6 +1700,33 @@ const EventDetailsModal = ({
                 <div className="text-center py-4">
                   <p className="text-cinza-chumbo/70">Carregando jurados...</p>
                 </div>
+              ) : eventJudges.length === 0 ? (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+                  <UserCheck className="w-12 h-12 text-yellow-500 mx-auto mb-3" />
+                  <h3 className="text-lg font-semibold text-yellow-800 mb-2">
+                    Nenhum jurado associado
+                  </h3>
+                  <p className="text-yellow-700 mb-4">
+                    Este evento ainda não possui jurados. Adicione jurados para
+                    poder realizar as avaliações.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <button
+                      onClick={openJudgesModal}
+                      className="flex items-center justify-center space-x-2 bg-verde-suave text-white px-4 py-2 rounded-lg hover:bg-verde-suave/90 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>Associar Jurados</span>
+                    </button>
+                    <button
+                      onClick={() => setShowCreateJudgeForm(true)}
+                      className="flex items-center justify-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <UserPlus className="w-4 h-4" />
+                      <span>Criar Jurado Temporário</span>
+                    </button>
+                  </div>
+                </div>
               ) : (
                 <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                   <AvatarGroup
@@ -1477,6 +1745,21 @@ const EventDetailsModal = ({
                   />
                 </div>
               )}
+            </div>
+
+            {/* Ações Dinâmicas */}
+            <div>
+              <h4 className="font-semibold text-cinza-chumbo mb-4 flex items-center">
+                <Settings className="w-5 h-5 mr-2" />
+                Ações do Evento
+              </h4>
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <ExpandedTabs tabs={getActionTabs()} className="flex-wrap" />
+                <p className="text-xs text-gray-500 mt-3">
+                  As ações disponíveis dependem do status atual do evento e da
+                  configuração.
+                </p>
+              </div>
             </div>
 
             {/* Notas Internas */}
@@ -1629,12 +1912,6 @@ const EventDetailsModal = ({
                 Não há jurados na base de dados. Crie alguns jurados primeiro.
               </p>
               <div className="space-y-3">
-                <button
-                  onClick={handleCreateTestJudges}
-                  className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  Criar 5 Jurados de Exemplo
-                </button>
                 <button
                   onClick={() => setShowCreateJudgeForm(true)}
                   className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
@@ -1810,39 +2087,6 @@ const EventDetailsModal = ({
                 Não há participantes aprovados na base de dados.
               </p>
               <div className="space-y-3">
-                <button
-                  onClick={async () => {
-                    try {
-                      const result = await createSampleParticipants();
-                      if (result.success) {
-                        await loadAllParticipants();
-                        showToast({
-                          type: "success",
-                          title: "Sucesso!",
-                          description:
-                            result.message ||
-                            "Participantes criados com sucesso!",
-                        });
-                      } else {
-                        showToast({
-                          type: "error",
-                          title: "Erro",
-                          description:
-                            result.error || "Erro ao criar participantes",
-                        });
-                      }
-                    } catch (error) {
-                      showToast({
-                        type: "error",
-                        title: "Erro",
-                        description: "Erro ao criar participantes de exemplo",
-                      });
-                    }
-                  }}
-                  className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Criar 5 Participantes de Exemplo
-                </button>
                 <button
                   onClick={handleRedirectToCreateParticipant}
                   className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"

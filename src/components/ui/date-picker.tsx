@@ -39,6 +39,7 @@ export function DatePicker({
             !date && "text-muted-foreground",
             className
           )}
+          type="button"
           disabled={disabled}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
@@ -164,6 +165,7 @@ export function DateTimePicker({
             !selectedDate && "text-muted-foreground",
             className
           )}
+          type="button"
           disabled={disabled}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
@@ -212,6 +214,7 @@ export function DateTimePicker({
                   {timePresets.map((preset) => (
                     <button
                       key={preset}
+                      type="button"
                       onClick={() => handleTimePreset(preset)}
                       className={cn(
                         "px-2 py-1 text-xs rounded border transition-colors",
@@ -229,6 +232,7 @@ export function DateTimePicker({
               {/* Botão de confirmação */}
               <div className="mt-4 pt-3 border-t">
                 <button
+                  type="button"
                   onClick={() => setIsOpen(false)}
                   className="w-full bg-verde-suave text-white px-3 py-2 rounded-lg hover:bg-verde-suave/90 transition-colors text-sm"
                 >

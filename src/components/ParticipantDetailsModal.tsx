@@ -12,6 +12,7 @@ import {
 
 import { Modal } from "@/components/Modal";
 import { Avatar } from "@/components/ui/avatar";
+import { EVENT_CATEGORIES } from "@/constants";
 import { Participant } from "@/server/database/schema";
 
 interface ParticipantDetailsModalProps {
@@ -61,14 +62,13 @@ export function ParticipantDetailsModal({
   };
 
   const getCategoryText = (category: string) => {
-    const texts = {
-      fado: "Fado",
-      guitarra: "Guitarra Portuguesa",
-      cavaquinho: "Cavaquinho",
-      concertina: "Concertina",
-      viola: "Viola Campaniça",
-      cante: "Cante Alentejano",
-    };
+    const texts = EVENT_CATEGORIES.reduce(
+      (acc, category) => {
+        acc[category.value] = category.label;
+        return acc;
+      },
+      {} as Record<string, string>
+    );
     return texts[category as keyof typeof texts] || category;
   };
 
