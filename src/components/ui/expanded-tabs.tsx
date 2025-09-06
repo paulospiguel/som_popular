@@ -11,6 +11,7 @@ interface Tab {
   action?: () => void;
   disabled?: boolean;
   variant?: "default" | "destructive" | "warning";
+  status?: "success" | "pending" | "error";
 }
 
 interface ExpandedTabsProps {
@@ -47,6 +48,17 @@ export function ExpandedTabs({
     }
   };
 
+  const getStatusStyles = (status: Tab["status"] = "pending") => {
+    switch (status) {
+      case "success":
+        return "bg-green-500 animate-pulse";
+      case "pending":
+        return "bg-yellow-500";
+      case "error":
+        return "bg-red-500";
+    }
+  };
+
   return (
     <div
       className={cn(
@@ -74,22 +86,36 @@ export function ExpandedTabs({
         const isActive = activeTab === tab.title;
 
         return (
-          <button
+          <div
             key={tab.title}
-            onClick={() => handleTabClick(tab)}
-            disabled={tab.disabled}
-            className={cn(
-              "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200",
-              "disabled:opacity-50 disabled:cursor-not-allowed",
-              isActive
-                ? "bg-white text-gray-900 shadow-sm"
-                : getVariantStyles(tab.variant),
-              tab.disabled && "cursor-not-allowed"
-            )}
+            className="flex items-center justify-center gap-2"
           >
-            {Icon && <Icon className="w-4 h-4" />}
-            <span>{tab.title}</span>
-          </button>
+            <button
+              type="button"
+              onClick={() => handleTabClick(tab)}
+              disabled={tab.disabled}
+              className={cn(
+                "flex items-center  gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200",
+                "disabled:opacity-50 disabled:cursor-not-allowed",
+                isActive
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : getVariantStyles(tab.variant),
+                tab.disabled && "cursor-not-allowed"
+              )}
+            >
+              {Icon && <Icon className="w-4 h-4" />}
+              <span>{tab.title}</span>
+            </button>
+
+            {tab.status && (
+              <span
+                className={cn(
+                  "w-2 h-2 rounded-full",
+                  getStatusStyles(tab.status)
+                )}
+              />
+            )}
+          </div>
         );
       })}
     </div>

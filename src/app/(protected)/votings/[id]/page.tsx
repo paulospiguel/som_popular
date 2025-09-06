@@ -20,6 +20,7 @@ import {
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import { Avatar } from "@/components/ui/avatar";
 import { ExpandedTabs } from "@/components/ui/expanded-tabs";
@@ -256,10 +257,12 @@ export default function VotingEventPage() {
 
     const result = await publishEventResults(eventId);
     if (result.success) {
-      alert("Resultados publicados com sucesso!");
-      await loadEventData();
+      toast.info(
+        "Funcionalidade de publicação de resultados será implementada em breve!"
+      );
+      //await loadEventData();
     } else {
-      alert("Erro ao publicar resultados");
+      toast.error("Erro ao publicar resultados");
     }
   };
 
@@ -774,6 +777,7 @@ export default function VotingEventPage() {
                   {
                     title: "Publicar Resultados",
                     icon: Upload,
+                    status: evaluationStats?.isComplete ? "success" : "pending",
                     action: handlePublishResults,
                     disabled: !evaluationStats?.isComplete,
                     variant: "default",
@@ -781,7 +785,11 @@ export default function VotingEventPage() {
                   {
                     title: "Relatório Detalhado",
                     icon: FileText,
-                    action: () => console.log("Relatório detalhado"),
+
+                    action: () =>
+                      toast.info(
+                        "Funcionalidade de relatório detalhado será implementada em breve!"
+                      ),
                     variant: "default",
                   },
                   {
@@ -790,14 +798,20 @@ export default function VotingEventPage() {
                   {
                     title: "Pausar Evento",
                     icon: Pause,
-                    action: () => console.log("Pausar evento"),
+                    action: () =>
+                      toast.info(
+                        "Funcionalidade de pausar evento será implementada em breve!"
+                      ),
                     disabled: currentEvent?.status !== "ongoing",
                     variant: "warning",
                   },
                   {
                     title: "Resetar Votações",
                     icon: RefreshCw,
-                    action: () => console.log("Resetar votações"),
+                    action: () =>
+                      toast.info(
+                        "Funcionalidade de resetar votações será implementada em breve!"
+                      ),
                     disabled: currentEvent?.status === "draft",
                     variant: "destructive",
                   },
