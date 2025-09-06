@@ -777,7 +777,6 @@ export default function VotingEventPage() {
                   {
                     title: "Publicar Resultados",
                     icon: Upload,
-                    status: evaluationStats?.isComplete ? "success" : "pending",
                     action: handlePublishResults,
                     disabled: !evaluationStats?.isComplete,
                     variant: "default",

@@ -1,7 +1,7 @@
-import * as React from "react"
-import Image from "next/image"
+import Image from "next/image";
+import * as React from "react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 const MinimalCard = React.forwardRef<
   HTMLDivElement,
@@ -9,7 +9,6 @@ const MinimalCard = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <div
     ref={ref}
-    // eslint-disable-next-line tailwindcss/no-contradicting-classname
     className={cn(
       "rounded-[24px] bg-neutral-50 p-2 no-underline shadow-sm transition-colors hover:bg-neutral-100 dark:bg-neutral-800 dark:hover:bg-neutral-800/80 ",
       "shadow-[0px_1px_1px_0px_rgba(0,0,0,0.05),0px_1px_1px_0px_rgba(255,252,240,0.5)_inset,0px_0px_0px_1px_hsla(0,0%,100%,0.1)_inset,0px_0px_1px_0px_rgba(28,27,26,0.5)]",
@@ -21,8 +20,8 @@ const MinimalCard = React.forwardRef<
   >
     {children}
   </div>
-))
-MinimalCard.displayName = "MinimalCard"
+));
+MinimalCard.displayName = "MinimalCard";
 
 const MinimalCardImage = React.forwardRef<
   HTMLDivElement,
@@ -61,8 +60,8 @@ const MinimalCardImage = React.forwardRef<
       />
     </div>
   </div>
-))
-MinimalCardImage.displayName = "MinimalCardImage"
+));
+MinimalCardImage.displayName = "MinimalCardImage";
 
 const MinimalCardTitle = React.forwardRef<
   HTMLHeadingElement,
@@ -73,8 +72,8 @@ const MinimalCardTitle = React.forwardRef<
     className={cn("mt-2 px-1 text-lg font-semibold leading-tight", className)}
     {...props}
   />
-))
-MinimalCardTitle.displayName = "MinimalCardTitle"
+));
+MinimalCardTitle.displayName = "MinimalCardTitle";
 
 const MinimalCardDescription = React.forwardRef<
   HTMLParagraphElement,
@@ -85,16 +84,16 @@ const MinimalCardDescription = React.forwardRef<
     className={cn("px-1 pb-2 text-sm text-neutral-500", className)}
     {...props}
   />
-))
-MinimalCardDescription.displayName = "MinimalCardDescription"
+));
+MinimalCardDescription.displayName = "MinimalCardDescription";
 
 const MinimalCardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
   <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
-))
-MinimalCardContent.displayName = "MinimalCardContent"
+));
+MinimalCardContent.displayName = "MinimalCardContent";
 
 const MinimalCardFooter = React.forwardRef<
   HTMLDivElement,
@@ -105,16 +104,16 @@ const MinimalCardFooter = React.forwardRef<
     className={cn("flex items-center p-6 pt-0", className)}
     {...props}
   />
-))
-MinimalCardFooter.displayName = "MinimalCardFooter"
+));
+MinimalCardFooter.displayName = "MinimalCardFooter";
 
 export {
   MinimalCard,
+  MinimalCardContent,
+  MinimalCardDescription,
+  MinimalCardFooter,
   MinimalCardImage,
   MinimalCardTitle,
-  MinimalCardDescription,
-  MinimalCardContent,
-  MinimalCardFooter,
-}
+};
 
-export default MinimalCard
+export default MinimalCard;
