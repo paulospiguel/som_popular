@@ -167,7 +167,7 @@ export default function VotingEventPage() {
       return;
     }
 
-    const userRole = session?.user?.role || ROLES.OPERATOR;
+    const userRole = (session?.user as any)?.role || ROLES.OPERATOR;
     if (userRole !== ROLES.ADMIN && userRole !== ROLES.OPERATOR) {
       router.push("/auth/login");
       return;
