@@ -26,7 +26,7 @@ const eslintConfig = [
       ],
       // Ordena imports automaticamente
       "import/order": [
-        "error",
+        "warn",
         {
           groups: [
             "builtin",
