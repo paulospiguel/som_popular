@@ -1,4 +1,4 @@
-import { EVENT_CATEGORIES, EVENT_STATUSES } from "@/constants";
+import { EVENT_CATEGORIES, EVENT_STATUSES, EVENT_TYPES } from "@/constants";
 import { type Event } from "@/server/database/schema";
 
 export function getStatusText(status: string): string {
@@ -12,13 +12,13 @@ export function getStatusColor(status: string): string {
 }
 
 export function getTypeText(type: string): string {
-  const typeMap: Record<string, string> = {
-    classificatoria: "Classificatória",
-    "semi-final": "Semi-Final",
-    final: "Final",
-    workshop: "Workshop",
-    masterclass: "Masterclass",
-  };
+  const typeMap: Record<string, string> = EVENT_TYPES.reduce(
+    (acc, type) => {
+      acc[type.value] = type.label;
+      return acc;
+    },
+    {} as Record<string, string>
+  );
   return typeMap[type] || type;
 }
 

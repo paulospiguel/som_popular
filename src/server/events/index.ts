@@ -418,3 +418,67 @@ export async function getEventStats() {
     return { success: false, error: "Erro ao buscar estatísticas de eventos" };
   }
 }
+
+/**
+ * Copiar evento (criar uma cópia como rascunho)
+ */
+export async function copyEvent(id: string) {
+  try {
+    // Verificar permissões de admin
+    const { user } = await checkAdminAccess();
+
+    // Buscar o evento original
+    const [originalEvent] = await db
+      .select()
+      .from(events)
+      .where(eq(events.id, id));
+
+    if (!originalEvent) {
+      return { success: false, error: "Evento não encontrado" };
+    }
+
+    // Criar cópia do evento com status draft
+    const copiedEventData: Omit<NewEvent, "id" | "createdAt" | "updatedAt"> = {
+      name: `${originalEvent.name} (Cópia)`,
+      description: originalEvent.description,
+      location: originalEvent.location,
+      maxParticipants: originalEvent.maxParticipants,
+      startDate: originalEvent.startDate,
+      endDate: originalEvent.endDate,
+      registrationStartDate: originalEvent.registrationStartDate,
+      registrationEndDate: originalEvent.registrationEndDate,
+      isPublic: false, // Sempre privado na cópia
+      requiresApproval: originalEvent.requiresApproval,
+      rules: originalEvent.rules,
+      prizes: originalEvent.prizes,
+      rulesFile: originalEvent.rulesFile,
+      notes: originalEvent.notes,
+      status: "draft", // Sempre como rascunho
+      category: originalEvent.category,
+      type: originalEvent.type,
+      currentParticipants: 0, // Resetar participantes
+      createdBy: user.id,
+    };
+
+    const [copiedEvent] = await db
+      .insert(events)
+      .values({
+        ...copiedEventData,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+
+    revalidatePath("/dashboard/events");
+    return {
+      success: true,
+      data: copiedEvent,
+      message: "Evento copiado com sucesso! A cópia foi criada como rascunho.",
+    };
+  } catch (error) {
+    console.error("Erro ao copiar evento:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Erro ao copiar evento";
+    return { success: false, error: errorMessage };
+  }
+}

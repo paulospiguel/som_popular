@@ -14,9 +14,10 @@ import { useEffect, useState } from "react";
 
 import { DataTable } from "@/components/DataTable";
 import Loading from "@/components/loading";
+import { useSonner } from "@/hooks/use-sonner";
 import { useSession } from "@/lib/auth-client";
 import { Event } from "@/server/database/schema";
-import { getEvents } from "@/server/events";
+import { copyEvent, getEvents } from "@/server/events";
 
 import AddEventModal from "./components/add-new";
 import EventDetailsModal from "./components/event-detail";
@@ -29,6 +30,7 @@ import {
 
 export default function EventsPage() {
   const { data: session, isPending } = useSession();
+  const { showSuccess, showError } = useSonner();
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -51,6 +53,26 @@ export default function EventsPage() {
       }
     } catch (error) {
       console.error("Erro ao carregar eventos:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCopyEvent = async (event: Event) => {
+    try {
+      setLoading(true);
+      const result = await copyEvent(event.id);
+
+      if (result.success) {
+        showSuccess(result.message || "Evento copiado com sucesso!");
+        // Recarregar a lista de eventos
+        await loadEvents();
+      } else {
+        showError(result.error || "Erro ao copiar evento");
+      }
+    } catch (error) {
+      console.error("Erro ao copiar evento:", error);
+      showError("Erro ao copiar evento");
     } finally {
       setLoading(false);
     }
@@ -150,6 +172,14 @@ export default function EventsPage() {
           >
             <Eye className="w-4 h-4" />
           </button>
+          {/* <button
+            onClick={() => handleCopyEvent(event)}
+            className="p-2 text-cinza-chumbo hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            title="Copiar evento"
+            disabled={loading}
+          >
+            <Copy className="w-4 h-4" />
+          </button> */}
         </div>
       ),
     },
@@ -310,7 +340,7 @@ export default function EventsPage() {
         }}
         event={selectedEvent}
         onEventUpdated={() => {
-          loadEvents(); // Recarregar eventos após atualizar
+          loadEvents();
         }}
       />
     </div>

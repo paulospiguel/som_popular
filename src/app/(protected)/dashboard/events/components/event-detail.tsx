@@ -63,6 +63,7 @@ import { Event, Participant } from "@/server/database/schema";
 import {
   cancelEvent,
   completeEvent,
+  copyEvent,
   deleteEvent,
   publishEvent,
   revertToDraft,
@@ -567,10 +568,12 @@ const EventDetailsModal = ({
 
   // Funções para o menu de três pontos
   const handleCopyEvent = async () => {
+    if (!event) return;
+
     const confirmed = await confirm({
       title: "Copiar Evento",
       description:
-        "Deseja criar uma cópia deste evento? A cópia será criada como rascunho.",
+        "Deseja criar uma cópia deste evento? A cópia será criada como rascunho e poderá ser editada livremente.",
       confirmText: "Sim, copiar",
       cancelText: "Cancelar",
       icon: <Copy className="w-5 h-5 text-blue-500" />,
@@ -579,11 +582,25 @@ const EventDetailsModal = ({
     if (!confirmed) return;
 
     try {
-      // Aqui você implementaria a lógica para copiar o evento
-      showSuccess("Funcionalidade de cópia será implementada em breve!");
-      setShowMenu(false);
+      setLoading(true);
+      const result = await copyEvent(event.id);
+
+      if (result.success) {
+        showSuccess(result.message || "Evento copiado com sucesso!");
+        if (onEventUpdated && result.data) {
+          onEventUpdated(result.data);
+        }
+        setShowMenu(false);
+        // Fechar o modal atual e abrir o modal de edição da cópia
+        onClose();
+      } else {
+        showError(result.error || "Erro ao copiar evento");
+      }
     } catch (error) {
+      console.error("Erro ao copiar evento:", error);
       showError("Erro ao copiar evento");
+    } finally {
+      setLoading(false);
     }
   };
 
