@@ -1,21 +1,6 @@
 "use client";
 
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   ArrowLeft,
   Calendar,
   CalendarDays,
@@ -31,6 +16,21 @@ import { useEffect, useState } from "react";
 
 import { DataTable } from "@/components/DataTable";
 import Loading from "@/components/loading";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useSonner } from "@/hooks/use-sonner";
 import { useSession } from "@/lib/auth-client";
 import { Event } from "@/server/database/schema";
@@ -377,7 +377,10 @@ export default function EventsPage() {
       />
 
       {/* Modal de confirmação para copiar evento */}
-      <AlertDialog open={!!confirmCopyEvent} onOpenChange={open => !open && setConfirmCopyEvent(null)}>
+      <AlertDialog
+        open={!!confirmCopyEvent}
+        onOpenChange={(open) => !open && setConfirmCopyEvent(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar cópia</AlertDialogTitle>

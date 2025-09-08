@@ -15,7 +15,7 @@
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f postgres",
-    "postinstall": "npm run db:setup"
+    "prebuild": "npm run db:setup"
   },
   "dependencies": {
     "@base-ui-components/react": "^1.0.0-beta.2",
