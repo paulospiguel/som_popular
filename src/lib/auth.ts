@@ -9,7 +9,7 @@ import * as schema from "@/server/database/auth-schema";
 
 import { sendEmail } from "./mailer/resend";
 import ResetPasswordTemplate from "./mailer/templates/reset-password";
-import { ac, admin, operator } from "./permissions";
+import { ac, admin, operator, master } from "./permissions";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -32,7 +32,7 @@ export const auth = betterAuth({
       });
     },
   },
-  plugins: [nextCookies(), adminPlugin({ ac, roles: { admin, operator } })],
+  plugins: [nextCookies(), adminPlugin({ ac, roles: { admin, operator, master } })],
   hooks: {},
   user: {
     additionalFields: {
@@ -40,6 +40,12 @@ export const auth = betterAuth({
         type: "string",
         required: false,
         defaultValue: ROLES.OPERATOR,
+        input: false,
+      },
+      isActive: {
+        type: "boolean",
+        required: false,
+        defaultValue: true,
         input: false,
       },
     },

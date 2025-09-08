@@ -36,9 +36,15 @@ export default function ProtectedProvider({
     console.log("ProtectedProvider: ", { userRole, currentPath });
 
     // Verificar permissões baseadas na página atual
-    if (currentPath.startsWith("/dashboard")) {
+    if (currentPath.startsWith("/dashboard/settings")) {
+      // Settings: apenas Master
+      if (userRole !== ROLES.MASTER) {
+        router.push("/dashboard");
+        return;
+      }
+    } else if (currentPath.startsWith("/dashboard")) {
       // Dashboard: apenas admins
-      if (userRole !== ROLES.ADMIN) {
+      if (userRole !== ROLES.ADMIN && userRole !== ROLES.MASTER) {
         console.log("ProtectedProvider: Dashboard negado para não-admin");
         if (userRole === ROLES.OPERATOR) {
           router.push("/votings");
@@ -49,7 +55,11 @@ export default function ProtectedProvider({
       }
     } else if (currentPath.startsWith("/votings")) {
       // Votações: admins e operadores
-      if (userRole !== ROLES.ADMIN && userRole !== ROLES.OPERATOR) {
+      if (
+        userRole !== ROLES.ADMIN &&
+        userRole !== ROLES.MASTER &&
+        userRole !== ROLES.OPERATOR
+      ) {
         console.log(
           "ProtectedProvider: Votações negadas para usuário sem permissão"
         );
@@ -75,20 +85,33 @@ export default function ProtectedProvider({
   const userRole = session?.user?.role || null;
   const currentPath = pathname;
 
-  if (currentPath.startsWith("/dashboard") && userRole !== ROLES.ADMIN) {
+  if (currentPath.startsWith("/dashboard/settings") && userRole !== ROLES.MASTER) {
+    return null;
+  }
+
+  if (
+    currentPath.startsWith("/dashboard") &&
+    userRole !== ROLES.ADMIN &&
+    userRole !== ROLES.MASTER
+  ) {
     return null;
   }
 
   if (
     currentPath.startsWith("/votings") &&
     userRole !== ROLES.ADMIN &&
+    userRole !== ROLES.MASTER &&
     userRole !== ROLES.OPERATOR
   ) {
     return null;
   }
 
   // Se não é admin nem operador, bloquear acesso
-  if (userRole !== ROLES.ADMIN && userRole !== ROLES.OPERATOR) {
+  if (
+    userRole !== ROLES.ADMIN &&
+    userRole !== ROLES.MASTER &&
+    userRole !== ROLES.OPERATOR
+  ) {
     return null;
   }
 

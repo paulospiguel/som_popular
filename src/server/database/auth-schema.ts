@@ -1,12 +1,22 @@
-import { boolean, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import { createId } from "@paralleldrive/cuid2";
+import {
+  boolean,
+  pgTable,
+  text,
+  timestamp,
+  varchar,
+} from "drizzle-orm/pg-core";
 
 import { ROLES } from "@/constants";
 
 export const user = pgTable("user", {
-  id: varchar("id", { length: 128 }).primaryKey(),
+  id: varchar("id", { length: 128 })
+    .primaryKey()
+    .$defaultFn(() => createId()),
   name: varchar("name", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }).notNull().unique(),
   role: varchar("role", { length: 50 }).notNull().default(ROLES.OPERATOR),
+  isActive: boolean("is_active").notNull().default(true),
   emailVerified: boolean("email_verified")
     .$defaultFn(() => false)
     .notNull(),
@@ -20,7 +30,9 @@ export const user = pgTable("user", {
 });
 
 export const session = pgTable("session", {
-  id: varchar("id", { length: 128 }).primaryKey(),
+  id: varchar("id", { length: 128 })
+    .primaryKey()
+    .$defaultFn(() => createId()),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   token: varchar("token", { length: 255 }).notNull().unique(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
@@ -33,7 +45,9 @@ export const session = pgTable("session", {
 });
 
 export const account = pgTable("account", {
-  id: varchar("id", { length: 128 }).primaryKey(),
+  id: varchar("id", { length: 128 })
+    .primaryKey()
+    .$defaultFn(() => createId()),
   accountId: varchar("account_id", { length: 255 }).notNull(),
   providerId: varchar("provider_id", { length: 100 }).notNull(),
   userId: varchar("user_id", { length: 128 })
@@ -55,7 +69,9 @@ export const account = pgTable("account", {
 });
 
 export const verification = pgTable("verification", {
-  id: varchar("id", { length: 128 }).primaryKey(),
+  id: varchar("id", { length: 128 })
+    .primaryKey()
+    .$defaultFn(() => createId()),
   identifier: varchar("identifier", { length: 255 }).notNull(),
   value: varchar("value", { length: 255 }).notNull(),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),

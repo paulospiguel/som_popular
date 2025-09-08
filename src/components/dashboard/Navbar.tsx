@@ -1,6 +1,7 @@
 "use client";
 
 import { LogOut, Play } from "lucide-react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -9,6 +10,7 @@ import { signOut, useSession } from "@/lib/auth-client";
 
 import { Logo } from "../logo";
 import { Switch } from "../ui/switch";
+import { Avatar } from "../ui/avatar";
 
 export default function NavbarDashboard() {
   const router = useRouter();
@@ -33,7 +35,7 @@ export default function NavbarDashboard() {
   };
 
   const toggleEventMode = () => {
-    if (userRole === ROLES.ADMIN) {
+    if (userRole === ROLES.ADMIN || userRole === ROLES.MASTER) {
       if (!isEventModeActive) {
         router.push("/votings");
       } else {
@@ -57,8 +59,8 @@ export default function NavbarDashboard() {
           </div>
 
           <div className="flex items-center space-x-4">
-            {/* Switch do Modo Evento - só para admins */}
-            {userRole === ROLES.ADMIN && (
+            {/* Switch do Modo Evento - admins e master */}
+            {(userRole === ROLES.ADMIN || userRole === ROLES.MASTER) && (
               <div className="flex items-center space-x-3 px-3 py-2 bg-gray-50 rounded-lg">
                 {isEventModeActive ? (
                   <div className="flex items-center space-x-1 text-verde-suave">
@@ -88,14 +90,28 @@ export default function NavbarDashboard() {
               </div>
             )}
 
-            <div className="text-right">
-              <span className="text-cinza-chumbo font-medium block">
-                {session.user.name}
-              </span>
-              <span className="text-xs text-cinza-chumbo/70">
-                {userRole === ROLES.ADMIN ? "Administrador" : "Operador"}
-              </span>
-            </div>
+            <Link
+              href="/profile"
+              className="flex items-center space-x-3 px-2 py-1 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <Avatar
+                name={session.user.name || "Utilizador"}
+                src={(session.user as any).image || null}
+                size="sm"
+              />
+              <div className="text-right">
+                <span className="text-cinza-chumbo font-medium block">
+                  {session.user.name}
+                </span>
+                <span className="text-xs text-cinza-chumbo/70">
+                  {userRole === ROLES.MASTER
+                    ? "Master"
+                    : userRole === ROLES.ADMIN
+                    ? "Administrador"
+                    : "Operador"}
+                </span>
+              </div>
+            </Link>
             <button
               onClick={handleLogout}
               className="flex items-center space-x-2 text-cinza-chumbo hover:text-vermelho-suave transition-colors p-2 rounded-lg hover:bg-vermelho-suave/10"

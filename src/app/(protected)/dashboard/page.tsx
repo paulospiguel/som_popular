@@ -14,6 +14,7 @@ import {
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { ROLES } from "@/constants";
 import { useSession } from "@/lib/auth-client";
 import { getDashboardStats, type DashboardStats } from "@/server/dashboard";
 
@@ -280,32 +281,39 @@ export default function AdminDashboard() {
 
         {/* Ações Administrativas */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 ">
-          {CARDS.map((card) => (
-            <Link
-              data-disabled={card.disabled}
-              key={card.title}
-              href={card.href}
-              className="festival-card p-6 hover:scale-105 transition-all hover:shadow-lg group data-disabled:opacity-50 data-disabled:pointer-events-none"
-            >
-              <div className="flex items-center space-x-4">
-                <div
-                  className={`bg-${card.color}/10 p-4 rounded-xl group-hover:bg-${card.color}/20 transition-colors`}
-                >
-                  <card.icon
-                    className={`w-8 h-8 text-${card.color} group-hover:text-${card.color}`}
-                  />
+          {CARDS.map((card) => {
+            const isSettings = card.href === "/dashboard/settings";
+            const userRole = session?.user?.role;
+            const disabled = isSettings
+              ? userRole !== ROLES.MASTER
+              : Boolean(card.disabled);
+            return (
+              <Link
+                data-disabled={disabled ? true : undefined}
+                key={card.title}
+                href={card.href}
+                className="festival-card p-6 hover:scale-105 transition-all hover:shadow-lg group data-disabled:opacity-50 data-disabled:pointer-events-none"
+              >
+                <div className="flex items-center space-x-4">
+                  <div
+                    className={`bg-${card.color}/10 p-4 rounded-xl group-hover:bg-${card.color}/20 transition-colors`}
+                  >
+                    <card.icon
+                      className={`w-8 h-8 text-${card.color} group-hover:text-${card.color}`}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-cinza-chumbo mb-1">
+                      {card.title}
+                    </h3>
+                    <p className="text-sm text-cinza-chumbo/70">
+                      {card.description}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-cinza-chumbo mb-1">
-                    {card.title}
-                  </h3>
-                  <p className="text-sm text-cinza-chumbo/70">
-                    {card.description}
-                  </p>
-                </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       </main>
     </>

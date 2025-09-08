@@ -16,6 +16,11 @@ export async function requireAuth() {
     redirect("/auth/login");
   }
 
+  // Bloquear utilizadores inativos
+  if (session.user?.isActive === false) {
+    redirect("/auth/login?error=account_inactive");
+  }
+
   return { session, user: session.user };
 }
 
@@ -25,8 +30,8 @@ export async function requireAuth() {
 export async function requireAdmin() {
   const { session, user } = await requireAuth();
 
-  const userRole = (user as any).role ?? ROLES.OPERATOR;
-  if (userRole !== ROLES.ADMIN) {
+  const userRole = user.role ?? ROLES.OPERATOR;
+  if (userRole !== ROLES.ADMIN && userRole !== ROLES.MASTER) {
     throw new Error(
       "Acesso negado: Apenas administradores podem realizar esta ação"
     );
@@ -41,8 +46,12 @@ export async function requireAdmin() {
 export async function requireOperatorOrAdmin() {
   const { session, user } = await requireAuth();
 
-  const userRole = (user as any).role ?? ROLES.OPERATOR;
-  if (userRole !== ROLES.ADMIN && userRole !== ROLES.OPERATOR) {
+  const userRole = user.role ?? ROLES.OPERATOR;
+  if (
+    userRole !== ROLES.ADMIN &&
+    userRole !== ROLES.MASTER &&
+    userRole !== ROLES.OPERATOR
+  ) {
     throw new Error("Acesso negado: Permissões insuficientes");
   }
 
@@ -57,18 +66,27 @@ export async function checkActionPermission(
 ) {
   const { session, user } = await requireAuth();
 
-  const userRole = (user as any).role ?? ROLES.OPERATOR;
+  const userRole = user.role ?? ROLES.OPERATOR;
 
   switch (requiredRole) {
+    case ROLES.MASTER:
+      if (userRole !== ROLES.MASTER) {
+        throw new Error("Acesso negado: Apenas master pode realizar esta ação");
+      }
+      break;
     case ROLES.ADMIN:
-      if (userRole !== ROLES.ADMIN) {
+      if (userRole !== ROLES.ADMIN && userRole !== ROLES.MASTER) {
         throw new Error(
           "Acesso negado: Apenas administradores podem realizar esta ação"
         );
       }
       break;
     case ROLES.OPERATOR:
-      if (userRole !== ROLES.ADMIN && userRole !== ROLES.OPERATOR) {
+      if (
+        userRole !== ROLES.ADMIN &&
+        userRole !== ROLES.MASTER &&
+        userRole !== ROLES.OPERATOR
+      ) {
         throw new Error("Acesso negado: Permissões insuficientes");
       }
       break;
@@ -76,5 +94,17 @@ export async function checkActionPermission(
       throw new Error("Role inválido especificado");
   }
 
+  return { session, user, role: userRole };
+}
+
+/**
+ * Verificar se o usuário é Master
+ */
+export async function requireMaster() {
+  const { session, user } = await requireAuth();
+  const userRole = user.role ?? ROLES.OPERATOR;
+  if (userRole !== ROLES.MASTER) {
+    throw new Error("Acesso negado: Apenas Master pode aceder a esta página");
+  }
   return { session, user, role: userRole };
 }

@@ -1,6 +1,6 @@
 "use server";
 
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 
 import { db } from "@/server/database";
 import {
@@ -136,50 +136,63 @@ export async function getEventLogs(options?: {
  */
 export async function getLogsStats() {
   try {
-    // Estatísticas dos logs do sistema
-    const systemLogsStats = await db
+    // Contagem por categoria para uso no componente de UI
+    const categoryRows = await db
       .select({
-        severity: systemLogs.severity,
-        count: systemLogs.id,
+        category: systemLogs.category,
+        count: sql<number>`count(*)`,
       })
       .from(systemLogs)
-      .groupBy(systemLogs.severity);
+      .groupBy(systemLogs.category);
 
-    // Estatísticas dos logs de eventos
-    const eventLogsStats = await db
-      .select({
-        severity: eventLogs.severity,
-        count: eventLogs.id,
-      })
-      .from(eventLogs)
-      .groupBy(eventLogs.severity);
+    // Mapeia resultados para objeto esperado pelo componente
+    const categories = [
+      "auth",
+      "security",
+      "user_action",
+      "system",
+      "email",
+    ] as const;
 
-    // Logs pendentes (críticos e maiores)
-    const pendingCriticalLogs = await db
-      .select()
+    const stats: Record<string, number> = { total: 0 } as Record<string, number>;
+
+    for (const cat of categories) stats[cat] = 0;
+
+    for (const row of categoryRows) {
+      const cat = row.category as (typeof categories)[number];
+      if (categories.includes(cat)) {
+        stats[cat] = (stats[cat] || 0) + (row.count || 0);
+        stats.total += row.count || 0;
+      } else {
+        // Categoria não reconhecida: acumula apenas no total
+        stats.total += row.count || 0;
+      }
+    }
+
+    // Contagem de críticos/maiores pendentes (sistema) + críticos/maiores (eventos)
+    const pendingCriticalSystem = await db
+      .select({ count: sql<number>`count(*)` })
       .from(systemLogs)
       .where(
         and(
           eq(systemLogs.status, "pending"),
           inArray(systemLogs.severity, ["critical", "major"])
         )
-      )
-      .orderBy(desc(systemLogs.createdAt))
-      .limit(10);
+      );
 
-    const pendingCriticalEventLogs = await db
-      .select()
+    const criticalEvent = await db
+      .select({ count: sql<number>`count(*)` })
       .from(eventLogs)
-      .where(inArray(eventLogs.severity, ["critical", "major"]))
-      .orderBy(desc(eventLogs.createdAt))
-      .limit(10);
+      .where(inArray(eventLogs.severity, ["critical", "major"]));
+
+    const pendingCritical =
+      (pendingCriticalSystem[0]?.count || 0) + (criticalEvent[0]?.count || 0);
 
     return {
       success: true,
       data: {
-        systemLogs: systemLogsStats,
-        eventLogs: eventLogsStats,
-        pendingCritical: [...pendingCriticalLogs, ...pendingCriticalEventLogs],
+        ...stats,
+        pendingCritical,
       },
     };
   } catch (error) {

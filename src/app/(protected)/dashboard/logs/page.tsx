@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export default function LogsPage() {
   return (
     <div className="p-6">
-      <Tabs className=" p-4">
+      <Tabs defaultValue="events" className=" p-4">
         <TabsList className="bg-transparent">
           <TabsTrigger value="system">
             <Activity className="w-4 h-4 mr-2" />
