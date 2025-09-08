@@ -1,11 +1,28 @@
 "use client";
 
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   ArrowLeft,
   Calendar,
   CalendarDays,
+  Copy,
   Eye,
   MapPin,
+  MoreVertical,
   Plus,
   Users,
 } from "lucide-react";
@@ -36,6 +53,7 @@ export default function EventsPage() {
   const [showModal, setShowModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [confirmCopyEvent, setConfirmCopyEvent] = useState<Event | null>(null);
 
   useEffect(() => {
     // ProtectedProvider já faz a validação de permissões
@@ -172,14 +190,27 @@ export default function EventsPage() {
           >
             <Eye className="w-4 h-4" />
           </button>
-          {/* <button
-            onClick={() => handleCopyEvent(event)}
-            className="p-2 text-cinza-chumbo hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-            title="Copiar evento"
-            disabled={loading}
-          >
-            <Copy className="w-4 h-4" />
-          </button> */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="p-2 rounded-lg hover:bg-gray-100"
+                title="Mais opções"
+              >
+                <MoreVertical className="w-4 h-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onSelect={() => setConfirmCopyEvent(event)}
+                disabled={loading}
+                className="flex items-center gap-2"
+              >
+                <Copy className="w-4 h-4" />
+                Copiar evento
+              </DropdownMenuItem>
+              {/* Outras opções extras aqui */}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       ),
     },
@@ -231,6 +262,7 @@ export default function EventsPage() {
       <main className="flex-1 container mx-auto px-4 py-6">
         {/* Estatísticas */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+          {/* ...existing code... */}
           <div className="festival-card p-4">
             <div className="flex items-center justify-between mb-3">
               <div>
@@ -246,7 +278,7 @@ export default function EventsPage() {
               </div>
             </div>
           </div>
-
+          {/* ...existing code... */}
           <div className="festival-card p-4">
             <div className="flex items-center justify-between mb-3">
               <div>
@@ -262,7 +294,7 @@ export default function EventsPage() {
               </div>
             </div>
           </div>
-
+          {/* ...existing code... */}
           <div className="festival-card p-4">
             <div className="flex items-center justify-between mb-3">
               <div>
@@ -276,7 +308,7 @@ export default function EventsPage() {
               </div>
             </div>
           </div>
-
+          {/* ...existing code... */}
           <div className="festival-card p-4">
             <div className="flex items-center justify-between mb-3">
               <div>
@@ -292,7 +324,7 @@ export default function EventsPage() {
               </div>
             </div>
           </div>
-
+          {/* ...existing code... */}
           <div className="festival-card p-4">
             <div className="flex items-center justify-between mb-3">
               <div>
@@ -343,6 +375,30 @@ export default function EventsPage() {
           loadEvents();
         }}
       />
+
+      {/* Modal de confirmação para copiar evento */}
+      <AlertDialog open={!!confirmCopyEvent} onOpenChange={open => !open && setConfirmCopyEvent(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar cópia</AlertDialogTitle>
+          </AlertDialogHeader>
+          <div>Tem certeza que deseja copiar este evento?</div>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setConfirmCopyEvent(null)}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={loading}
+              onClick={async () => {
+                if (confirmCopyEvent) await handleCopyEvent(confirmCopyEvent);
+                setConfirmCopyEvent(null);
+              }}
+            >
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
