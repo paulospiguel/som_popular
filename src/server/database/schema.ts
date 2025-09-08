@@ -39,6 +39,7 @@ export const participants = pgTable("participants", {
   phone: varchar("phone", { length: 50 }),
   avatar: text("avatar"),
   rankingPhoto: text("ranking_photo"), // Foto opcional para exibição no ranking
+  age: integer("age"),
   category: varchar("category", { length: 100 }).notNull(),
   experience: varchar("experience", { length: 100 }).notNull(),
   additionalInfo: text("additional_info"),

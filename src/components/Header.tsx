@@ -1,6 +1,9 @@
-import { Menu } from "lucide-react";
+"use client";
+import { Menu, Music } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
+import { ShimmerButton } from "@/components/magicui/shimmer-button";
 import { cn } from "@/lib/utils";
 
 import { Logo } from "./logo";
@@ -25,6 +28,7 @@ const MENU = [
 ];
 
 export default function Header({ transparent = false }: HeaderProps) {
+  const router = useRouter();
   return (
     <header
       className={cn(
@@ -49,12 +53,17 @@ export default function Header({ transparent = false }: HeaderProps) {
                 {item.name}
               </Link>
             ))}
-            <Link
-              href="/participant-registration"
-              className="festival-button-secondary px-4 py-2 text-sm"
+            <ShimmerButton
+              onClick={() => {
+                router.push("/participant-registration");
+              }}
+              background="#4caf50"
+              //  href="/participant-registration"
+              className="px-4 py-2 text-sm border border-white/10"
             >
+              <Music className="w-4 h-4 mr-2" />
               Quero Participar
-            </Link>
+            </ShimmerButton>
           </nav>
 
           {/* Menu Mobile (Hamburger) */}

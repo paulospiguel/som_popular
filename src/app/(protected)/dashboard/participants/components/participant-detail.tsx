@@ -384,6 +384,12 @@ export default function ParticipantDetailsModal({
                     </label>
                     <p className="font-medium">{participant?.phone || "N/A"}</p>
                   </div>
+                  <div>
+                    <label className="text-sm text-cinza-chumbo/70 font-medium">
+                      Idade
+                    </label>
+                    <p className="font-medium">{(participant as any)?.age ?? "N/A"}</p>
+                  </div>
                 </div>
               </div>
             </div>

@@ -4,6 +4,7 @@ import CurrentStatusCard from "@/components/CurrentStatusCard";
 import EventsSection from "@/components/EventsSection";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import { Ripple } from "@/components/magicui/ripple";
 
 export default function Home() {
   return (
@@ -13,6 +14,7 @@ export default function Home() {
 
       {/* Hero Section com muito espaço em branco */}
       <section className="relative py-24 px-6">
+        <Ripple />
         <div className="container mx-auto text-center max-w-4xl">
           {/* Título em verde escuro */}
           <h1 className="festival-title text-5xl md:text-7xl mb-8 leading-tight">
@@ -31,7 +33,7 @@ export default function Home() {
               href="/participant-registration"
               className="festival-button text-lg px-10 py-4 font-semibold"
             >
-              🎤 Participar
+              🎤 Inscrever-se
             </Link>
 
             {/* Botão secundário - Verde */}
@@ -47,7 +49,7 @@ export default function Home() {
               href="/ranking"
               className="festival-button-secondary text-lg px-10 py-4 font-semibold"
             >
-              📊 Ver Rankings
+              📊 Acompanhar
             </Link>
           </div>
 
@@ -64,11 +66,11 @@ export default function Home() {
             <div className="festival-card p-8 text-center">
               <div className="text-4xl mb-4">🎵</div>
               <h3 className="festival-subtitle text-xl font-semibold mb-4 text-verde-suave">
-                Múltiplas Categorias
+                Evento Multicultural
               </h3>
               <p className="festival-text text-cinza-chumbo">
-                Participa em diferentes modalidades musicais e mostra o teu
-                talento único.
+                Participe de um evento multicultural, com música, dança e
+                cultura.
               </p>
             </div>
 

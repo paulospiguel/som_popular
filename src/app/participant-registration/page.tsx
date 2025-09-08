@@ -31,12 +31,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { EVENT_CATEGORIES } from "@/constants";
+// Categoria não utilizada nesta tela (campo removido)
 import { getAvailableEventsForRegistration } from "@/server/events-public";
 import {
   getParticipantByEmail,
   registerParticipant,
 } from "@/server/participants-public";
+import QRCode from "qrcode";
 
 const CATEGORIES = [
   { value: "vocal", label: "Vocal" },
@@ -58,12 +59,12 @@ interface FormData {
   phone: string;
   category: string;
   experience: string;
+  age: number | undefined;
   additionalInfo: string;
   hasSpecialNeeds: boolean;
   specialNeedsDescription: string;
   acceptsEmailNotifications: boolean;
   acceptsTerms: boolean;
-  acceptsRegulation: boolean;
   eventId: string;
   rankingPhoto: string; // URL da foto para o ranking
 }
@@ -81,6 +82,7 @@ export default function ParticipantRegistrationPage() {
   const [emailExists, setEmailExists] = useState(false);
   const [checkingEmail, setCheckingEmail] = useState(false);
   const [registrationResult, setRegistrationResult] = useState<any>(null);
+  const [qrUrl, setQrUrl] = useState<string>("");
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -88,12 +90,12 @@ export default function ParticipantRegistrationPage() {
     phone: "",
     category: "",
     experience: "",
+    age: undefined,
     additionalInfo: "",
     hasSpecialNeeds: false,
     specialNeedsDescription: "",
     acceptsEmailNotifications: true,
     acceptsTerms: false,
-    acceptsRegulation: false,
     eventId: "",
     rankingPhoto: "",
   });
@@ -145,7 +147,7 @@ export default function ParticipantRegistrationPage() {
 
   const handleInputChange = (
     field: keyof FormData,
-    value: string | boolean
+    value: string | boolean | number | undefined
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
 
@@ -206,15 +208,7 @@ export default function ParticipantRegistrationPage() {
       newErrors.email = "Email inválido";
     }
 
-    // Validação da categoria
-    if (!formData.category) {
-      newErrors.category = "Selecione uma modalidade";
-    }
-
-    // Validação da experiência
-    if (!formData.experience) {
-      newErrors.experience = "Selecione um nível de experiência";
-    }
+    // Categoria e experiência não são obrigatórias
 
     // Validação das necessidades especiais
     if (formData.hasSpecialNeeds && !formData.specialNeedsDescription.trim()) {
@@ -223,12 +217,8 @@ export default function ParticipantRegistrationPage() {
 
     // Validação dos termos
     if (!formData.acceptsTerms) {
-      newErrors.acceptsTerms = "Você deve aceitar os termos e condições";
-    }
-
-    if (!formData.acceptsRegulation) {
-      newErrors.acceptsRegulation =
-        "Você deve aceitar o regulamento do festival";
+      newErrors.acceptsTerms =
+        "Você deve aceitar o regulamento e os termos de participação";
     }
 
     // Validação do evento
@@ -274,20 +264,12 @@ export default function ParticipantRegistrationPage() {
         case "email":
           message = `Email: ${firstErrorMessage}`;
           break;
-        case "category":
-          message = `Categoria: ${firstErrorMessage}`;
-          break;
-        case "experience":
-          message = `Experiência: ${firstErrorMessage}`;
-          break;
+        // categoria/experiência não obrigatórias
         case "eventId":
           message = `Evento: ${firstErrorMessage}`;
           break;
         case "acceptsTerms":
-          message = `Termos: ${firstErrorMessage}`;
-          break;
-        case "acceptsRegulation":
-          message = `Regulamento: ${firstErrorMessage}`;
+          message = `Confirmação: ${firstErrorMessage}`;
           break;
         case "specialNeedsDescription":
           message = `Necessidades especiais: ${firstErrorMessage}`;
@@ -334,12 +316,26 @@ export default function ParticipantRegistrationPage() {
     setLoading(true);
 
     try {
-      const result = await registerParticipant(formData);
-
+      const payload: any = { ...formData };
+      if (payload.age === undefined) delete payload.age;
+      const result = await registerParticipant(payload);
+      
       if (result.success) {
         setParticipantId(result.participantId || "");
         setRegistrationResult(result);
         setSuccess(true);
+        // Gerar QR mínimo se houver registrationId
+        if (result.registrationId) {
+          const qrData = JSON.stringify({
+            registrationId: result.registrationId,
+            email: formData.email,
+            eventId: formData.eventId,
+          });
+          try {
+            const url = await QRCode.toDataURL(qrData, { width: 160 });
+            setQrUrl(url);
+          } catch {}
+        }
         toast.success(result.message || "Registro realizado com sucesso!");
       } else {
         toast.error(result.error || "Erro ao registrar participante");
@@ -412,6 +408,46 @@ export default function ParticipantRegistrationPage() {
                   ? "Seu registro como participante foi realizado com sucesso e você foi automaticamente inscrito no evento selecionado!"
                   : "Suas informações foram atualizadas com sucesso e você foi inscrito no evento selecionado!"}
               </p>
+
+              {registrationResult?.registrationId && (
+                <div className="bg-white rounded-lg border p-4 mb-6 inline-block text-left">
+                  <div className="flex items-start space-x-4">
+                    {qrUrl ? (
+                      <img
+                        src={qrUrl}
+                        alt="QR Code"
+                        className="w-28 h-28 border rounded"
+                      />
+                    ) : (
+                      <div className="w-28 h-28 border rounded animate-pulse bg-gray-50" />
+                    )}
+                    <div>
+                      <p className="text-sm text-cinza-chumbo/70">Número da Inscrição</p>
+                      <p className="font-bold text-cinza-chumbo text-xl">#{registrationResult.registrationId.slice(-8).toUpperCase()}</p>
+                      <p className="text-xs text-cinza-chumbo/60 mt-2">
+                        Guarde este número. Ele aparece na sua credencial e pode ser usado para consulta.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2 mt-4">
+                    <Link href={`/events/${formData.eventId}/registration/confirmation?registration=${registrationResult.registrationId}`}>
+                      <Button size="sm" variant="outline">Ver Credencial Completa</Button>
+                    </Link>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        const w = window.open("", "_blank");
+                        if (!w) return;
+                        const html = `<!doctype html><html><head><meta charset='utf-8'><title>Credencial</title><style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,'Helvetica Neue',Arial,'Noto Sans','Apple Color Emoji','Segoe UI Emoji';padding:24px} .card{border:1px solid #e5e7eb;border-radius:12px;padding:16px;max-width:360px} .row{display:flex;gap:12px;align-items:center}</style></head><body><div class='card'><div class='row'><img src='${qrUrl}' width='120' height='120'/><div><h3 style='margin:0'>${(availableEvents.find(e=>e.id===formData.eventId)?.name)||"Evento"}</h3><div style='font-size:12px;color:#6b7280;margin-top:4px'>${formData.name} • ${formData.email}</div><div style='font-size:12px;color:#6b7280;margin-top:4px'>Inscrição #${registrationResult.registrationId.slice(-8).toUpperCase()}</div></div></div></div><script>window.onload=()=>window.print()</script></body></html>`;
+                        w.document.write(html);
+                        w.document.close();
+                      }}
+                    >
+                      Baixar PDF
+                    </Button>
+                  </div>
+                </div>
+              )}
 
               {/* Informações do Evento */}
               {formData.eventId &&
@@ -729,6 +765,7 @@ export default function ParticipantRegistrationPage() {
                       branco se não quiser.
                     </p>
                   </div>
+
                 </div>
               </div>
 
@@ -862,42 +899,7 @@ export default function ParticipantRegistrationPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                      Modalidade *
-                    </label>
-                    <Select
-                      value={formData.category}
-                      onValueChange={(value) =>
-                        handleInputChange("category", value)
-                      }
-                    >
-                      <SelectTrigger
-                        id="category"
-                        className={`${errors.category ? "border-red-500 ring-red-200" : " border-gray-300"} w-full focus:ring-2 focus:ring-verde-suave focus:border-transparent`}
-                      >
-                        <SelectValue placeholder="Selecione uma categoria" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {EVENT_CATEGORIES.map((category) => (
-                          <SelectItem
-                            key={category.value}
-                            value={category.value}
-                          >
-                            {category.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {errors.category && (
-                      <p className="text-red-600 text-sm mt-1 font-medium flex items-center">
-                        <span className="w-1 h-1 bg-red-500 rounded-full mr-2"></span>
-                        {errors.category}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                      Nível de Experiência *
+                      Nível de Experiência
                     </label>
                     <Select
                       value={formData.experience}
@@ -919,12 +921,26 @@ export default function ParticipantRegistrationPage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    {errors.experience && (
-                      <p className="text-red-600 text-sm mt-1 font-medium flex items-center">
-                        <span className="w-1 h-1 bg-red-500 rounded-full mr-2"></span>
-                        {errors.experience}
-                      </p>
-                    )}
+                    {/* Experiência opcional */}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-cinza-chumbo mb-2">
+                      Idade
+                    </label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={120}
+                      value={formData.age ?? ""}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "age",
+                          e.target.value ? Number(e.target.value) : undefined
+                        )
+                      }
+                      placeholder="Ex: 25"
+                    />
                   </div>
                 </div>
 
@@ -1035,41 +1051,6 @@ export default function ParticipantRegistrationPage() {
 
                   <div className="flex items-start space-x-2">
                     <Checkbox
-                      id="acceptsRegulation"
-                      checked={formData.acceptsRegulation}
-                      onCheckedChange={(checked) =>
-                        handleInputChange("acceptsRegulation", !!checked)
-                      }
-                    />
-                    <label
-                      htmlFor="acceptsRegulation"
-                      className="text-sm text-cinza-chumbo"
-                    >
-                      Li e aceito o{" "}
-                      <Link
-                        href={
-                          formData.eventId
-                            ? `/regulation/${formData.eventId}`
-                            : "/regulation"
-                        }
-                        className="text-verde-suave hover:text-verde-escuro font-medium inline-flex items-center"
-                        target="_blank"
-                      >
-                        regulamento do festival
-                        <ExternalLink className="w-3 h-3 ml-1" />
-                      </Link>
-                      *
-                    </label>
-                    {errors.acceptsRegulation && (
-                      <p className="text-red-600 text-sm mt-1 font-medium flex items-center">
-                        <span className="w-1 h-1 bg-red-500 rounded-full mr-2"></span>
-                        {errors.acceptsRegulation}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex items-start space-x-2">
-                    <Checkbox
                       id="acceptsTerms"
                       checked={formData.acceptsTerms}
                       onCheckedChange={(checked) =>
@@ -1080,7 +1061,22 @@ export default function ParticipantRegistrationPage() {
                       htmlFor="acceptsTerms"
                       className="text-sm text-cinza-chumbo"
                     >
-                      Estou ciente dos termos e condições de participação *
+                      Li e aceito o regulamento do festival e estou ciente dos
+                      termos e condições de participação
+                      <span className="text-red-500"> *</span>
+                      {" "}
+                      <Link
+                        href={
+                          formData.eventId
+                            ? `/regulation/${formData.eventId}`
+                            : "/regulation"
+                        }
+                        className="text-verde-suave hover:text-verde-escuro font-medium inline-flex items-center ml-1"
+                        target="_blank"
+                      >
+                        Ver regulamento
+                        <ExternalLink className="w-3 h-3 ml-1" />
+                      </Link>
                     </label>
                     {errors.acceptsTerms && (
                       <p className="text-red-600 text-sm mt-1 font-medium flex items-center">

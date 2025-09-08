@@ -50,6 +50,7 @@ const AddParticipantModal = ({
       email: "",
       phone: "",
       avatar: "",
+      age: undefined as number | undefined,
       category: "",
       experience: "",
       additionalInfo: "",
@@ -181,6 +182,33 @@ const AddParticipantModal = ({
                   </FormItem>
                 )}
               />
+
+              {/* Idade (opcional) */}
+              <FormField
+                control={form.control}
+                name="age"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Idade</FormLabel>
+                    <FormControl>
+                      <Input
+                        variant="lg"
+                        type="number"
+                        min={1}
+                        max={120}
+                        placeholder="Ex: 25"
+                        value={field.value ?? ""}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value ? Number(e.target.value) : undefined
+                          )
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
           </div>
 
@@ -257,13 +285,13 @@ const AddParticipantModal = ({
               Informações Artísticas
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Categoria */}
+              {/* Categoria (opcional) */}
               <FormField
                 control={form.control}
                 name="category"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Categoria *</FormLabel>
+                    <FormLabel>Categoria</FormLabel>
                     <FormControl>
                       <Select
                         value={field.value}
@@ -289,13 +317,13 @@ const AddParticipantModal = ({
                 )}
               />
 
-              {/* Experiência */}
+              {/* Experiência (opcional) */}
               <FormField
                 control={form.control}
                 name="experience"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nível de Experiência *</FormLabel>
+                    <FormLabel>Nível de Experiência</FormLabel>
                     <FormControl>
                       <Select
                         value={field.value}

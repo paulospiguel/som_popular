@@ -53,9 +53,19 @@ export const participantSchema = z
         return isValidUrl || isBase64 || isLocalPath;
       }, "Foto para ranking deve ser uma imagem válida (JPG, PNG ou WebP)"),
 
-    category: z.string().min(1, "Seleciona uma categoria"),
+    // Categoria opcional
+    category: z.string().optional().or(z.literal("")),
 
-    experience: z.string().min(1, "Seleciona um nível de experiência"),
+    // Experiência opcional
+    experience: z.string().optional().or(z.literal("")),
+
+    // Idade opcional
+    age: z
+      .number()
+      .int()
+      .min(1, "Idade inválida")
+      .max(120, "Idade inválida")
+      .optional(),
 
     additionalInfo: z
       .string()

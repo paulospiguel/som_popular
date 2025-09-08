@@ -30,7 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { EVENT_CATEGORIES, EXPERIENCE_LEVELS } from "@/constants";
+import { EXPERIENCE_LEVELS } from "@/constants";
 import {
   getPublicEventById,
   registerForEvent,
@@ -52,8 +52,8 @@ export default function EventRegistrationPage() {
     name: "",
     email: "",
     phone: "",
-    category: "",
     experience: "",
+    age: undefined as number | undefined,
     additionalInfo: "",
     hasSpecialNeeds: false,
     specialNeedsDescription: "",
@@ -94,12 +94,7 @@ export default function EventRegistrationPage() {
     }
 
     // Validação básica
-    if (
-      !formData.name ||
-      !formData.email ||
-      !formData.category ||
-      !formData.experience
-    ) {
+    if (!formData.name || !formData.email || !formData.experience) {
       toast.error("Por favor, preencha todos os campos obrigatórios");
       return;
     }
@@ -112,10 +107,9 @@ export default function EventRegistrationPage() {
     try {
       setSubmitting(true);
 
-      const registrationData: EventRegistrationData = {
-        eventId,
-        ...formData,
-      };
+      const payload: any = { eventId, ...formData };
+      if (payload.age === undefined) delete payload.age;
+      const registrationData: EventRegistrationData = payload;
 
       const result = await registerForEvent(registrationData);
 
@@ -314,30 +308,11 @@ export default function EventRegistrationPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                    Categoria Musical *
-                  </label>
-                  <Select
-                    value={formData.category}
-                    onValueChange={(value) =>
-                      handleInputChange("category", value)
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Selecione uma categoria" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {EVENT_CATEGORIES.map((category) => (
-                        <SelectItem key={category.value} value={category.value}>
-                          {category.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
+                {/* Informações Artísticas */}
                 <div className="md:col-span-2">
+                  <h4 className="text-sm font-semibold text-cinza-chumbo mb-2">
+                    Informações Artísticas
+                  </h4>
                   <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                     Nível de Experiência *
                   </label>
@@ -358,6 +333,25 @@ export default function EventRegistrationPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-cinza-chumbo mb-2">
+                    Idade
+                  </label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={120}
+                    value={formData.age ?? ""}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "age",
+                        e.target.value ? Number(e.target.value) : undefined
+                      )
+                    }
+                    placeholder="Ex: 25"
+                  />
                 </div>
               </div>
 

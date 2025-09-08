@@ -13,8 +13,9 @@ export interface ParticipantRegistrationData {
   phone?: string;
   avatar?: string;
   rankingPhoto?: string;
-  category: string;
-  experience: string;
+  category?: string;
+  experience?: string;
+  age?: number;
   additionalInfo?: string;
   hasSpecialNeeds: boolean;
   specialNeedsDescription?: string;
@@ -27,13 +28,14 @@ export async function registerParticipant(
 ): Promise<{
   success: boolean;
   participantId?: string;
+  registrationId?: string | undefined;
   isNewParticipant?: boolean;
   message?: string;
   error?: string;
 }> {
   try {
     // Validar dados usando schema
-    const validatedData = participantSchema.parse(data);
+    const validatedData = participantSchema.parse(data as any);
 
     // Verificar se email já existe
     const existingParticipant = await db
@@ -55,8 +57,10 @@ export async function registerParticipant(
         .set({
           name: validatedData.name,
           phone: validatedData.phone || existingParticipant[0].phone,
-          category: validatedData.category,
-          experience: validatedData.experience,
+          category: validatedData.category || existingParticipant[0].category,
+          experience:
+            validatedData.experience || existingParticipant[0].experience,
+          age: (validatedData as any).age ?? (existingParticipant[0] as any).age ?? null,
           additionalInfo:
             validatedData.additionalInfo ||
             existingParticipant[0].additionalInfo,
@@ -80,8 +84,9 @@ export async function registerParticipant(
           phone: validatedData.phone || null,
           avatar: validatedData.avatar || null,
           rankingPhoto: validatedData.rankingPhoto || null,
-          category: validatedData.category,
-          experience: validatedData.experience,
+          category: validatedData.category || "livre",
+          experience: validatedData.experience || "nao-tem-experiencia",
+          age: (validatedData as any).age ?? null,
           additionalInfo: validatedData.additionalInfo || null,
           hasSpecialNeeds: validatedData.hasSpecialNeeds,
           specialNeedsDescription:
@@ -98,6 +103,7 @@ export async function registerParticipant(
     }
 
     // Verificar se já está inscrito neste evento
+    let registrationId: string | undefined = undefined;
     if (validatedData.eventId) {
       const existingRegistration = await db
         .select({ id: eventRegistrations.id })
@@ -112,12 +118,15 @@ export async function registerParticipant(
 
       if (existingRegistration.length === 0) {
         // Criar inscrição no evento
-        await db.insert(eventRegistrations).values({
+        const inserted = await db.insert(eventRegistrations).values({
           eventId: validatedData.eventId,
           participantId: participantId,
           status: "registered",
           registeredAt: new Date(),
-        });
+        }).returning({ id: eventRegistrations.id });
+        registrationId = inserted[0]?.id;
+      } else {
+        registrationId = existingRegistration[0].id;
       }
     }
 
@@ -127,6 +136,7 @@ export async function registerParticipant(
     return {
       success: true,
       participantId: participantId,
+      registrationId,
       isNewParticipant,
       message: isNewParticipant
         ? "Participante registrado com sucesso!"

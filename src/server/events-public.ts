@@ -35,8 +35,9 @@ export interface EventRegistrationData {
   name: string;
   email: string;
   phone: string;
-  category: string;
+  category?: string;
   experience: string;
+  age?: number;
   additionalInfo?: string;
   hasSpecialNeeds: boolean;
   specialNeedsDescription?: string;
@@ -285,8 +286,9 @@ export async function registerForEvent(data: EventRegistrationData): Promise<{
           name: data.name,
           phone: data.phone,
           avatar: data.avatar,
-          category: data.category,
-          experience: data.experience,
+          category: data.category || (participants as any).category,
+          experience: data.experience || (participants as any).experience,
+          age: data.age ?? (participants as any).age,
           additionalInfo: data.additionalInfo,
           hasSpecialNeeds: data.hasSpecialNeeds,
           specialNeedsDescription: data.specialNeedsDescription,
@@ -316,20 +318,21 @@ export async function registerForEvent(data: EventRegistrationData): Promise<{
     } else {
       // Criar novo participante
       const newParticipant = await db
-        .insert(participants)
-        .values({
-          name: data.name,
-          email: data.email,
-          phone: data.phone,
-          avatar: data.avatar,
-          category: data.category,
-          experience: data.experience,
-          additionalInfo: data.additionalInfo,
-          hasSpecialNeeds: data.hasSpecialNeeds,
-          specialNeedsDescription: data.specialNeedsDescription,
-          acceptsEmailNotifications: data.acceptsEmailNotifications,
-          status: "approved", // Auto-aprovado para inscrições públicas
-        })
+      .insert(participants)
+      .values({
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        avatar: data.avatar,
+        category: data.category || "livre",
+        experience: data.experience || "nao-tem-experiencia",
+        age: data.age ?? null,
+        additionalInfo: data.additionalInfo,
+        hasSpecialNeeds: data.hasSpecialNeeds,
+        specialNeedsDescription: data.specialNeedsDescription,
+        acceptsEmailNotifications: data.acceptsEmailNotifications,
+        status: "approved", // Auto-aprovado para inscrições públicas
+      })
         .returning({ id: participants.id });
 
       participantId = newParticipant[0].id;
@@ -580,8 +583,11 @@ export async function getRegistrationById(registrationId: string): Promise<{
   error?: string;
 }> {
   try {
-    // Buscar inscrição pelo ID
-    const registration = await db
+    const input = registrationId.trim();
+    const trySuffix = input.length < 20; // cuid2 tem ~24+ chars
+
+    // Buscar inscrição pelo ID exato
+    let registration = await db
       .select({
         registrationId: eventRegistrations.id,
         eventName: events.name,
@@ -598,8 +604,32 @@ export async function getRegistrationById(registrationId: string): Promise<{
         participants,
         eq(eventRegistrations.participantId, participants.id)
       )
-      .where(eq(eventRegistrations.id, registrationId))
+      .where(eq(eventRegistrations.id, input))
       .limit(1);
+
+    // Se não achou e parece um código curto (ou com maiúsculas), tenta por sufixo (case-insensitive)
+    if (registration.length === 0 && trySuffix) {
+      const lower = input.toLowerCase();
+      registration = await db
+        .select({
+          registrationId: eventRegistrations.id,
+          eventName: events.name,
+          eventId: events.id,
+          participantName: participants.name,
+          participantEmail: participants.email,
+          status: eventRegistrations.status,
+          registrationDate: eventRegistrations.registeredAt,
+          eventDate: events.startDate,
+        })
+        .from(eventRegistrations)
+        .innerJoin(events, eq(eventRegistrations.eventId, events.id))
+        .innerJoin(
+          participants,
+          eq(eventRegistrations.participantId, participants.id)
+        )
+        .where(sql`lower(${eventRegistrations.id}) like '%' || ${lower}`)
+        .limit(1);
+    }
 
     if (registration.length === 0) {
       return {

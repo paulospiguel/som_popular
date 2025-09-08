@@ -15,10 +15,11 @@ import {
   XCircle,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
+import QRCode from "qrcode";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -31,21 +32,24 @@ const STATUS_ICONS = {
   confirmed: CheckCircle,
   cancelled: XCircle,
   completed: CheckCircle,
-};
+  registered: Clock,
+} as const;
 
 const STATUS_COLORS = {
   pending: "bg-yellow-100 text-yellow-800",
   confirmed: "bg-green-100 text-green-800",
   cancelled: "bg-red-100 text-red-800",
   completed: "bg-blue-100 text-blue-800",
-};
+  registered: "bg-blue-100 text-blue-800",
+} as const;
 
 const STATUS_LABELS = {
   pending: "Pendente",
   confirmed: "Confirmada",
   cancelled: "Cancelada",
   completed: "Concluída",
-};
+  registered: "Registrada",
+} as const;
 
 export default function RegistrationLookupPage() {
   const [searchType, setSearchType] = useState<"email" | "registrationId">(
@@ -85,59 +89,25 @@ export default function RegistrationLookupPage() {
     }).format(date);
   };
 
-  const generateQRCodeSVG = (data: string) => {
-    const size = 120;
-    const modules = 21;
-    const moduleSize = size / modules;
+  const [qrMap, setQrMap] = useState<Record<string, string>>({});
 
-    const hash = data.split("").reduce((a, b) => {
-      a = (a << 5) - a + b.charCodeAt(0);
-      return a & a;
-    }, 0);
-
-    const squares = [];
-    for (let i = 0; i < modules; i++) {
-      for (let j = 0; j < modules; j++) {
-        const index = i * modules + j;
-        const shouldFill = (hash + index) % 3 === 0;
-        if (shouldFill) {
-          squares.push(
-            <rect
-              key={`${i}-${j}`}
-              x={i * moduleSize}
-              y={j * moduleSize}
-              width={moduleSize}
-              height={moduleSize}
-              fill="#000"
-            />
-          );
-        }
-      }
-    }
-
-    return (
-      <svg
-        width={size}
-        height={size}
-        className="border border-gray-200 rounded"
-      >
-        <rect width={size} height={size} fill="#ffffff" />
-        {squares}
-
-        <rect x="0" y="0" width="30" height="30" fill="#000" />
-        <rect x="5" y="5" width="20" height="20" fill="#fff" />
-        <rect x="10" y="10" width="10" height="10" fill="#000" />
-
-        <rect x={size - 30} y="0" width="30" height="30" fill="#000" />
-        <rect x={size - 25} y="5" width="20" height="20" fill="#fff" />
-        <rect x={size - 20} y="10" width="10" height="10" fill="#000" />
-
-        <rect x="0" y={size - 30} width="30" height="30" fill="#000" />
-        <rect x="5" y={size - 25} width="20" height="20" fill="#fff" />
-        <rect x="10" y={size - 20} width="10" height="10" fill="#000" />
-      </svg>
-    );
-  };
+  useEffect(() => {
+    (async () => {
+      const entries = await Promise.all(
+        registrations.map(async (r) => {
+          try {
+            const url = await QRCode.toDataURL(r.qrData, { width: 160 });
+            return [r.id, url] as const;
+          } catch {
+            return [r.id, ""] as const;
+          }
+        })
+      );
+      const map: Record<string, string> = {};
+      for (const [id, url] of entries) map[id] = url;
+      setQrMap(map);
+    })();
+  }, [registrations]);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -385,7 +355,15 @@ export default function RegistrationLookupPage() {
                         </div>
 
                         <div className="ml-4">
-                          {generateQRCodeSVG(registration.qrData)}
+                          {qrMap[registration.id] ? (
+                            <img
+                              src={qrMap[registration.id]}
+                              alt="QR Code"
+                              className="w-32 h-32 border border-gray-200 rounded bg-white"
+                            />
+                          ) : (
+                            <div className="w-32 h-32 border border-gray-200 rounded animate-pulse bg-gray-50" />
+                          )}
                         </div>
                       </div>
 

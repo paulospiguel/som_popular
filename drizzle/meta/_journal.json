@@ -22,6 +22,13 @@
       "when": 1757354698675,
       "tag": "0002_tidy_shinobi_shaw",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1757357807783,
+      "tag": "0003_late_forge",
+      "breakpoints": true
     }
   ]
 }
