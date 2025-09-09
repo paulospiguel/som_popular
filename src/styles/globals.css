@@ -4,7 +4,11 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ========================================
+   🎨 CUSTOM THEME VARIABLES
+   ======================================== */
 @theme {
+  /* Core Colors */
   --color-terra: #4e342e;
   --color-verde-suave: #4caf50;
   --color-verde-claro: #81c784;
@@ -14,22 +18,22 @@
   --color-bege-claro: #fff8e1;
   --color-cinza-chumbo: #424242;
 
-  /* Tons complementares para gradientes */
+  /* Extended Colors */
   --color-verde-muito-suave: #e8f5e8;
   --color-dourado-muito-claro: #fffde7;
   --color-vermelho-muito-suave: #ffebee;
-
-  /* Mapeamento semântico */
-  --color-primary: var(--color-verde-suave);
-  --color-secondary: var(--color-dourado-claro);
-  --color-accent: var(--color-vermelho-suave); /* Destaques */
-  --color-background: var(--color-bege-claro); /* Fundo principal */
-  --color-text: var(--color-cinza-chumbo);
   --color-brand-pink: #ff69b4;
   --color-brand-cyan: #00bcd4;
   --color-brand-bg: #0f172a;
 
-  /* Fontes mantidas */
+  /* Semantic Mapping */
+  --color-primary: var(--color-verde-suave);
+  --color-secondary: var(--color-dourado-claro);
+  --color-accent: var(--color-vermelho-suave);
+  --color-background: var(--color-bege-claro);
+  --color-text: var(--color-cinza-chumbo);
+
+  /* Typography */
   --font-family-rye: "Rye", serif;
   --font-family-baloo: "Baloo 2", cursive;
   --font-family-roboto-slab: "Roboto Slab", serif;
@@ -37,32 +41,35 @@
   --font-family-roboto: "Roboto", sans-serif;
   --font-family-orbitron: "Orbitron", sans-serif;
 
-  /* Bordas arredondadas para acessibilidade */
+  /* Border Radius */
   --radius-festival: 1.5rem;
   --radius-button: 2rem;
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
 
-  /* Sombras muito suaves */
+  /* Shadows */
   --shadow-festival:
     0 4px 6px -1px rgb(76 175 80 / 0.06), 0 2px 4px -1px rgb(76 175 80 / 0.03);
   --shadow-button: 0 2px 8px -2px rgb(76 175 80 / 0.15);
 
-  /* 🌈 Gradientes suaves */
+  /* Gradients */
   --gradient-hero: linear-gradient(
     135deg,
     var(--color-bege-claro) 0%,
     var(--color-verde-muito-suave) 50%,
     var(--color-dourado-muito-claro) 100%
   );
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
 
+  /* Animations */
   --animate-marquee: marquee var(--duration) infinite linear;
   --animate-marquee-vertical: marquee-vertical var(--duration) linear infinite;
 }
 
-/* Reset e configurações base */
+/* ========================================
+   🔄 RESET & BASE STYLES
+   ======================================== */
 * {
   box-sizing: border-box;
 }
@@ -74,6 +81,10 @@ body {
   padding: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: var(--font-family-inter);
   line-height: 1.6;
@@ -82,14 +93,15 @@ body {
   min-height: 100vh;
 }
 
-/* Layout principal com flexbox */
+/* ========================================
+   📐 LAYOUT SYSTEM
+   ======================================== */
 #__next {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
 
-/* Garantir que o layout protegido funcione corretamente */
 .layout-protected {
   display: flex;
   flex-direction: column;
@@ -104,13 +116,11 @@ body {
   flex-shrink: 0;
 }
 
-/** Smooth scroll **/
-html {
-  scroll-behavior: smooth;
-}
-
+/* ========================================
+   🎨 UTILITY CLASSES
+   ======================================== */
 @layer utilities {
-  /* 🖼️ Cards com estética leve */
+  /* Cards */
   .festival-card {
     background: var(--color-stone-50);
     border: 1px solid rgb(76 175 80 / 0.1);
@@ -119,7 +129,7 @@ html {
     backdrop-filter: blur(10px);
   }
 
-  /* ✨ Botão Principal - Dourado (CTA) */
+  /* Buttons */
   .festival-button {
     background-color: var(--color-dourado-claro);
     color: var(--color-terra);
@@ -136,7 +146,6 @@ html {
     box-shadow: 0 8px 20px -4px rgb(251 192 45 / 0.3);
   }
 
-  /* 🌿 Botão Secundário - Verde */
   .festival-button-secondary {
     background-color: var(--color-verde-suave);
     color: white;
@@ -153,7 +162,7 @@ html {
     box-shadow: 0 8px 20px -4px rgb(76 175 80 / 0.3);
   }
 
-  /* 📝 Tipografia com nova paleta */
+  /* Typography */
   .festival-title {
     font-family: var(--font-family-rye);
     color: var(--color-verde-suave);
@@ -170,7 +179,7 @@ html {
     color: var(--color-cinza-chumbo);
   }
 
-  /* 🏆 Medalhas renovadas */
+  /* Medals */
   .medal-gold {
     background: linear-gradient(135deg, #fbc02d, #ffeb3b);
     color: var(--color-verde-suave);
@@ -189,7 +198,7 @@ html {
     border-radius: var(--radius-festival);
   }
 
-  /* 🎨 Classes utilitárias para a nova paleta */
+  /* Background Colors */
   .bg-verde-suave {
     background-color: var(--color-verde-suave);
   }
@@ -206,6 +215,7 @@ html {
     background-color: var(--color-bege-claro);
   }
 
+  /* Text Colors */
   .text-verde-suave {
     color: var(--color-verde-suave);
   }
@@ -216,7 +226,7 @@ html {
     color: var(--color-cinza-chumbo);
   }
 
-  /* 🌟 Estado ativo com vermelho suave */
+  /* Status */
   .status-active {
     background-color: var(--color-vermelho-suave);
     color: white;
@@ -225,19 +235,23 @@ html {
     font-weight: 500;
   }
 
-  /* ✨ Header com fundo verde médio */
-  .live-ranking-festival {
-    background-color: var(--color-terra);
+  /* Headers */
+  .header-festival {
+    background-color: var(--color-verde-suave);
     color: white;
     box-shadow: 0 2px 10px -2px rgb(76 175 80 / 0.2);
   }
 }
 
+/* ========================================
+   🎨 TAILWIND THEME INTEGRATION
+   ======================================== */
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -269,14 +283,19 @@ html {
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
   --animate-shimmer-slide: shimmer-slide var(--speed) ease-in-out infinite
     alternate;
   --animate-spin-around: spin-around calc(var(--speed) * 2) infinite linear;
+  --animate-ripple: ripple var(--duration, 2s) ease calc(var(--i, 0) * 0.2s)
+    infinite;
+
   @keyframes shimmer-slide {
     to {
       transform: translate(calc(100cqw - 100%), 0);
     }
   }
+
   @keyframes spin-around {
     0% {
       transform: translateZ(0) rotate(0);
@@ -293,8 +312,7 @@ html {
       transform: translateZ(0) rotate(360deg);
     }
   }
-  --animate-ripple: ripple var(--duration, 2s) ease calc(var(--i, 0) * 0.2s)
-    infinite;
+
   @keyframes ripple {
     0%,
     100% {
@@ -306,6 +324,9 @@ html {
   }
 }
 
+/* ========================================
+   🌈 COLOR SYSTEM
+   ======================================== */
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
@@ -375,6 +396,9 @@ html {
   --sidebar-ring: oklch(0.553 0.013 58.071);
 }
 
+/* ========================================
+   🎯 BASE LAYER
+   ======================================== */
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -384,7 +408,9 @@ html {
   }
 }
 
-/** Custom Scrollbar **/
+/* ========================================
+   📜 CUSTOM SCROLLBAR
+   ======================================== */
 @layer base {
   ::-webkit-scrollbar {
     width: 5px;
@@ -402,7 +428,9 @@ html {
   }
 }
 
-/** Custom Container **/
+/* ========================================
+   📦 CUSTOM CONTAINER
+   ======================================== */
 @utility container {
   margin-inline: auto;
   padding-inline: 1.5rem;
@@ -415,7 +443,11 @@ html {
   }
 }
 
-/* Animações personalizadas para a seção de apoiadores */
+/* ========================================
+   🎬 ANIMATIONS & KEYFRAMES
+   ======================================== */
+
+/* Basic Animations */
 @keyframes fade-in {
   from {
     opacity: 0;
@@ -438,6 +470,17 @@ html {
   }
 }
 
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes float {
   0%,
   100% {
@@ -448,6 +491,7 @@ html {
   }
 }
 
+/* Marquee Animations */
 @keyframes marquee {
   from {
     transform: translateX(0);
@@ -466,26 +510,25 @@ html {
   }
 }
 
-/* Animações de Marquee para Apoiadores */
 @keyframes marquee-left {
   0% {
     transform: translateX(0%);
   }
   100% {
-    transform: translateX(-100%);
+    transform: translateX(-50%);
   }
 }
 
 @keyframes marquee-right {
   0% {
-    transform: translateX(-100%);
+    transform: translateX(-50%);
   }
   100% {
     transform: translateX(0%);
   }
 }
 
-/** Live Ranking **/
+/* Live Ranking Animations */
 @keyframes pulse-glow {
   0%,
   100% {
@@ -498,55 +541,49 @@ html {
   }
 }
 
+/* ========================================
+   🎨 ANIMATION CLASSES
+   ======================================== */
+.animate-fade-in {
+  animation: fade-in 0.8s ease-out;
+}
+.animate-slide-up {
+  animation: slide-up 0.6s ease-out;
+}
+.animate-slide-in {
+  animation: slide-in 0.5s ease-out;
+}
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
 .animate-pulse-glow {
   animation: pulse-glow 1s ease-in-out infinite;
 }
 
-.animate-slide-in {
-  animation: slide-in 0.5s ease-out;
-}
+/* ========================================
+   🎭 COMPONENT STYLES
+   ======================================== */
 
-@keyframes slide-in {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/** End Live Ranking **/
-
-.animate-fade-in {
-  animation: fade-in 0.8s ease-out;
-}
-
-.animate-slide-up {
-  animation: slide-up 0.6s ease-out;
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-
-/* Hover effects melhorados */
+/* Hover Effects */
 .festival-card:hover {
   transform: translateY(-2px);
   transition: all 0.3s ease;
 }
 
+/* Marquee Components */
 .marquee-container {
   overflow: hidden;
   white-space: nowrap;
   position: relative;
+  width: 100%;
 }
 
 .marquee-content {
   display: inline-flex;
-  animation: marquee-left 30s linear infinite;
-  gap: 3rem;
+  animation: marquee-left var(--duration, 30s) linear infinite;
+  gap: 2rem;
+  width: max-content;
+  will-change: transform;
 }
 
 .marquee-content:hover,
@@ -555,10 +592,10 @@ html {
 }
 
 .marquee-reverse .marquee-content {
-  animation: marquee-right 25s linear infinite;
+  animation: marquee-right var(--duration, 30s) linear infinite;
 }
 
-/* Gradiente nas bordas para efeito fade */
+/* Marquee Fade Effects */
 .marquee-container::before,
 .marquee-container::after {
   content: "";

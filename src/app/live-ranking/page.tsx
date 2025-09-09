@@ -192,7 +192,7 @@ const LiveRanking: React.FC = () => {
     >
       <MarqueeHeader
         messages={marqueeMessages}
-        speed={25}
+        speed={60}
         pauseOnHover={true}
       />
       <Header />

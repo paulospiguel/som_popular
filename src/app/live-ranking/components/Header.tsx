@@ -11,7 +11,7 @@ const Header: React.FC = () => {
           <h1 className="text-5xl festival-title font-bold text-dourado-claro tracking-widest dark:text-verde-claro">
             SOM POPULAR FESTIVAL
           </h1>
-          <p className="text-xl text-white dark:text-verde-claro font-semibold tracking-wider mt-1">
+          <p className="text-xl text-terra font-family-orbitron dark:text-verde-claro font-semibold tracking-wider mt-1">
             1ª EDIÇÃO
           </p>
         </div>

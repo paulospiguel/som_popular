@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
-import { Baloo_2, Inter, Roboto, Roboto_Slab, Rye } from "next/font/google";
+import {
+  Baloo_2,
+  Inter,
+  Orbitron,
+  Roboto,
+  Roboto_Slab,
+  Rye,
+} from "next/font/google";
 import { Toaster } from "sonner";
 import "../styles/globals.css";
 
@@ -29,6 +36,11 @@ const roboto = Roboto({
   display: "swap",
 });
 
+const orbitron = Orbitron({
+  subsets: ["latin"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Festival Som Popular - Plataforma de Gestão",
   description:
@@ -45,6 +57,8 @@ export const metadata: Metadata = {
   viewport: "width=device-width, initial-scale=1",
 };
 
+const classnames = [inter, rye, baloo2, robotoSlab, roboto, orbitron];
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -53,7 +67,7 @@ export default function RootLayout({
   return (
     <html
       lang="pt-PT"
-      className={`${inter.className} ${rye.className} ${baloo2.className} ${robotoSlab.className} ${roboto.className}`}
+      className={`${classnames.map((className) => className.className).join(" ")}`}
     >
       <body className="antialiased festival-text min-h-screen">
         <Toaster />

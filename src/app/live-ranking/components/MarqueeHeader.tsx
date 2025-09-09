@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 import { MarqueeMessage } from "../types/marquee";
 
@@ -59,19 +59,10 @@ const MarqueeHeader: React.FC<MarqueeHeaderProps> = ({
   speed = 30,
   pauseOnHover = true,
 }) => {
-  const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 
-  // Rotaciona as mensagens a cada 5 segundos
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentMessageIndex((prev) => (prev + 1) % messages.length);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [messages.length]);
-
-  const currentMessage = messages[currentMessageIndex];
+  // Cria um array com todas as mensagens duplicadas para o fluxo contínuo
+  const allMessages = [...messages, ...messages];
 
   return (
     <div className="w-full bg-gradient-to-r from-verde-suave to-dourado-claro dark:from-slate-800 dark:to-slate-700 py-2 overflow-hidden relative">
@@ -88,8 +79,8 @@ const MarqueeHeader: React.FC<MarqueeHeaderProps> = ({
           className={`marquee-content ${isHovered ? "paused" : ""}`}
           style={{ "--duration": `${speed}s` } as React.CSSProperties}
         >
-          {/* Duplica a mensagem para efeito contínuo */}
-          {[currentMessage, currentMessage].map((message, index) => (
+          {/* Mostra todas as mensagens intercaladas no fluxo contínuo */}
+          {allMessages.map((message, index) => (
             <div
               key={`${message.id}-${index}`}
               className="flex items-center text-white dark:text-verde-claro font-semibold text-sm md:text-base whitespace-nowrap mx-8"
