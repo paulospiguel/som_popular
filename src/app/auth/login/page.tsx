@@ -39,7 +39,7 @@ export default function LoginPage() {
           "Login page: Executando redirecionamento com role:",
           userRole
         );
-        if (userRole === ROLES.ADMIN) {
+        if (userRole === ROLES.ADMIN || userRole === ROLES.MASTER) {
           console.log("Login page: Redirecionando admin para dashboard");
           router.push("/dashboard");
         } else if (userRole === ROLES.OPERATOR) {
@@ -100,7 +100,11 @@ export default function LoginPage() {
             <>
               <p className="text-cinza-chumbo mb-4">
                 Você está logado como{" "}
-                {userRole === ROLES.ADMIN ? "Administrador" : "Operador"}
+                {userRole === ROLES.MASTER
+                  ? "Master"
+                  : userRole === ROLES.ADMIN
+                  ? "Administrador"
+                  : "Operador"}
               </p>
               <p className="text-xs text-gray-500 mb-2">
                 Role detectado: {userRole}
@@ -112,7 +116,7 @@ export default function LoginPage() {
           )}
 
           <div className="space-y-3 mt-6">
-            {userRole === ROLES.ADMIN && (
+            {(userRole === ROLES.ADMIN || userRole === ROLES.MASTER) && (
               <button
                 onClick={() => router.push("/dashboard")}
                 className="w-full bg-verde-suave text-white px-4 py-2 rounded-lg hover:bg-verde-suave/90 transition-colors"
@@ -120,7 +124,9 @@ export default function LoginPage() {
                 Ir para Dashboard
               </button>
             )}
-            {(userRole === ROLES.ADMIN || userRole === ROLES.OPERATOR) && (
+            {(userRole === ROLES.ADMIN ||
+              userRole === ROLES.MASTER ||
+              userRole === ROLES.OPERATOR) && (
               <button
                 onClick={() => router.push("/votings")}
                 className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
