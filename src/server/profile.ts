@@ -1,6 +1,7 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import bcrypt from "bcryptjs";
+import { and, eq, isNotNull } from "drizzle-orm";
 
 import { requireAuth } from "@/lib/action-guards";
 import { db } from "@/server/database";
@@ -19,30 +20,82 @@ export async function getMyProfile() {
   };
 }
 
-export async function updateMyProfile(input: { name: string; email: string }) {
+export async function updateMyProfile(input: {
+  name: string;
+  image?: string | null;
+}) {
   const { user } = await requireAuth();
   const id = (user as any).id as string;
 
   const name = (input.name || "").trim();
-  const email = (input.email || "").trim().toLowerCase();
-  if (!name || !email) {
-    return { success: false as const, error: "Nome e email são obrigatórios" };
+  const image = (input.image ?? null) as string | null;
+  if (!name) {
+    return { success: false as const, error: "Nome é obrigatório" };
   }
 
   try {
     const [updated] = await db
       .update(users)
-      .set({ name, email })
+      .set({ name, image })
       .where(eq(users.id, id))
       .returning();
 
     return { success: true as const, data: updated };
   } catch (e: any) {
-    const msg = e?.message || "Erro ao atualizar perfil";
-    if (msg.includes("unique") || msg.toLowerCase().includes("duplicate")) {
-      return { success: false as const, error: "Email já está em uso" };
-    }
     return { success: false as const, error: "Erro ao atualizar perfil" };
   }
 }
 
+export async function changeMyPassword(input: {
+  currentPassword: string;
+  newPassword: string;
+}) {
+  const { user } = await requireAuth();
+  const id = (user as any).id as string;
+
+  const currentPassword = (input.currentPassword || "").trim();
+  const newPassword = (input.newPassword || "").trim();
+
+  if (!currentPassword || !newPassword) {
+    return {
+      success: false as const,
+      error: "Informe a senha atual e a nova senha",
+    };
+  }
+  if (newPassword.length < 6) {
+    return {
+      success: false as const,
+      error: "A nova senha deve ter pelo menos 6 caracteres",
+    };
+  }
+
+  // procurar conta local com password
+  const { account } = await import("@/server/database/auth-schema");
+  const rows = await db
+    .select()
+    .from(account)
+    .where(and(eq(account.userId, id), isNotNull(account.password)))
+    .limit(1);
+
+  if (rows.length === 0) {
+    return {
+      success: false as const,
+      error: "Conta não permite alteração de senha. Use 'Esqueci minha senha'",
+    };
+  }
+
+  const acc = rows[0] as any;
+  const ok = await bcrypt.compare(currentPassword, acc.password);
+  if (!ok) {
+    return { success: false as const, error: "Senha atual incorreta" };
+  }
+
+  const hash = await bcrypt.hash(newPassword, 10);
+  const updated = await db
+    .update(account)
+    .set({ password: hash })
+    .where(eq(account.id, acc.id))
+    .returning();
+
+  return { success: true as const, data: { id: updated[0].id } };
+}

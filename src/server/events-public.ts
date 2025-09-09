@@ -33,6 +33,7 @@ export interface PublicEvent {
 export interface EventRegistrationData {
   eventId: string;
   name: string;
+  stageName?: string;
   email: string;
   phone: string;
   category?: string;
@@ -284,6 +285,7 @@ export async function registerForEvent(data: EventRegistrationData): Promise<{
         .update(participants)
         .set({
           name: data.name,
+          stageName: (data as any).stageName || (participants as any).stageName,
           phone: data.phone,
           avatar: data.avatar,
           category: data.category || (participants as any).category,
@@ -321,6 +323,7 @@ export async function registerForEvent(data: EventRegistrationData): Promise<{
       .insert(participants)
       .values({
         name: data.name,
+        stageName: (data as any).stageName || null,
         email: data.email,
         phone: data.phone,
         avatar: data.avatar,

@@ -35,6 +35,7 @@ export const participants = pgTable("participants", {
     .primaryKey()
     .$defaultFn(() => createId()),
   name: varchar("name", { length: 255 }).notNull(),
+  stageName: varchar("stage_name", { length: 255 }),
   email: varchar("email", { length: 255 }).notNull().unique(),
   phone: varchar("phone", { length: 50 }),
   avatar: text("avatar"),

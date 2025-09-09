@@ -9,6 +9,7 @@ import { eventRegistrations, participants } from "@/server/database/schema";
 
 export interface ParticipantRegistrationData {
   name: string;
+  stageName?: string;
   email: string;
   phone?: string;
   avatar?: string;
@@ -56,6 +57,7 @@ export async function registerParticipant(
         .update(participants)
         .set({
           name: validatedData.name,
+          stageName: (validatedData as any).stageName || (existingParticipant[0] as any).stageName,
           phone: validatedData.phone || existingParticipant[0].phone,
           category: validatedData.category || existingParticipant[0].category,
           experience:
@@ -80,6 +82,7 @@ export async function registerParticipant(
         .insert(participants)
         .values({
           name: validatedData.name,
+          stageName: (validatedData as any).stageName || null,
           email: validatedData.email,
           phone: validatedData.phone || null,
           avatar: validatedData.avatar || null,

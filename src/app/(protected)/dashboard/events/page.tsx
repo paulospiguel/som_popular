@@ -11,6 +11,7 @@ import {
   Plus,
   Users,
 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -54,6 +55,7 @@ export default function EventsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [confirmCopyEvent, setConfirmCopyEvent] = useState<Event | null>(null);
+  const [confirmDeleteEvent, setConfirmDeleteEvent] = useState<Event | null>(null);
 
   useEffect(() => {
     // ProtectedProvider já faz a validação de permissões
@@ -91,6 +93,26 @@ export default function EventsPage() {
     } catch (error) {
       console.error("Erro ao copiar evento:", error);
       showError("Erro ao copiar evento");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteEvent = async (event: Event) => {
+    try {
+      setLoading(true);
+      const { deleteEvent } = await import("@/server/events");
+      const result = await deleteEvent(event.id);
+
+      if (result.success) {
+        showSuccess(result.message || "Evento excluído com sucesso!");
+        await loadEvents();
+      } else {
+        showError(result.error || "Erro ao excluir evento");
+      }
+    } catch (error) {
+      console.error("Erro ao excluir evento:", error);
+      showError("Erro ao excluir evento");
     } finally {
       setLoading(false);
     }
@@ -208,7 +230,14 @@ export default function EventsPage() {
                 <Copy className="w-4 h-4" />
                 Copiar evento
               </DropdownMenuItem>
-              {/* Outras opções extras aqui */}
+              <DropdownMenuItem
+                onSelect={() => setConfirmDeleteEvent(event)}
+                disabled={loading || event.status !== "draft"}
+                className="flex items-center gap-2"
+              >
+                <Trash2 className="w-4 h-4 text-red-500" />
+                Excluir evento
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -398,6 +427,39 @@ export default function EventsPage() {
               }}
             >
               OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Modal de confirmação para excluir evento */}
+      <AlertDialog
+        open={!!confirmDeleteEvent}
+        onOpenChange={(open) => !open && setConfirmDeleteEvent(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+          </AlertDialogHeader>
+          <div>
+            Tem certeza que deseja excluir o evento
+            {" "}
+            <strong>{confirmDeleteEvent?.name}</strong>?
+            <br />
+            Esta ação é irreversível e só é permitida para eventos em rascunho.
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setConfirmDeleteEvent(null)}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={loading || confirmDeleteEvent?.status !== "draft"}
+              onClick={async () => {
+                if (confirmDeleteEvent) await handleDeleteEvent(confirmDeleteEvent);
+                setConfirmDeleteEvent(null);
+              }}
+            >
+              Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

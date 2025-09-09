@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 import Footer from "./components/Footer";
 import Header from "./components/Header";
@@ -69,6 +70,8 @@ const INITIAL_PARTICIPANTS: Participant[] = [
 ];
 
 const LiveRanking: React.FC = () => {
+  const searchParams = useSearchParams();
+  const eventId = searchParams.get("event");
   const [participants, setParticipants] =
     useState<Participant[]>(INITIAL_PARTICIPANTS);
   const [currentlyVotingIndex, setCurrentlyVotingIndex] = useState<number>(0);
@@ -195,7 +198,7 @@ const LiveRanking: React.FC = () => {
         speed={60}
         pauseOnHover={true}
       />
-      <Header />
+      <Header eventId={eventId} />
       <div className="flex-1 container mx-auto px-4 py-2 flex flex-col min-h-0">
         <RankingList participants={sortedParticipants} />
       </div>

@@ -1,5 +1,6 @@
 import { Activity, Calendar } from "lucide-react";
 
+import Breadcrumb from "@/components/dashboard/Breadcrumb";
 import LogsComponent from "@/components/dashboard/LogsComponent";
 import RecentActivityComponent from "@/components/dashboard/RecentActivity";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,7 +8,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export default function LogsPage() {
   return (
     <div className="p-6">
-      <Tabs defaultValue="events" className=" p-4">
+      <Breadcrumb
+        title="Logs do Sistema"
+        description="Página de logs em desenvolvimento. Funcionalidade completa em breve."
+        icon={<Activity className="w-6 h-6 mr-2 text-verde-suave" />}
+        goToHome={true}
+      />
+
+      <Tabs defaultValue="events" className="p-4">
         <TabsList className="bg-transparent">
           <TabsTrigger value="system">
             <Activity className="w-4 h-4 mr-2" />

@@ -1,0 +1,1 @@
+ALTER TABLE "participants" ADD COLUMN "stage_name" varchar(255);

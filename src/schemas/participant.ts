@@ -9,6 +9,20 @@ export const participantSchema = z
       .max(100, "Nome não pode exceder 100 caracteres")
       .regex(/^[a-zA-ZÀ-ÿ\s]+$/, "Nome deve conter apenas letras e espaços"),
 
+    // Nome artístico do participante ou grupo
+    stageName: z
+      .string()
+      .optional()
+      .or(z.literal(""))
+      .refine(
+        (val) => !val || (typeof val === "string" && val.trim().length >= 2),
+        "Nome artístico deve ter pelo menos 2 caracteres"
+      )
+      .refine(
+        (val) => !val || val.length <= 100,
+        "Nome artístico não pode exceder 100 caracteres"
+      ),
+
     email: z
       .string()
       .min(1, "Email é obrigatório")

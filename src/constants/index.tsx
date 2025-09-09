@@ -49,9 +49,9 @@ export const EVENT_STATUSES = [
 
 export const PARTICIPANT_CATEGORIES = [
   { label: "Vocal", value: "vocal" },
-  { label: "Instrumental", value: "instrumental" },
-  { label: "Composição", value: "composicao" },
-  { label: "Grupo/Banda", value: "grupo" },
+  { label: "Banda", value: "banda" },
+  { label: "Dupla", value: "dupla" },
+  { label: "Individual", value: "individual" },
 ] as const;
 
 export const EVENT_TYPES = [
@@ -63,9 +63,7 @@ export const EVENT_TYPES = [
 
 export const EXPERIENCE_LEVELS = [
   { label: "Não tem experiência", value: "nao-tem-experiencia" },
-  { label: "Iniciante", value: "iniciante" },
-  { label: "Intermediário", value: "intermediario" },
-  { label: "Avançado", value: "avancado" },
+  { label: "Amador", value: "amador" },
   { label: "Profissional", value: "profissional" },
 ] as const;
 

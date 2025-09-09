@@ -152,6 +152,8 @@ const EventDetailsModal = ({
       // Inicializar o estado de edição com todos os campos do evento
       const initialEditState = {
         name: event.name,
+        type: event.type,
+        category: event.category,
         description: event.description,
         location: event.location,
         maxParticipants: event.maxParticipants,
@@ -205,6 +207,7 @@ const EventDetailsModal = ({
   };
 
   if (!event) return null;
+  const isDraft = event.status === "draft";
 
   const handleAction = async (
     action: () => Promise<any>,
@@ -494,7 +497,7 @@ const EventDetailsModal = ({
     });
 
     if (confirmed) {
-      window.location.href = "/dashboard/participants";
+      window.open("/dashboard/participants?open=add", "_blank");
     }
   };
 
@@ -901,6 +904,8 @@ const EventDetailsModal = ({
               // Restaurar todos os campos para os valores originais
               setEditedEvent({
                 name: event.name,
+                type: event.type,
+                category: event.category,
                 description: event.description,
                 location: event.location,
                 maxParticipants: event.maxParticipants,
@@ -1120,20 +1125,81 @@ const EventDetailsModal = ({
                 <label className="text-sm text-cinza-chumbo/70 font-medium">
                   Tipo de Evento
                 </label>
-                <p className="font-semibold text-cinza-chumbo">
-                  {EVENT_TYPES.find((type) => type.value === event.type)
-                    ?.label || getTypeText(event.type)}
-                </p>
+                {isEditing ? (
+                  <Select
+                    value={(editedEvent.type as any) || event.type}
+                    onValueChange={(value) =>
+                      setEditedEvent({
+                        ...editedEvent,
+                        type: value as any,
+                      })
+                    }
+                    disabled={event.status !== "draft"}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {EVENT_TYPES.map((t) => (
+                        <SelectItem key={t.value} value={t.value as any}>
+                          {t.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className="font-semibold text-cinza-chumbo">
+                    {EVENT_TYPES.find((type) => type.value === event.type)
+                      ?.label || getTypeText(event.type)}
+                  </p>
+                )}
+                {isEditing && event.status !== "draft" && (
+                  <p className="text-xs text-cinza-chumbo/60 mt-1">
+                    Este campo só pode ser alterado quando o evento está em
+                    rascunho.
+                  </p>
+                )}
               </div>
 
               <div>
                 <label className="text-sm text-cinza-chumbo/70 font-medium">
                   Modalidade
                 </label>
-                <p className="font-semibold text-cinza-chumbo">
-                  {EVENT_CATEGORIES.find((cat) => cat.value === event.category)
-                    ?.label || getCategoryText(event.category)}
-                </p>
+                {isEditing ? (
+                  <Select
+                    value={(editedEvent.category as any) || event.category}
+                    onValueChange={(value) =>
+                      setEditedEvent({
+                        ...editedEvent,
+                        category: value as any,
+                      })
+                    }
+                    disabled={event.status !== "draft"}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecione a modalidade" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {EVENT_CATEGORIES.map((c) => (
+                        <SelectItem key={c.value} value={c.value as any}>
+                          {c.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className="font-semibold text-cinza-chumbo">
+                    {EVENT_CATEGORIES.find(
+                      (cat) => cat.value === event.category
+                    )?.label || getCategoryText(event.category)}
+                  </p>
+                )}
+                {isEditing && event.status !== "draft" && (
+                  <p className="text-xs text-cinza-chumbo/60 mt-1">
+                    Este campo só pode ser alterado quando o evento está em
+                    rascunho.
+                  </p>
+                )}
               </div>
             </div>
 
@@ -1209,6 +1275,7 @@ const EventDetailsModal = ({
                     className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Máximo de participantes (opcional)"
                     min="1"
+                    disabled={!isDraft}
                   />
                 ) : (
                   <p className="font-semibold text-cinza-chumbo">
@@ -1217,6 +1284,12 @@ const EventDetailsModal = ({
                     <span className="text-sm text-cinza-chumbo/70 ml-1">
                       {event.maxParticipants ? "vinculados" : "(sem limite)"}
                     </span>
+                  </p>
+                )}
+                {isEditing && !isDraft && (
+                  <p className="text-xs text-cinza-chumbo/60 mt-1">
+                    Este campo só pode ser alterado quando o evento está em
+                    rascunho.
                   </p>
                 )}
               </div>
@@ -1242,6 +1315,7 @@ const EventDetailsModal = ({
                           startDate: date || new Date(),
                         })
                       }
+                      disabled={!isDraft}
                     />
                   ) : (
                     <>
@@ -1269,6 +1343,7 @@ const EventDetailsModal = ({
                             endDate: date || null,
                           })
                         }
+                        disabled={!isDraft}
                       />
                     ) : (
                       <>
@@ -1305,6 +1380,7 @@ const EventDetailsModal = ({
                           registrationStartDate: date || null,
                         })
                       }
+                      disabled={!isDraft}
                     />
                   ) : event.registrationStartDate ? (
                     <>
@@ -1335,6 +1411,7 @@ const EventDetailsModal = ({
                           registrationEndDate: date || null,
                         })
                       }
+                      disabled={!isDraft}
                     />
                   ) : event.registrationEndDate ? (
                     <>
@@ -2173,6 +2250,20 @@ const EventDetailsModal = ({
               </div>
             </div>
           )}
+
+          <div className="flex flex-col space-y-2 items-center justify-between mb-4">
+            <div className="text-sm text-cinza-chumbo/70">
+              Se o participante não existe, crie um novo.
+            </div>
+            <button
+              onClick={() =>
+                window.open("/dashboard/participants?open=add", "_blank")
+              }
+              className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+            >
+              + Adicionar novo Participante
+            </button>
+          </div>
 
           <div className="flex justify-end mt-6 pt-4 border-t">
             <button

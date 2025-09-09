@@ -15,6 +15,7 @@ import {
   User,
 } from "lucide-react";
 import Link from "next/link";
+import QRCode from "qrcode";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -32,34 +33,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 // Categoria não utilizada nesta tela (campo removido)
+import { EXPERIENCE_LEVELS, PARTICIPANT_CATEGORIES } from "@/constants";
 import { getAvailableEventsForRegistration } from "@/server/events-public";
 import {
   getParticipantByEmail,
   registerParticipant,
 } from "@/server/participants-public";
-import QRCode from "qrcode";
-
-const CATEGORIES = [
-  { value: "vocal", label: "Vocal" },
-  { value: "instrumental", label: "Instrumental" },
-  { value: "composicao", label: "Composição" },
-  { value: "grupo", label: "Grupo/Banda" },
-];
-
-const EXPERIENCE_LEVELS = [
-  { value: "iniciante", label: "Iniciante" },
-  { value: "intermediario", label: "Intermediário" },
-  { value: "avancado", label: "Avançado" },
-  { value: "profissional", label: "Profissional" },
-];
 
 interface FormData {
   name: string;
+  stageName: string;
   email: string;
   phone: string;
   category: string;
   experience: string;
-  age: number | undefined;
   additionalInfo: string;
   hasSpecialNeeds: boolean;
   specialNeedsDescription: string;
@@ -86,11 +73,11 @@ export default function ParticipantRegistrationPage() {
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
+    stageName: "",
     email: "",
     phone: "",
     category: "",
     experience: "",
-    age: undefined,
     additionalInfo: "",
     hasSpecialNeeds: false,
     specialNeedsDescription: "",
@@ -317,9 +304,8 @@ export default function ParticipantRegistrationPage() {
 
     try {
       const payload: any = { ...formData };
-      if (payload.age === undefined) delete payload.age;
       const result = await registerParticipant(payload);
-      
+
       if (result.success) {
         setParticipantId(result.participantId || "");
         setRegistrationResult(result);
@@ -422,23 +408,35 @@ export default function ParticipantRegistrationPage() {
                       <div className="w-28 h-28 border rounded animate-pulse bg-gray-50" />
                     )}
                     <div>
-                      <p className="text-sm text-cinza-chumbo/70">Número da Inscrição</p>
-                      <p className="font-bold text-cinza-chumbo text-xl">#{registrationResult.registrationId.slice(-8).toUpperCase()}</p>
+                      <p className="text-sm text-cinza-chumbo/70">
+                        Número da Inscrição
+                      </p>
+                      <p className="font-bold text-cinza-chumbo text-xl">
+                        #
+                        {registrationResult.registrationId
+                          .slice(-8)
+                          .toUpperCase()}
+                      </p>
                       <p className="text-xs text-cinza-chumbo/60 mt-2">
-                        Guarde este número. Ele aparece na sua credencial e pode ser usado para consulta.
+                        Guarde este número. Ele aparece na sua credencial e pode
+                        ser usado para consulta.
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2 mt-4">
-                    <Link href={`/events/${formData.eventId}/registration/confirmation?registration=${registrationResult.registrationId}`}>
-                      <Button size="sm" variant="outline">Ver Credencial Completa</Button>
+                    <Link
+                      href={`/events/${formData.eventId}/registration/confirmation?registration=${registrationResult.registrationId}`}
+                    >
+                      <Button size="sm" variant="outline">
+                        Ver Credencial Completa
+                      </Button>
                     </Link>
                     <Button
                       size="sm"
                       onClick={() => {
                         const w = window.open("", "_blank");
                         if (!w) return;
-                        const html = `<!doctype html><html><head><meta charset='utf-8'><title>Credencial</title><style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,'Helvetica Neue',Arial,'Noto Sans','Apple Color Emoji','Segoe UI Emoji';padding:24px} .card{border:1px solid #e5e7eb;border-radius:12px;padding:16px;max-width:360px} .row{display:flex;gap:12px;align-items:center}</style></head><body><div class='card'><div class='row'><img src='${qrUrl}' width='120' height='120'/><div><h3 style='margin:0'>${(availableEvents.find(e=>e.id===formData.eventId)?.name)||"Evento"}</h3><div style='font-size:12px;color:#6b7280;margin-top:4px'>${formData.name} • ${formData.email}</div><div style='font-size:12px;color:#6b7280;margin-top:4px'>Inscrição #${registrationResult.registrationId.slice(-8).toUpperCase()}</div></div></div></div><script>window.onload=()=>window.print()</script></body></html>`;
+                        const html = `<!doctype html><html><head><meta charset='utf-8'><title>Credencial</title><style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,'Helvetica Neue',Arial,'Noto Sans','Apple Color Emoji','Segoe UI Emoji';padding:24px} .card{border:1px solid #e5e7eb;border-radius:12px;padding:16px;max-width:360px} .row{display:flex;gap:12px;align-items:center}</style></head><body><div class='card'><div class='row'><img src='${qrUrl}' width='120' height='120'/><div><h3 style='margin:0'>${availableEvents.find((e) => e.id === formData.eventId)?.name || "Evento"}</h3><div style='font-size:12px;color:#6b7280;margin-top:4px'>${formData.name} • ${formData.email}</div><div style='font-size:12px;color:#6b7280;margin-top:4px'>Inscrição #${registrationResult.registrationId.slice(-8).toUpperCase()}</div></div></div></div><script>window.onload=()=>window.print()</script></body></html>`;
                         w.document.write(html);
                         w.document.close();
                       }}
@@ -646,7 +644,7 @@ export default function ParticipantRegistrationPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                      Nome Completo *
+                      Nome do Representante *
                     </label>
                     <Input
                       id="name"
@@ -655,7 +653,7 @@ export default function ParticipantRegistrationPage() {
                       onChange={(e) =>
                         handleInputChange("name", e.target.value)
                       }
-                      placeholder="Seu nome completo"
+                      placeholder="Nome do representante"
                       className={`${errors.name ? "border-red-500 ring-red-200" : "border-gray-300"} focus:ring-2 focus:ring-verde-suave focus:border-transparent`}
                     />
                     {errors.name && (
@@ -664,6 +662,22 @@ export default function ParticipantRegistrationPage() {
                         {errors.name}
                       </p>
                     )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-cinza-chumbo mb-2">
+                      Nome Artístico
+                    </label>
+                    <Input
+                      id="stageName"
+                      type="text"
+                      value={formData.stageName}
+                      onChange={(e) =>
+                        handleInputChange("stageName", e.target.value)
+                      }
+                      placeholder="Ex: Banda X, Duo Y, Nome Artístico"
+                      className={`border-gray-300 focus:ring-2 focus:ring-verde-suave focus:border-transparent`}
+                    />
                   </div>
 
                   <div>
@@ -765,7 +779,6 @@ export default function ParticipantRegistrationPage() {
                       branco se não quiser.
                     </p>
                   </div>
-
                 </div>
               </div>
 
@@ -921,26 +934,32 @@ export default function ParticipantRegistrationPage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    {/* Experiência opcional */}
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                      Idade
+                      Categoria
                     </label>
-                    <Input
-                      type="number"
-                      min={1}
-                      max={120}
-                      value={formData.age ?? ""}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "age",
-                          e.target.value ? Number(e.target.value) : undefined
-                        )
+                    <Select
+                      value={formData.category}
+                      onValueChange={(value) =>
+                        handleInputChange("category", value)
                       }
-                      placeholder="Ex: 25"
-                    />
+                    >
+                      <SelectTrigger
+                        id="category"
+                        className={`w-full focus:ring-2 focus:ring-verde-suave focus:border-transparent`}
+                      >
+                        <SelectValue placeholder="Selecione a categoria" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PARTICIPANT_CATEGORIES.map((c) => (
+                          <SelectItem key={c.value} value={c.value}>
+                            {c.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
@@ -1063,8 +1082,7 @@ export default function ParticipantRegistrationPage() {
                     >
                       Li e aceito o regulamento do festival e estou ciente dos
                       termos e condições de participação
-                      <span className="text-red-500"> *</span>
-                      {" "}
+                      <span className="text-red-500"> *</span>{" "}
                       <Link
                         href={
                           formData.eventId
@@ -1150,7 +1168,7 @@ export default function ParticipantRegistrationPage() {
                       <strong>{existingParticipant.name}</strong>
                     </p>
                     <Badge className="mb-4">
-                      {CATEGORIES.find(
+                      {PARTICIPANT_CATEGORIES.find(
                         (c) => c.value === existingParticipant.category
                       )?.label || existingParticipant.category}
                     </Badge>

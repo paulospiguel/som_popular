@@ -1,16 +1,16 @@
 "use client";
 
-import { LogOut, Play } from "lucide-react";
-import Link from "next/link";
+import { Play } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { ROLES } from "@/constants";
-import { signOut, useSession } from "@/lib/auth-client";
+import { useSession } from "@/lib/auth-client";
 
 import { Logo } from "../logo";
 import { Switch } from "../ui/switch";
-import { Avatar } from "../ui/avatar";
+
+import UserProfile from "./UserProfile";
 
 export default function NavbarDashboard() {
   const router = useRouter();
@@ -28,11 +28,6 @@ export default function NavbarDashboard() {
   if (!session) {
     return null;
   }
-
-  const handleLogout = async () => {
-    await signOut();
-    router.push("/");
-  };
 
   const toggleEventMode = () => {
     if (userRole === ROLES.ADMIN || userRole === ROLES.MASTER) {
@@ -90,35 +85,7 @@ export default function NavbarDashboard() {
               </div>
             )}
 
-            <Link
-              href="/profile"
-              className="flex items-center space-x-3 px-2 py-1 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <Avatar
-                name={session.user.name || "Utilizador"}
-                src={(session.user as any).image || null}
-                size="sm"
-              />
-              <div className="text-right">
-                <span className="text-cinza-chumbo font-medium block">
-                  {session.user.name}
-                </span>
-                <span className="text-xs text-cinza-chumbo/70">
-                  {userRole === ROLES.MASTER
-                    ? "Master"
-                    : userRole === ROLES.ADMIN
-                    ? "Administrador"
-                    : "Operador"}
-                </span>
-              </div>
-            </Link>
-            <button
-              onClick={handleLogout}
-              className="flex items-center space-x-2 text-cinza-chumbo hover:text-vermelho-suave transition-colors p-2 rounded-lg hover:bg-vermelho-suave/10"
-            >
-              <LogOut className="w-5 h-5" />
-              <span className="hidden sm:block">Sair</span>
-            </button>
+            <UserProfile />
           </div>
         </div>
       </div>

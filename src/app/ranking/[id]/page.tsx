@@ -14,12 +14,13 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getEventRanking, type EventRankingData } from "@/server/rankings";
+import { Switch } from "@/components/ui/switch";
 
 const PHASE_STATUS_COLORS = {
   draft: "bg-gray-100 text-gray-800",
@@ -31,6 +32,7 @@ const PHASE_STATUS_COLORS = {
 
 export default function EventRankingPage() {
   const params = useParams();
+  const router = useRouter();
   const eventId = params.id as string;
 
   const [rankingData, setRankingData] = useState<EventRankingData | null>(null);
@@ -178,10 +180,20 @@ export default function EventRankingPage() {
                 </div>
               </div>
 
-              <div className="ml-6 text-center">
-                <Badge className="mb-2 capitalize">{event.type}</Badge>
-                <div className="text-sm text-cinza-chumbo/70">
-                  {evaluatedParticipants} de {totalParticipants} avaliados
+              <div className="ml-6 text-right space-y-3">
+                <div className="inline-flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border">
+                  <span className="text-sm text-cinza-chumbo">Modo Placar</span>
+                  <Switch
+                    onCheckedChange={(checked) => {
+                      if (checked) router.push(`/live-ranking?event=${eventId}`);
+                    }}
+                  />
+                </div>
+                <div className="text-center">
+                  <Badge className="mb-2 capitalize">{event.type}</Badge>
+                  <div className="text-sm text-cinza-chumbo/70">
+                    {evaluatedParticipants} de {totalParticipants} avaliados
+                  </div>
                 </div>
               </div>
             </div>

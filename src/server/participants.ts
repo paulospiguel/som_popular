@@ -3,7 +3,7 @@
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-import { checkAdminAccess } from "@/lib/auth-guards";
+import { requireAdmin } from "@/lib/action-guards";
 import { sendEmail } from "@/lib/mailer/resend";
 import { db } from "@/server/database";
 import {
@@ -48,7 +48,7 @@ export async function getAllParticipants() {
  */
 export async function approveParticipant(participantId: string) {
   try {
-    await checkAdminAccess();
+    await requireAdmin();
 
     const [updated] = await db
       .update(participants)
@@ -88,7 +88,7 @@ export async function approveParticipant(participantId: string) {
  */
 export async function rejectParticipant(participantId: string, reason: string) {
   try {
-    await checkAdminAccess();
+    await requireAdmin();
     if (!reason || reason.trim().length < 5)
       return { success: false, error: "Justificativa é obrigatória" };
 
@@ -131,7 +131,7 @@ export async function deactivateParticipant(
   reason: string
 ) {
   try {
-    await checkAdminAccess();
+    await requireAdmin();
     if (!reason || reason.trim().length < 5)
       return { success: false, error: "Justificativa é obrigatória" };
 
@@ -222,7 +222,7 @@ export async function registerParticipantInEvent(
 ) {
   try {
     // Verificar permissões de admin
-    await checkAdminAccess();
+    await requireAdmin();
 
     // Verificar se já existe registro
     const existing = await db
@@ -276,7 +276,7 @@ export async function removeParticipantFromEvent(
 ) {
   try {
     // Verificar permissões de admin
-    await checkAdminAccess();
+    await requireAdmin();
 
     await db
       .delete(eventRegistrations)

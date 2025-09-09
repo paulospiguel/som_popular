@@ -1,7 +1,6 @@
 "use server";
 
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 
 import { ROLES } from "@/constants";
 import { auth } from "@/lib/auth";
@@ -13,12 +12,12 @@ export async function requireAuth() {
   const session = await auth.api.getSession({ headers: await headers() });
 
   if (!session?.user) {
-    redirect("/auth/login");
+    throw new Error("UNAUTHENTICATED");
   }
 
   // Bloquear utilizadores inativos
   if (session.user?.isActive === false) {
-    redirect("/auth/login?error=account_inactive");
+    throw new Error("ACCOUNT_INACTIVE");
   }
 
   return { session, user: session.user };

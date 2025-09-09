@@ -3,7 +3,7 @@
 import { desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-import { checkAdminAccess } from "@/lib/auth-guards";
+import { requireAdmin } from "@/lib/action-guards";
 import { db } from "@/server/database";
 import { events, type Event, type NewEvent } from "@/server/database/schema";
 
@@ -15,7 +15,7 @@ export async function createEvent(
 ) {
   try {
     // Verificar permissões de admin
-    const { user } = await checkAdminAccess();
+    const { user } = await requireAdmin();
 
     const [event] = await db
       .insert(events)
@@ -71,17 +71,49 @@ export async function getEventById(id: string) {
  */
 export async function updateEvent(id: string, data: Partial<Event>) {
   try {
+    // Buscar evento atual para verificar status
+    const [existing] = await db.select().from(events).where(eq(events.id, id));
+    if (!existing) {
+      return { success: false as const, error: "Evento não encontrado" };
+    }
+
+    const payload: Partial<Event> = { ...data };
+
+    // Se não estiver em rascunho, bloquear alterações em campos críticos
+    if (existing.status !== "draft") {
+      const criticalKeys: Array<keyof Event> = [
+        "type",
+        "category",
+        "startDate",
+        "endDate",
+        "registrationStartDate",
+        "registrationEndDate",
+        "maxParticipants",
+        "status",
+      ];
+      for (const key of criticalKeys) {
+        if (key in payload) {
+          delete payload[key];
+        }
+      }
+    }
+
+    if (Object.keys(payload).length === 0) {
+      // Nada a atualizar
+      return { success: true as const, data: existing };
+    }
+
     const [event] = await db
       .update(events)
-      .set({ ...data, updatedAt: new Date() })
+      .set({ ...payload, updatedAt: new Date() })
       .where(eq(events.id, id))
       .returning();
 
     revalidatePath("/dashboard/events");
-    return { success: true, data: event };
+    return { success: true as const, data: event };
   } catch (error) {
     console.error("Erro ao atualizar evento:", error);
-    return { success: false, error: "Erro ao atualizar evento" };
+    return { success: false as const, error: "Erro ao atualizar evento" };
   }
 }
 
@@ -91,7 +123,7 @@ export async function updateEvent(id: string, data: Partial<Event>) {
 export async function deleteEvent(id: string) {
   try {
     // Verificar permissões de admin
-    await checkAdminAccess();
+    await requireAdmin();
 
     // Verificar se o evento existe e está em rascunho
     const [existingEvent] = await db
@@ -150,7 +182,7 @@ export async function getActiveEvents() {
 export async function publishEvent(id: string, _publishedBy: string) {
   try {
     // Verificar permissões de admin
-    await checkAdminAccess();
+    await requireAdmin();
 
     // Verificar se o evento existe e está em rascunho
     const [existingEvent] = await db
@@ -201,7 +233,7 @@ export async function publishEvent(id: string, _publishedBy: string) {
 export async function startEvent(id: string, _startedBy: string) {
   try {
     // Verificar permissões de admin
-    await checkAdminAccess();
+    await requireAdmin();
 
     // Verificar se o evento existe e está publicado
     const [existingEvent] = await db
@@ -425,7 +457,7 @@ export async function getEventStats() {
 export async function copyEvent(id: string) {
   try {
     // Verificar permissões de admin
-    const { user } = await checkAdminAccess();
+    const { user } = await requireAdmin();
 
     // Buscar o evento original
     const [originalEvent] = await db

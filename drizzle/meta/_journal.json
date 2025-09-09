@@ -29,6 +29,13 @@
       "when": 1757357807783,
       "tag": "0003_late_forge",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1757415896719,
+      "tag": "0004_add_stage_name",
+      "breakpoints": true
     }
   ]
 }

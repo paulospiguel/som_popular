@@ -14,7 +14,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -30,7 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { EXPERIENCE_LEVELS } from "@/constants";
+import { EXPERIENCE_LEVELS, PARTICIPANT_CATEGORIES } from "@/constants";
 import {
   getPublicEventById,
   registerForEvent,
@@ -48,25 +49,45 @@ export default function EventRegistrationPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    experience: "",
-    age: undefined as number | undefined,
-    additionalInfo: "",
-    hasSpecialNeeds: false,
-    specialNeedsDescription: "",
-    acceptsEmailNotifications: false,
-    avatar: "",
-    acceptsRegulation: false,
+  type FormValues = {
+    name: string;
+    stageName: string;
+    email: string;
+    phone: string;
+    experience: string;
+    additionalInfo: string;
+    hasSpecialNeeds: boolean;
+    specialNeedsDescription: string;
+    acceptsEmailNotifications: boolean;
+    avatar: string;
+    acceptsRegulation: boolean;
+    category: string;
+  };
+
+  const {
+    control,
+    register,
+    handleSubmit: rhfHandleSubmit,
+    watch,
+    formState: {},
+  } = useForm<FormValues>({
+    defaultValues: {
+      name: "",
+      stageName: "",
+      email: "",
+      phone: "",
+      experience: "",
+      additionalInfo: "",
+      hasSpecialNeeds: false,
+      specialNeedsDescription: "",
+      acceptsEmailNotifications: false,
+      avatar: "",
+      acceptsRegulation: false,
+      category: "",
+    },
   });
 
-  useEffect(() => {
-    loadEvent();
-  }, [eventId]);
-
-  const loadEvent = async () => {
+  const loadEvent = useCallback(async () => {
     try {
       setLoading(true);
       const result = await getPublicEventById(eventId);
@@ -83,11 +104,13 @@ export default function EventRegistrationPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [eventId]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    loadEvent();
+  }, [loadEvent]);
 
+  const onSubmit = async (formData: FormValues) => {
     if (!event || !event.canRegister) {
       toast.error("Inscrições não disponíveis para este evento");
       return;
@@ -107,9 +130,7 @@ export default function EventRegistrationPage() {
     try {
       setSubmitting(true);
 
-      const payload: any = { eventId, ...formData };
-      if (payload.age === undefined) delete payload.age;
-      const registrationData: EventRegistrationData = payload;
+      const registrationData: EventRegistrationData = { eventId, ...formData };
 
       const result = await registerForEvent(registrationData);
 
@@ -129,12 +150,8 @@ export default function EventRegistrationPage() {
     }
   };
 
-  const handleInputChange = (field: string, value: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
+  const hasSpecialNeeds = watch("hasSpecialNeeds");
+  const acceptsRegulation = watch("acceptsRegulation");
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat("pt-PT", {
@@ -248,18 +265,51 @@ export default function EventRegistrationPage() {
               Dados para Inscrição
             </h3>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={rhfHandleSubmit(onSubmit)} className="space-y-6">
+              {/* Foto de Perfil */}
+              <div>
+                <label className="block text-sm font-medium text-cinza-chumbo mb-2">
+                  Foto de Perfil
+                </label>
+                <Controller
+                  control={control}
+                  name="avatar"
+                  render={({ field }) => (
+                    <DiscreteImageUpload
+                      value={field.value}
+                      onChange={(value: string) => field.onChange(value)}
+                      maxSize={2}
+                      acceptedTypes={[
+                        "image/jpeg",
+                        "image/jpg",
+                        "image/png",
+                        "image/webp",
+                      ]}
+                      placeholder="Adicionar foto"
+                    />
+                  )}
+                />
+              </div>
+
               {/* Dados Pessoais */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                    Nome Completo *
+                    Nome do Representante *
                   </label>
                   <Input
-                    value={formData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                    placeholder="Seu nome completo"
-                    required
+                    placeholder="Nome do representante"
+                    {...register("name", { required: true, minLength: 2 })}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-cinza-chumbo mb-2">
+                    Nome Artístico
+                  </label>
+                  <Input
+                    placeholder="Ex: Banda X, Dupla Y, Nome Artístico"
+                    {...register("stageName")}
                   />
                 </div>
 
@@ -269,10 +319,8 @@ export default function EventRegistrationPage() {
                   </label>
                   <Input
                     type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
                     placeholder="seu@email.com"
-                    required
+                    {...register("email", { required: true })}
                   />
                 </div>
 
@@ -280,91 +328,91 @@ export default function EventRegistrationPage() {
                   <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                     Telefone
                   </label>
-                  <PhoneInput
-                    value={formData.phone}
-                    onChange={(value) => handleInputChange("phone", value)}
-                    placeholder="(11) 99999-9999"
-                    className="w-full"
+                  <Controller
+                    control={control}
+                    name="phone"
+                    render={({ field }) => (
+                      <PhoneInput
+                        value={field.value}
+                        onChange={(value) => field.onChange(value)}
+                        placeholder="(11) 99999-9999"
+                        className="w-full"
+                      />
+                    )}
                   />
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                    Foto de Perfil
-                  </label>
-                  <DiscreteImageUpload
-                    value={formData.avatar}
-                    onChange={(value: string) =>
-                      handleInputChange("avatar", value)
-                    }
-                    maxSize={2}
-                    acceptedTypes={[
-                      "image/jpeg",
-                      "image/jpg",
-                      "image/png",
-                      "image/webp",
-                    ]}
-                    placeholder="Adicionar foto"
-                  />
-                </div>
+              {/* Informações Artísticas */}
+              <div className="w-full">
+                <h4 className="text-md font-semibold text-cinza-chumbo mb-4">
+                  Informações Artísticas
+                </h4>
 
-                {/* Informações Artísticas */}
-                <div className="md:col-span-2">
-                  <h4 className="text-sm font-semibold text-cinza-chumbo mb-2">
-                    Informações Artísticas
-                  </h4>
-                  <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                    Nível de Experiência *
-                  </label>
-                  <Select
-                    value={formData.experience}
-                    onValueChange={(value) =>
-                      handleInputChange("experience", value)
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Selecione seu nível" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {EXPERIENCE_LEVELS.map((level) => (
-                        <SelectItem key={level.value} value={level.value}>
-                          {level.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                    Idade
-                  </label>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={120}
-                    value={formData.age ?? ""}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "age",
-                        e.target.value ? Number(e.target.value) : undefined
-                      )
-                    }
-                    placeholder="Ex: 25"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                  <div className="w-full">
+                    <label className="block text-sm font-medium text-cinza-chumbo mb-2">
+                      Categoria
+                    </label>
+                    <Controller
+                      control={control}
+                      name="category"
+                      render={({ field }) => (
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Selecione a categoria" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {PARTICIPANT_CATEGORIES.map((c) => (
+                              <SelectItem key={c.value} value={c.value}>
+                                {c.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </div>
+                  <div className="w-full">
+                    <label className="block text-sm font-medium text-cinza-chumbo mb-2">
+                      Nível de Experiência
+                    </label>
+                    <Controller
+                      control={control}
+                      name="experience"
+                      rules={{ required: true }}
+                      render={({ field }) => (
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Selecione seu nível" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {EXPERIENCE_LEVELS.map((level) => (
+                              <SelectItem key={level.value} value={level.value}>
+                                {level.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Informações Adicionais */}
               <div>
-                <label className="block text-sm font-medium text-cinza-chumbo mb-2">
+                <label className="block text-md font-medium text-cinza-chumbo mb-2">
                   Informações Adicionais
                 </label>
                 <textarea
-                  value={formData.additionalInfo}
-                  onChange={(e) =>
-                    handleInputChange("additionalInfo", e.target.value)
-                  }
+                  {...register("additionalInfo")}
                   placeholder="Conte-nos mais sobre você, sua música ou qualquer informação relevante..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-verde-suave"
                   rows={4}
@@ -374,12 +422,16 @@ export default function EventRegistrationPage() {
               {/* Necessidades Especiais */}
               <div>
                 <div className="flex items-center space-x-2 mb-2">
-                  <Checkbox
-                    id="hasSpecialNeeds"
-                    checked={formData.hasSpecialNeeds}
-                    onCheckedChange={(checked) =>
-                      handleInputChange("hasSpecialNeeds", !!checked)
-                    }
+                  <Controller
+                    control={control}
+                    name="hasSpecialNeeds"
+                    render={({ field }) => (
+                      <Checkbox
+                        id="hasSpecialNeeds"
+                        checked={!!field.value}
+                        onCheckedChange={(checked) => field.onChange(!!checked)}
+                      />
+                    )}
                   />
                   <label
                     htmlFor="hasSpecialNeeds"
@@ -390,19 +442,12 @@ export default function EventRegistrationPage() {
                   </label>
                 </div>
 
-                {formData.hasSpecialNeeds && (
+                {hasSpecialNeeds && (
                   <textarea
-                    value={formData.specialNeedsDescription}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "specialNeedsDescription",
-                        e.target.value
-                      )
-                    }
+                    {...register("specialNeedsDescription")}
                     placeholder="Descreva suas necessidades especiais para que possamos preparar o melhor atendimento..."
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-verde-suave"
                     rows={3}
-                    required
                   />
                 )}
               </div>
@@ -410,12 +455,16 @@ export default function EventRegistrationPage() {
               {/* Notificações */}
               <div>
                 <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="acceptsEmailNotifications"
-                    checked={formData.acceptsEmailNotifications}
-                    onCheckedChange={(checked) =>
-                      handleInputChange("acceptsEmailNotifications", !!checked)
-                    }
+                  <Controller
+                    control={control}
+                    name="acceptsEmailNotifications"
+                    render={({ field }) => (
+                      <Checkbox
+                        id="acceptsEmailNotifications"
+                        checked={!!field.value}
+                        onCheckedChange={(checked) => field.onChange(!!checked)}
+                      />
+                    )}
                   />
                   <label
                     htmlFor="acceptsEmailNotifications"
@@ -433,13 +482,17 @@ export default function EventRegistrationPage() {
                   Regulamento
                 </label>
                 <p className="text-sm gap-2 text-cinza-chumbo flex items-center">
-                  <Checkbox
-                    required
-                    id="acceptsRegulation"
-                    checked={formData.acceptsRegulation}
-                    onCheckedChange={(checked) =>
-                      handleInputChange("acceptsRegulation", !!checked)
-                    }
+                  <Controller
+                    control={control}
+                    name="acceptsRegulation"
+                    rules={{ required: true, validate: (v) => v === true }}
+                    render={({ field }) => (
+                      <Checkbox
+                        id="acceptsRegulation"
+                        checked={!!field.value}
+                        onCheckedChange={(checked) => field.onChange(!!checked)}
+                      />
+                    )}
                   />
                   <Link
                     href={`/regulation/${event.id}`}
@@ -455,7 +508,9 @@ export default function EventRegistrationPage() {
               <div className="pt-6 border-t">
                 <Button
                   type="submit"
-                  disabled={submitting || !event.canRegister}
+                  disabled={
+                    submitting || !event.canRegister || !acceptsRegulation
+                  }
                   className="w-full festival-button text-lg py-3"
                 >
                   {submitting ? (

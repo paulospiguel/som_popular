@@ -11,6 +11,7 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { DataTable } from "@/components/DataTable";
@@ -29,6 +30,7 @@ import {
 } from "./utils";
 
 export default function ParticipantsManagement() {
+  const searchParams = useSearchParams();
   const { isPending } = useSession();
   const [participants, setParticipants] = useState<Partial<Participant>[]>([]);
   const [loading, setLoading] = useState(true);
@@ -176,6 +178,14 @@ export default function ParticipantsManagement() {
       loadParticipants();
     }
   }, [isPending]);
+
+  // Abrir modal de adicionar se solicitado via querystring
+  useEffect(() => {
+    const open = searchParams.get("open");
+    if (open === "add") {
+      setShowAddModal(true);
+    }
+  }, [searchParams]);
 
   const stats = {
     total: participants.length,
@@ -336,8 +346,8 @@ export default function ParticipantsManagement() {
             className="min-h-[calc(100vh-400px)]"
             data={activeParticipants}
             columns={columns}
-            searchFields={["name", "email", "category"]} // Removido "city"
-            searchPlaceholder="Pesquisar por nome, email ou categoria..."
+            searchFields={["id", "name", "email", "category"]}
+            searchPlaceholder="Pesquisar por nº de inscrição, nome, email ou categoria..."
             emptyMessage="Nenhum participante encontrado."
             emptyIcon={<Users className="w-12 h-12 text-cinza-chumbo/30" />}
             onArchive={handleArchiveParticipant}
