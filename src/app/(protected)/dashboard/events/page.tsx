@@ -10,6 +10,8 @@ import {
   MoreVertical,
   Plus,
   Users,
+  Vote,
+  ExternalLink,
 } from "lucide-react";
 import { Trash2 } from "lucide-react";
 import Link from "next/link";
@@ -222,6 +224,18 @@ export default function EventsPage() {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link href={`/votings/${event.id}`} className="flex items-center gap-2">
+                  <Vote className="w-4 h-4" />
+                  Ir para votação
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={`/events/${event.id}`} className="flex items-center gap-2" target="_blank">
+                  <ExternalLink className="w-4 h-4" />
+                  Abrir página do evento
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem
                 onSelect={() => setConfirmCopyEvent(event)}
                 disabled={loading}

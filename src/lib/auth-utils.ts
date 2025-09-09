@@ -10,10 +10,8 @@ export async function checkEventModeAccess() {
 
   if (!session?.user) redirect("/auth/login");
 
-  const userRole = (session.user as any).role ?? ROLES.OPERATOR; // se ainda não tipaste role
-  if (userRole !== ROLES.ADMIN && userRole !== ROLES.OPERATOR)
-    redirect("/dashboard");
-
+  // Todos os utilizadores autenticados podem aceder ao modo evento
+  const userRole = (session.user as any).role ?? ROLES.OPERATOR;
   return { user: session.user, role: userRole };
 }
 

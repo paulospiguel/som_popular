@@ -24,6 +24,7 @@ import { toast } from "sonner";
 
 import { Avatar } from "@/components/ui/avatar";
 import { ExpandedTabs } from "@/components/ui/expanded-tabs";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -31,6 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import { ROLES } from "@/constants";
 import { useSession } from "@/lib/auth-client";
 import { Judge } from "@/server/database/schema";
@@ -167,8 +169,13 @@ export default function VotingEventPage() {
       return;
     }
 
-    const userRole = (session?.user as any)?.role || ROLES.OPERATOR;
-    if (userRole !== ROLES.ADMIN && userRole !== ROLES.OPERATOR) {
+    const userRole = session?.user?.role || ROLES.OPERATOR;
+
+    if (
+      userRole !== ROLES.ADMIN &&
+      userRole !== ROLES.MASTER &&
+      userRole !== ROLES.OPERATOR
+    ) {
       router.push("/auth/login");
       return;
     }
@@ -209,7 +216,7 @@ export default function VotingEventPage() {
     if (completedEvaluations.length === 0) return 0;
 
     const sum = completedEvaluations.reduce((acc, e) => acc + e.score, 0);
-    return Math.round((sum / completedEvaluations.length) * 100) / 100;
+    return Math.round((sum / completedEvaluations.length) * 10) / 10;
   };
 
   const handleSaveEvaluation = async () => {
@@ -479,7 +486,7 @@ export default function VotingEventPage() {
                     </div>
                     <div className="text-right">
                       <div className="text-2xl font-bold text-amarelo-dourado">
-                        {getAverageScore()}/100
+                        {getAverageScore().toFixed(1)}/10
                       </div>
                       <div className="text-xs text-cinza-chumbo/70">
                         Média Atual
@@ -514,7 +521,7 @@ export default function VotingEventPage() {
                         <div className="text-right">
                           {judgeEval.isComplete ? (
                             <div className="font-bold text-verde-suave">
-                              {judgeEval.score}/100
+                              {judgeEval.score.toFixed(1)}/10
                             </div>
                           ) : (
                             <div className="text-sm text-gray-500">
@@ -575,33 +582,29 @@ export default function VotingEventPage() {
                     {/* Nota */}
                     <div>
                       <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                        Nota (0-100):
+                        Nota (0-10):
                       </label>
-                      <div className="space-y-3">
-                        <input
-                          type="range"
-                          min="0"
-                          max="100"
+
+                      <div className="grid grid-cols-5 w-full gap-5 text-sm font-medium">
+                        <Slider
+                          className="col-span-4"
+                          min={0}
+                          max={10}
+                          step={1}
+                          value={[currentScore]}
+                          onValueChange={(value) => setCurrentScore(value[0])}
+                        />
+                        <Input
+                          min={0}
+                          max={10}
+                          step={1}
+                          type="number"
                           value={currentScore}
                           onChange={(e) =>
                             setCurrentScore(parseInt(e.target.value))
                           }
-                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                          className="w-full col-span-1 h-12  text-center text-2xl"
                         />
-                        <div className="flex justify-between items-center">
-                          <div className="flex justify-between text-xs text-cinza-chumbo/70 w-full">
-                            <span>0</span>
-                            <span>25</span>
-                            <span>50</span>
-                            <span>75</span>
-                            <span>100</span>
-                          </div>
-                        </div>
-                        <div className="text-center">
-                          <span className="text-2xl font-bold text-amarelo-dourado">
-                            {currentScore}/100
-                          </span>
-                        </div>
                       </div>
                     </div>
 

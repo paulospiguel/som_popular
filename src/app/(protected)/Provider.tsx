@@ -54,18 +54,8 @@ export default function ProtectedProvider({
         return;
       }
     } else if (currentPath.startsWith("/votings")) {
-      // Votações: admins e operadores
-      if (
-        userRole !== ROLES.ADMIN &&
-        userRole !== ROLES.MASTER &&
-        userRole !== ROLES.OPERATOR
-      ) {
-        console.log(
-          "ProtectedProvider: Votações negadas para usuário sem permissão"
-        );
-        router.push("/auth/login");
-        return;
-      }
+      // Votações: permitir a todos os utilizadores autenticados
+      // Sem redirecionar por role
     }
 
     // Se chegou até aqui, a validação passou
@@ -97,23 +87,7 @@ export default function ProtectedProvider({
     return null;
   }
 
-  if (
-    currentPath.startsWith("/votings") &&
-    userRole !== ROLES.ADMIN &&
-    userRole !== ROLES.MASTER &&
-    userRole !== ROLES.OPERATOR
-  ) {
-    return null;
-  }
-
-  // Se não é admin nem operador, bloquear acesso
-  if (
-    userRole !== ROLES.ADMIN &&
-    userRole !== ROLES.MASTER &&
-    userRole !== ROLES.OPERATOR
-  ) {
-    return null;
-  }
+  // Para /votings todos autenticados são permitidos; outros check acima já tratam dashboard/settings
 
   return <div>{children}</div>;
 }
