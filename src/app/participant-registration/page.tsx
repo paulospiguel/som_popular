@@ -19,12 +19,12 @@ import QRCode from "qrcode";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import PhoneInput from "@/components/PhoneInput";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DiscreteImageUpload } from "@/components/ui/discrete-image-upload";
 import { Input } from "@/components/ui/input";
-import { PhoneInput } from "@/components/ui/phone-input";
 import {
   Select,
   SelectContent,
@@ -39,6 +39,8 @@ import {
   getParticipantByEmail,
   registerParticipant,
 } from "@/server/participants-public";
+
+import { Label } from "@/components/ui/label";
 
 interface FormData {
   name: string;
@@ -641,11 +643,31 @@ export default function ParticipantRegistrationPage() {
                   Informações Pessoais
                 </h3>
 
+                <div>
+                  <Label>Foto para o Ranking (Opcional)</Label>
+                  <DiscreteImageUpload
+                    value={formData.rankingPhoto}
+                    onChange={(value: string) =>
+                      handleInputChange("rankingPhoto", value)
+                    }
+                    maxSize={3}
+                    acceptedTypes={[
+                      "image/jpeg",
+                      "image/jpg",
+                      "image/png",
+                      "image/webp",
+                    ]}
+                    placeholder="Adicionar foto para ranking"
+                  />
+                  <p className="text-xs text-cinza-chumbo/60 mt-1">
+                    Adicione uma foto para aparecer no ranking. Deixe em branco
+                    se não quiser.
+                  </p>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                      Nome do Representante *
-                    </label>
+                    <Label isRequired>Nome do Representante</Label>
                     <Input
                       id="name"
                       type="text"
@@ -665,9 +687,7 @@ export default function ParticipantRegistrationPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                      Nome Artístico
-                    </label>
+                    <Label>Nome Artístico</Label>
                     <Input
                       id="stageName"
                       type="text"
@@ -681,9 +701,7 @@ export default function ParticipantRegistrationPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                      Email *
-                    </label>
+                    <Label isRequired>Email</Label>
                     <Input
                       id="email"
                       type="email"
@@ -746,38 +764,14 @@ export default function ParticipantRegistrationPage() {
                   </div>
 
                   <div>
+                    <Label>Telefone</Label>
                     <PhoneInput
-                      label="Telefone"
                       value={formData.phone}
                       onChange={(value) => handleInputChange("phone", value)}
                       placeholder="(11) 99999-9999"
                       error={!!errors.phone}
                       className="w-full"
                     />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                      Foto para o Ranking (Opcional)
-                    </label>
-                    <DiscreteImageUpload
-                      value={formData.rankingPhoto}
-                      onChange={(value: string) =>
-                        handleInputChange("rankingPhoto", value)
-                      }
-                      maxSize={3}
-                      acceptedTypes={[
-                        "image/jpeg",
-                        "image/jpg",
-                        "image/png",
-                        "image/webp",
-                      ]}
-                      placeholder="Adicionar foto para ranking"
-                    />
-                    <p className="text-xs text-cinza-chumbo/60 mt-1">
-                      Adicione uma foto para aparecer no ranking. Deixe em
-                      branco se não quiser.
-                    </p>
                   </div>
                 </div>
               </div>
@@ -813,9 +807,7 @@ export default function ParticipantRegistrationPage() {
                   </div>
                 ) : (
                   <div>
-                    <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                      Selecione o Evento *
-                    </label>
+                    <Label isRequired>Selecione o Evento</Label>
                     <Select
                       value={formData.eventId}
                       onValueChange={(value) =>
@@ -911,9 +903,7 @@ export default function ParticipantRegistrationPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                      Nível de Experiência
-                    </label>
+                    <Label>Nível de Experiência</Label>
                     <Select
                       value={formData.experience}
                       onValueChange={(value) =>
@@ -937,9 +927,7 @@ export default function ParticipantRegistrationPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                      Categoria
-                    </label>
+                    <Label>Categoria</Label>
                     <Select
                       value={formData.category}
                       onValueChange={(value) =>
@@ -964,9 +952,8 @@ export default function ParticipantRegistrationPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                    Informações Adicionais
-                  </label>
+                  <Label>Informações Adicionais</Label>
+
                   <textarea
                     value={formData.additionalInfo}
                     onChange={(e) =>
@@ -1008,9 +995,8 @@ export default function ParticipantRegistrationPage() {
 
                   {formData.hasSpecialNeeds && (
                     <div>
-                      <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                        Descreva suas necessidades *
-                      </label>
+                      <Label isRequired>Descreva suas necessidades</Label>
+
                       <textarea
                         value={formData.specialNeedsDescription}
                         onChange={(e) =>
@@ -1132,9 +1118,7 @@ export default function ParticipantRegistrationPage() {
               >
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                      Email ou Número de Registro
-                    </label>
+                    <Label>Email ou Número de Registro</Label>
                     <Input
                       type="text"
                       value={existingSearch}

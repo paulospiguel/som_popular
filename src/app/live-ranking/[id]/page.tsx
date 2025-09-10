@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 
-import Footer from "./components/Footer";
-import Header from "./components/Header";
-import MarqueeHeader from "./components/MarqueeHeader";
-import RankingList from "./components/RankingList";
-import { Participant, ParticipantStyle } from "./components/types";
-import { MarqueeMessage } from "./types/marquee";
+import Footer from "../components/Footer";
+import Header from "../components/Header";
+import MarqueeHeader from "../components/MarqueeHeader";
+import RankingList from "../components/RankingList";
+import { Participant, ParticipantStyle } from "../components/types";
+import { MarqueeMessage } from "../types/marquee";
 
 const INITIAL_PARTICIPANTS: Participant[] = [
   {
@@ -69,13 +69,14 @@ const INITIAL_PARTICIPANTS: Participant[] = [
   },
 ];
 
-const LiveRanking: React.FC = () => {
-  const searchParams = useSearchParams();
-  const eventId = searchParams.get("event");
-  const [participants, setParticipants] =
-    useState<Participant[]>(INITIAL_PARTICIPANTS);
+export default function LiveRanking() {
   const [currentlyVotingIndex, setCurrentlyVotingIndex] = useState<number>(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [participants, setParticipants] =
+    useState<Participant[]>(INITIAL_PARTICIPANTS);
+
+  const params = useParams();
+  const eventId = params.id as string;
 
   // Mensagens customizadas para o marquee
   const marqueeMessages: MarqueeMessage[] = [
@@ -190,7 +191,7 @@ const LiveRanking: React.FC = () => {
 
   return (
     <main
-      className="h-screen w-screen bg-gradient-to-br from-verde-muito-suave via-bege-claro to-dourado-muito-claro dark:from-slate-900 dark:via-slate-800 dark:to-slate-700 text-cinza-chumbo dark:text-white font-sans flex flex-col"
+      className="min-h-screen w-full bg-gradient-to-br from-verde-muito-suave via-bege-claro to-dourado-muito-claro dark:from-slate-900 dark:via-slate-800 dark:to-slate-700 text-cinza-chumbo dark:text-white font-sans flex flex-col"
       onClick={() => setIsPaused((p) => !p)} // Click anywhere to pause/resume
     >
       <MarqueeHeader
@@ -199,8 +200,11 @@ const LiveRanking: React.FC = () => {
         pauseOnHover={true}
       />
       <Header eventId={eventId} />
-      <div className="flex-1 container mx-auto px-4 py-2 flex flex-col min-h-0">
-        <RankingList participants={sortedParticipants} />
+      <div className="flex-1 container mx-auto px-4 py-6 flex flex-col min-h-0">
+        <RankingList
+          participants={sortedParticipants}
+          currentlyVotingId={currentlyVoting?.id}
+        />
       </div>
       <Footer
         currentArtist={currentlyVoting}
@@ -208,6 +212,4 @@ const LiveRanking: React.FC = () => {
       />
     </main>
   );
-};
-
-export default LiveRanking;
+}

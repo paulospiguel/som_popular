@@ -83,7 +83,7 @@ const MarqueeHeader: React.FC<MarqueeHeaderProps> = ({
           {allMessages.map((message, index) => (
             <div
               key={`${message.id}-${index}`}
-              className="flex items-center text-white dark:text-verde-claro font-semibold text-sm md:text-base whitespace-nowrap mx-8"
+              className="flex items-center text-white dark:text-verde-claro font-family-baloo font-semibold text-sm md:text-base whitespace-nowrap mx-8"
             >
               {message.image ? (
                 <Image

@@ -1,6 +1,6 @@
 "use client";
 
-import { Moon, MoreVertical, Sun, Undo2 } from "lucide-react";
+import { Menu, Moon, Sun, Undo2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React from "react";
 
@@ -21,56 +21,60 @@ const Header: React.FC<{ eventId?: string | null }> = ({ eventId }) => {
   if (!mounted) return null;
 
   return (
-    <header className="w-full text-center p-4 live-ranking-festival dark:bg-slate-800 shadow-lg">
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex-1"></div>
-        <div className="flex-1 text-center">
-          <h1 className="text-5xl festival-title font-bold text-dourado-claro tracking-widest dark:text-verde-claro">
-            SOM POPULAR FESTIVAL
-          </h1>
-          <p className="text-xl text-terra font-family-orbitron dark:text-verde-claro font-semibold tracking-wider mt-1">
-            1ª EDIÇÃO
-          </p>
-        </div>
-        <div className="flex-1 flex justify-end">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                className="inline-flex items-center p-2 rounded-lg bg-terra hover:bg-terra/80 dark:hover:bg-white/20 dark:bg-white/10 backdrop-blur border dark:border-white/20 transition"
-                aria-label="Opções"
-              >
-                <MoreVertical className="w-5 h-5 text-terra dark:text-white" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-[220px]">
-              <DropdownMenuItem asChild>
-                <div className="w-full flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {isDark ? (
-                      <>
-                        <Sun className="w-4 h-4" />
-                        <span>Tema claro</span>
-                      </>
-                    ) : (
-                      <>
-                        <Moon className="w-4 h-4" />
-                        <span>Tema escuro</span>
-                      </>
-                    )}
-                  </div>
-                  <Switch checked={isDark} onCheckedChange={toggleTheme} />
-                </div>
-              </DropdownMenuItem>
-              {eventId && (
-                <DropdownMenuItem
-                  onClick={() => router.push(`/ranking/${eventId}`)}
-                  className="flex items-center gap-2"
+    <header className="w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border-b border-verde-suave/20 dark:border-slate-700 shadow-lg">
+      <div className="container mx-auto px-6 py-6">
+        <div className="flex items-center justify-between">
+          {/* Logo/Title Section */}
+          <div className="flex-1 text-center">
+            <h1 className="text-4xl font-family-rye md:text-5xl text-verde-suave dark:text-verde-claro tracking-wide">
+              SOM POPULAR FESTIVAL
+            </h1>
+            <p className="text-lg md:text-xl font-family-baloo text-terra dark:text-verde-claro font-semibold tracking-wider mt-2">
+              1ª EDIÇÃO
+            </p>
+          </div>
+
+          {/* Controls Section */}
+          <div className="flex items-center gap-3">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="inline-flex text-terra items-center justify-center w-12 h-12 rounded-xl"
+                  aria-label="Opções"
                 >
-                  <Undo2 className="w-4 h-4" /> Voltar ao ranking
+                  <Menu className="w-6 h-6 text-terra dark:text-gray-300" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-[220px]">
+                <DropdownMenuItem asChild>
+                  <div className="w-full flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {isDark ? (
+                        <>
+                          <Sun className="w-4 h-4" />
+                          <span>Tema claro</span>
+                        </>
+                      ) : (
+                        <>
+                          <Moon className="w-4 h-4" />
+                          <span>Tema escuro</span>
+                        </>
+                      )}
+                    </div>
+                    <Switch checked={isDark} onCheckedChange={toggleTheme} />
+                  </div>
                 </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                {eventId && (
+                  <DropdownMenuItem
+                    onClick={() => router.push(`/ranking/${eventId}`)}
+                    className="flex items-center gap-2"
+                  >
+                    <Undo2 className="w-4 h-4" /> Voltar ao ranking
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
     </header>

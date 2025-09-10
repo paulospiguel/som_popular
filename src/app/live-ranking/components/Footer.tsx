@@ -10,14 +10,20 @@ interface FooterProps {
 
 const Footer: React.FC<FooterProps> = ({ currentArtist, previousArtist }) => {
   return (
-    <footer className="w-full live-ranking-festival dark:bg-slate-800 mt-2 p-4 shadow-inner">
-      <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
-        <StatusCard artist={previousArtist} title="Artista Anterior" />
-        <StatusCard
-          artist={currentArtist}
-          title="Votando Agora"
-          isCurrent={true}
-        />
+    <footer className="w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border-t border-verde-suave/20 dark:border-slate-700 shadow-lg">
+      <div className="container mx-auto px-6 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-1">
+            <StatusCard artist={previousArtist} title="Artista Anterior" />
+          </div>
+          <div className="lg:col-span-2">
+            <StatusCard
+              artist={currentArtist}
+              title="Votando Agora"
+              isCurrent={true}
+            />
+          </div>
+        </div>
       </div>
     </footer>
   );

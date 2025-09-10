@@ -12,7 +12,6 @@ import {
   RefreshCw,
   Save,
   Settings,
-  Upload,
   User,
   UserCheck,
   UserPlus,
@@ -23,7 +22,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Avatar } from "@/components/ui/avatar";
-import { ExpandedTabs } from "@/components/ui/expanded-tabs";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -33,6 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { Button as StatefulButton } from "@/components/ui/stateful-button";
 import { ROLES } from "@/constants";
 import { useSession } from "@/lib/auth-client";
 import { Judge } from "@/server/database/schema";
@@ -330,6 +330,22 @@ export default function VotingEventPage() {
     } catch (error) {
       console.error("Erro ao criar jurado temporário:", error);
     }
+  };
+
+  const handlePauseEvent = () => {
+    toast.info("Funcionalidade de pausar evento será implementada em breve!");
+  };
+
+  const handleResetVotings = () => {
+    toast.info(
+      "Funcionalidade de resetar votações será implementada em breve!"
+    );
+  };
+
+  const handleReportDetails = () => {
+    toast.info(
+      "Funcionalidade de relatório detalhado será implementada em breve!"
+    );
   };
 
   if (!session || loading) {
@@ -775,51 +791,45 @@ export default function VotingEventPage() {
                 Ações Rápidas
               </h3>
 
-              <ExpandedTabs
-                tabs={[
-                  {
-                    title: "Publicar Resultados",
-                    icon: Upload,
-                    action: handlePublishResults,
-                    disabled: !evaluationStats?.isComplete,
-                    variant: "default",
-                  },
-                  {
-                    title: "Relatório Detalhado",
-                    icon: FileText,
+              <div className="flex flex-wrap gap-3">
+                <StatefulButton
+                  className="w-full"
+                  onClick={handlePublishResults}
+                  disabled={!evaluationStats?.isComplete}
+                >
+                  Publicar Resultados
+                </StatefulButton>
 
-                    action: () =>
-                      toast.info(
-                        "Funcionalidade de relatório detalhado será implementada em breve!"
-                      ),
-                    variant: "default",
-                  },
-                  {
-                    type: "separator",
-                  },
-                  {
-                    title: "Pausar Evento",
-                    icon: Pause,
-                    action: () =>
-                      toast.info(
-                        "Funcionalidade de pausar evento será implementada em breve!"
-                      ),
-                    disabled: currentEvent?.status !== "ongoing",
-                    variant: "warning",
-                  },
-                  {
-                    title: "Resetar Votações",
-                    icon: RefreshCw,
-                    action: () =>
-                      toast.info(
-                        "Funcionalidade de resetar votações será implementada em breve!"
-                      ),
-                    disabled: currentEvent?.status === "draft",
-                    variant: "destructive",
-                  },
-                ]}
-                className="flex-wrap"
-              />
+                <Button
+                  className="w-full"
+                  onClick={handleReportDetails}
+                  disabled={!evaluationStats?.isComplete}
+                  variant="outline"
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Relatório Detalhado
+                </Button>
+
+                <Button
+                  className="w-full"
+                  onClick={handlePauseEvent}
+                  disabled={!evaluationStats?.isComplete}
+                  variant="secondary"
+                >
+                  <Pause className="w-4 h-4 mr-2" />
+                  Pausar Evento
+                </Button>
+
+                <Button
+                  className="w-full text-white"
+                  onClick={handleResetVotings}
+                  disabled={!evaluationStats?.isComplete}
+                  variant="destructive"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Resetar Votações
+                </Button>
+              </div>
             </div>
           </div>
         </div>

@@ -18,12 +18,12 @@ import { useCallback, useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import PhoneInput from "@/components/PhoneInput";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DiscreteImageUpload } from "@/components/ui/discrete-image-upload";
 import { Input } from "@/components/ui/input";
-import { PhoneInput } from "@/components/ui/phone-input";
 import {
   Select,
   SelectContent,
@@ -38,6 +38,8 @@ import {
   type EventRegistrationData,
   type PublicEvent,
 } from "@/server/events-public";
+
+import { Label } from "@/components/ui/label";
 
 export default function EventRegistrationPage() {
   const params = useParams();
@@ -268,9 +270,7 @@ export default function EventRegistrationPage() {
             <form onSubmit={rhfHandleSubmit(onSubmit)} className="space-y-6">
               {/* Foto de Perfil */}
               <div>
-                <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                  Foto de Perfil
-                </label>
+                <Label>Foto de Perfil (Opcional)</Label>
                 <Controller
                   control={control}
                   name="avatar"
@@ -294,9 +294,8 @@ export default function EventRegistrationPage() {
               {/* Dados Pessoais */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                    Nome do Representante *
-                  </label>
+                  <Label isRequired>Nome do Representante</Label>
+
                   <Input
                     placeholder="Nome do representante"
                     {...register("name", { required: true, minLength: 2 })}
@@ -304,9 +303,8 @@ export default function EventRegistrationPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                    Nome Artístico
-                  </label>
+                  <Label>Nome Artístico</Label>
+
                   <Input
                     placeholder="Ex: Banda X, Dupla Y, Nome Artístico"
                     {...register("stageName")}
@@ -314,9 +312,8 @@ export default function EventRegistrationPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                    Email *
-                  </label>
+                  <Label isRequired>Email</Label>
+
                   <Input
                     type="email"
                     placeholder="seu@email.com"
@@ -325,9 +322,7 @@ export default function EventRegistrationPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                    Telefone
-                  </label>
+                  <Label>Telefone</Label>
                   <Controller
                     control={control}
                     name="phone"
@@ -351,9 +346,8 @@ export default function EventRegistrationPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                   <div className="w-full">
-                    <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                      Categoria
-                    </label>
+                    <Label>Categoria</Label>
+
                     <Controller
                       control={control}
                       name="category"
@@ -377,9 +371,8 @@ export default function EventRegistrationPage() {
                     />
                   </div>
                   <div className="w-full">
-                    <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                      Nível de Experiência
-                    </label>
+                    <Label>Nível de Experiência</Label>
+
                     <Controller
                       control={control}
                       name="experience"
@@ -408,9 +401,8 @@ export default function EventRegistrationPage() {
 
               {/* Informações Adicionais */}
               <div>
-                <label className="block text-md font-medium text-cinza-chumbo mb-2">
-                  Informações Adicionais
-                </label>
+                <Label>Informações Adicionais</Label>
+
                 <textarea
                   {...register("additionalInfo")}
                   placeholder="Conte-nos mais sobre você, sua música ou qualquer informação relevante..."
@@ -433,13 +425,13 @@ export default function EventRegistrationPage() {
                       />
                     )}
                   />
-                  <label
+                  <Label
                     htmlFor="hasSpecialNeeds"
                     className="text-sm gap-2 text-cinza-chumbo flex items-center"
                   >
                     <Accessibility className="w-4 h-4 mr-2" />
                     Tenho necessidades especiais
-                  </label>
+                  </Label>
                 </div>
 
                 {hasSpecialNeeds && (
@@ -466,21 +458,20 @@ export default function EventRegistrationPage() {
                       />
                     )}
                   />
-                  <label
+                  <Label
                     htmlFor="acceptsEmailNotifications"
                     className="text-sm text-cinza-chumbo flex items-center"
                   >
                     <Mail className="w-4 h-4 mr-2" />
                     Aceito receber notificações por email sobre o evento
-                  </label>
+                  </Label>
                 </div>
               </div>
 
               {/* Regulamento */}
               <div>
-                <label className="block text-sm font-medium text-cinza-chumbo mb-2">
-                  Regulamento
-                </label>
+                <Label>Regulamento</Label>
+
                 <p className="text-sm gap-2 text-cinza-chumbo flex items-center">
                   <Controller
                     control={control}

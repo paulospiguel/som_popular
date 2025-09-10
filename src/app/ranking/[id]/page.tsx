@@ -19,8 +19,8 @@ import { useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getEventRanking, type EventRankingData } from "@/server/rankings";
 import { Switch } from "@/components/ui/switch";
+import { getEventRanking, type EventRankingData } from "@/server/rankings";
 
 const PHASE_STATUS_COLORS = {
   draft: "bg-gray-100 text-gray-800",
@@ -185,7 +185,7 @@ export default function EventRankingPage() {
                   <span className="text-sm text-cinza-chumbo">Modo Placar</span>
                   <Switch
                     onCheckedChange={(checked) => {
-                      if (checked) router.push(`/live-ranking?event=${eventId}`);
+                      if (checked) router.push(`/live-ranking/${eventId}`);
                     }}
                   />
                 </div>

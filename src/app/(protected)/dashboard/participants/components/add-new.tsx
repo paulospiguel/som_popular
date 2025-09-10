@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 
 import { Modal } from "@/components/Modal";
+import PhoneInput from "@/components/PhoneInput";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
@@ -15,7 +16,6 @@ import {
 } from "@/components/ui/form";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { Input } from "@/components/ui/input";
-import { PhoneInput } from "@/components/ui/phone-input";
 import {
   Select,
   SelectContent,
@@ -131,7 +131,7 @@ const AddParticipantModal = ({
                     <FormLabel>Nome Completo *</FormLabel>
                     <FormControl>
                       <Input
-                        variant="lg"
+                        className="h-12"
                         type="text"
                         placeholder="Digite o nome completo"
                         {...field}
@@ -151,7 +151,7 @@ const AddParticipantModal = ({
                     <FormLabel>Email *</FormLabel>
                     <FormControl>
                       <Input
-                        variant="lg"
+                        className="h-12"
                         type="email"
                         placeholder="exemplo@email.com"
                         {...field}
@@ -173,7 +173,6 @@ const AddParticipantModal = ({
                       <PhoneInput
                         value={field.value || ""}
                         onChange={field.onChange}
-                        onBlur={field.onBlur}
                         placeholder="(11) 99999-9999"
                         className="w-full"
                       />
@@ -192,7 +191,7 @@ const AddParticipantModal = ({
                     <FormLabel>Idade</FormLabel>
                     <FormControl>
                       <Input
-                        variant="lg"
+                        className="h-12"
                         type="number"
                         min={1}
                         max={120}
