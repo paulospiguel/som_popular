@@ -226,17 +226,17 @@ export default function EventRegistrationPage() {
                   Inscrição no Evento
                 </h1>
                 <h2 className="text-xl text-verde-suave font-semibold">
-                  {event.name}
+                  {event?.name}
                 </h2>
               </div>
               <Badge
                 className={
-                  event.registrationStatus === "open"
+                  event?.registrationStatus === "open"
                     ? "bg-green-100 text-green-800"
                     : "bg-red-100 text-red-800"
                 }
               >
-                {event.registrationStatus === "open"
+                {event?.registrationStatus === "open"
                   ? "Inscrições Abertas"
                   : "Inscrições Encerradas"}
               </Badge>
@@ -246,33 +246,33 @@ export default function EventRegistrationPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
               <div className="flex items-center">
                 <Calendar className="w-4 h-4 mr-2 text-dourado-claro" />
-                <span>{formatDate(event.startDate)}</span>
+                <span>{formatDate(event?.startDate || new Date())}</span>
               </div>
               <div className="flex items-center">
                 <MapPin className="w-4 h-4 mr-2 text-dourado-claro" />
-                <span>{event.location}</span>
+                <span>{event?.location}</span>
               </div>
-              {event.maxParticipants && (
+              {event?.maxParticipants && (
                 <div className="flex items-center">
                   <Users className="w-4 h-4 mr-2 text-dourado-claro" />
                   <span>
-                    {event.currentParticipants} / {event.maxParticipants}{" "}
+                    {event?.currentParticipants} / {event?.maxParticipants}{" "}
                     inscritos
                   </span>
                 </div>
               )}
             </div>
 
-            {event.description && (
+            {event?.description && (
               <div className="mt-4 p-4 bg-verde-muito-suave/20 rounded-lg">
-                <p className="text-cinza-chumbo">{event.description}</p>
+                <p className="text-cinza-chumbo">{event?.description}</p>
               </div>
             )}
           </div>
         </div>
 
         {/* Formulário de Inscrição */}
-        {event.canRegister ? (
+        {event?.canRegister ? (
           <div className="festival-card p-6">
             <h3 className="text-xl font-bold text-cinza-chumbo mb-6">
               Dados para Inscrição
@@ -497,7 +497,7 @@ export default function EventRegistrationPage() {
                     )}
                   />
                   <Link
-                    href={`/regulation/${event.id}`}
+                    href={`/regulation/${event?.id}`}
                     className="text-sm text-cinza-chumbo flex items-center hover:text-verde-suave"
                   >
                     <FileText className="w-4 h-4 mr-2" />
@@ -511,7 +511,7 @@ export default function EventRegistrationPage() {
                 <Button
                   type="submit"
                   disabled={
-                    submitting || !event.canRegister || !acceptsRegulation
+                    submitting || !event?.canRegister || !acceptsRegulation
                   }
                   className="w-full festival-button text-lg py-3"
                 >
@@ -537,11 +537,11 @@ export default function EventRegistrationPage() {
               Inscrições Não Disponíveis
             </h3>
             <p className="text-cinza-chumbo/70 mb-6">
-              {event.registrationStatus === "not_open" &&
+              {event?.registrationStatus === "not_open" &&
                 "As inscrições ainda não foram abertas"}
-              {event.registrationStatus === "closed" &&
+              {event?.registrationStatus === "closed" &&
                 "O período de inscrições já encerrou"}
-              {event.registrationStatus === "full" &&
+              {event?.registrationStatus === "full" &&
                 "O evento já atingiu o número máximo de participantes"}
             </p>
             <Link href="/">

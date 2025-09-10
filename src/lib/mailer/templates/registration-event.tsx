@@ -72,7 +72,7 @@ const RegistrationEventTemplate = ({
                       <div style={infoItem}>
                         <strong>Número de Inscrição:</strong>
                         <span style={registrationNumber}>
-                          #{registration.id?.toUpperCase()}
+                          #{registration.id?.slice(-8).toUpperCase()}
                         </span>
                       </div>
                       <div style={infoItem}>

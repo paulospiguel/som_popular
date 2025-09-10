@@ -28,7 +28,7 @@ export async function checkAdminAccess() {
 }
 
 export async function getSession() {
-  let session = await auth.api.getSession({ headers: await headers() });
+  const session = await auth.api.getSession({ headers: await headers() });
 
   if (!session) return null;
 
