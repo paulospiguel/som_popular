@@ -1,5 +1,6 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Accessibility,
   ArrowLeft,
@@ -18,7 +19,9 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import QRCode from "qrcode";
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { z } from "zod";
 
 import PhoneInput from "@/components/PhoneInput";
 import { Badge } from "@/components/ui/badge";
@@ -46,20 +49,103 @@ import {
 
 import { Label } from "@/components/ui/label";
 
-interface FormData {
+// Schema de validação com Zod
+const participantRegistrationSchema = z
+  .object({
+    name: z
+      .string()
+      .min(1, "Nome é obrigatório")
+      .min(2, "Nome deve ter pelo menos 2 caracteres")
+      .max(100, "Nome deve ter no máximo 100 caracteres"),
+    stageName: z
+      .string()
+      .max(100, "Nome artístico deve ter no máximo 100 caracteres")
+      .optional(),
+    email: z
+      .string()
+      .min(1, "Email é obrigatório")
+      .email("Email inválido")
+      .max(255, "Email deve ter no máximo 255 caracteres"),
+    phone: z
+      .string()
+      .max(20, "Telefone deve ter no máximo 20 caracteres")
+      .optional(),
+    category: z
+      .string()
+      .max(50, "Categoria deve ter no máximo 50 caracteres")
+      .optional(),
+    experience: z
+      .string()
+      .max(50, "Experiência deve ter no máximo 50 caracteres")
+      .optional(),
+    additionalInfo: z
+      .string()
+      .max(500, "Informações adicionais devem ter no máximo 500 caracteres")
+      .optional(),
+    hasSpecialNeeds: z.boolean().default(false),
+    specialNeedsDescription: z
+      .string()
+      .max(
+        300,
+        "Descrição das necessidades especiais deve ter no máximo 300 caracteres"
+      )
+      .optional(),
+    acceptsEmailNotifications: z.boolean().default(true),
+    acceptsTerms: z
+      .boolean()
+      .refine(
+        (val) => val === true,
+        "Você deve aceitar o regulamento e os termos de participação"
+      ),
+    eventId: z.string().min(1, "Selecione um evento para inscrição"),
+    rankingPhoto: z
+      .string()
+      .max(500, "URL da foto deve ter no máximo 500 caracteres")
+      .optional(),
+  })
+  .refine(
+    (data) => {
+      // Se hasSpecialNeeds é true, specialNeedsDescription deve ser preenchido
+      if (
+        data.hasSpecialNeeds &&
+        (!data.specialNeedsDescription ||
+          data.specialNeedsDescription.trim() === "")
+      ) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Descreva as necessidades especiais",
+      path: ["specialNeedsDescription"],
+    }
+  );
+
+type FormData = z.infer<typeof participantRegistrationSchema>;
+
+// Interfaces para os tipos de dados
+interface Event {
+  id: string;
   name: string;
-  stageName: string;
-  email: string;
-  phone: string;
   category: string;
-  experience: string;
-  additionalInfo: string;
-  hasSpecialNeeds: boolean;
-  specialNeedsDescription: string;
-  acceptsEmailNotifications: boolean;
-  acceptsTerms: boolean;
-  eventId: string;
-  rankingPhoto: string; // URL da foto para o ranking
+  startDate: Date;
+  canRegister: boolean;
+  registrationStatus: "open" | "not_open" | "closed" | "full";
+  registrationStartDate?: Date | null;
+}
+
+interface RegistrationResult {
+  success: boolean;
+  participantId?: string | undefined;
+  registrationId?: string | undefined;
+  isNewParticipant?: boolean | undefined;
+  message?: string | undefined;
+  error?: string | undefined;
+}
+
+interface Participant {
+  name: string;
+  category: string;
 }
 
 export default function ParticipantRegistrationPage() {
@@ -71,46 +157,59 @@ export default function ParticipantRegistrationPage() {
   const [participantId, setParticipantId] = useState<string>("");
   const [existingSearch, setExistingSearch] = useState("");
   const [searchingExisting, setSearchingExisting] = useState(false);
-  const [existingParticipant, setExistingParticipant] = useState<any>(null);
-  const [availableEvents, setAvailableEvents] = useState<any[]>([]);
+  const [existingParticipant, setExistingParticipant] =
+    useState<Participant | null>(null);
+  const [availableEvents, setAvailableEvents] = useState<Event[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [emailExists, setEmailExists] = useState(false);
   const [checkingEmail, setCheckingEmail] = useState(false);
-  const [registrationResult, setRegistrationResult] = useState<any>(null);
+  const [registrationResult, setRegistrationResult] =
+    useState<RegistrationResult | null>(null);
   const [qrUrl, setQrUrl] = useState<string>("");
   const [eventLocked, setEventLocked] = useState(false);
   const [existingNotice, setExistingNotice] = useState("");
 
-  const [formData, setFormData] = useState<FormData>({
-    name: "",
-    stageName: "",
-    email: "",
-    phone: "",
-    category: "",
-    experience: "",
-    additionalInfo: "",
-    hasSpecialNeeds: false,
-    specialNeedsDescription: "",
-    acceptsEmailNotifications: true,
-    acceptsTerms: false,
-    eventId: "",
-    rankingPhoto: "",
+  // Configuração do react-hook-form com validação Zod
+  const form = useForm<FormData>({
+    resolver: zodResolver(participantRegistrationSchema),
+    defaultValues: {
+      name: "",
+      stageName: "",
+      email: "",
+      phone: "",
+      category: "",
+      experience: "",
+      additionalInfo: "",
+      hasSpecialNeeds: false,
+      specialNeedsDescription: "",
+      acceptsEmailNotifications: true,
+      acceptsTerms: false,
+      eventId: "",
+      rankingPhoto: "",
+    },
+    mode: "onChange", // Validação em tempo real
   });
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = form;
 
   // Carregar eventos disponíveis ao montar o componente
   useEffect(() => {
     loadAvailableEvents();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Aplicar seleção de evento via querystring
   useEffect(() => {
     if (preselectedEventId) {
-      setFormData((prev) => ({ ...prev, eventId: preselectedEventId }));
+      setValue("eventId", preselectedEventId);
       setEventLocked(true);
     }
-  }, [preselectedEventId]);
+  }, [preselectedEventId, setValue]);
 
   const loadAvailableEvents = async () => {
     try {
@@ -122,7 +221,7 @@ export default function ParticipantRegistrationPage() {
 
         // Se só há um evento, selecionar automaticamente
         if (result.events && result.events.length === 1) {
-          setFormData((prev) => ({ ...prev, eventId: result.events![0].id }));
+          setValue("eventId", result.events![0].id);
         }
       }
     } catch (error) {
@@ -150,151 +249,38 @@ export default function ParticipantRegistrationPage() {
     }
   };
 
-  const handleInputChange = (
-    field: keyof FormData,
-    value: string | boolean | number | undefined
-  ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  // Watch para monitorar mudanças no email
+  const watchedEmail = watch("email");
 
-    // Limpar erro quando usuário começa a digitar
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }));
+  // Verificar email quando mudar
+  useEffect(() => {
+    if (watchedEmail && watchedEmail.includes("@")) {
+      checkEmailExists(watchedEmail);
+    } else {
+      setEmailExists(false);
     }
+  }, [watchedEmail]);
 
-    // Validação em tempo real para campos críticos
-    if (field === "name" && typeof value === "string") {
-      if (value.trim().length > 0 && value.trim().length < 2) {
-        setErrors((prev) => ({
-          ...prev,
-          name: "Nome deve ter pelo menos 2 caracteres",
-        }));
+  // Função para validar evento selecionado
+  const validateEventSelection = (eventId: string) => {
+    const selectedEvent = availableEvents.find((e: Event) => e.id === eventId);
+    if (selectedEvent && !selectedEvent.canRegister) {
+      if (selectedEvent.registrationStatus === "not_open") {
+        return `As inscrições para este evento abrem em ${selectedEvent.registrationStartDate ? selectedEvent.registrationStartDate.toLocaleDateString("pt-BR") : "data não definida"}`;
+      } else if (selectedEvent.registrationStatus === "closed") {
+        return "As inscrições para este evento já encerraram";
+      } else if (selectedEvent.registrationStatus === "full") {
+        return "Este evento já está lotado";
       }
     }
-
-    if (field === "email" && typeof value === "string") {
-      if (
-        value.trim().length > 0 &&
-        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-      ) {
-        setErrors((prev) => ({ ...prev, email: "Email inválido" }));
-      } else if (
-        value.trim().length > 0 &&
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-      ) {
-        // Verificar se email já existe
-        checkEmailExists(value);
-      }
-    }
-
-    if (field === "specialNeedsDescription" && typeof value === "string") {
-      if (formData.hasSpecialNeeds && value.trim().length === 0) {
-        setErrors((prev) => ({
-          ...prev,
-          specialNeedsDescription: "Descreva as necessidades especiais",
-        }));
-      }
-    }
+    return null;
   };
 
-  const validateForm = (): { isValid: boolean; message: string } => {
-    const newErrors: Record<string, string> = {};
-
-    // Validação do nome
-    if (!formData.name.trim()) {
-      newErrors.name = "Nome é obrigatório";
-    } else if (formData.name.length < 2) {
-      newErrors.name = "Nome deve ter pelo menos 2 caracteres";
-    }
-
-    // Validação do email
-    if (!formData.email.trim()) {
-      newErrors.email = "Email é obrigatório";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Email inválido";
-    }
-
-    // Categoria e experiência não são obrigatórias
-
-    // Validação das necessidades especiais
-    if (formData.hasSpecialNeeds && !formData.specialNeedsDescription.trim()) {
-      newErrors.specialNeedsDescription = "Descreva as necessidades especiais";
-    }
-
-    // Validação dos termos
-    if (!formData.acceptsTerms) {
-      newErrors.acceptsTerms =
-        "Você deve aceitar o regulamento e os termos de participação";
-    }
-
-    // Validação do evento
-    if (!formData.eventId) {
-      newErrors.eventId = "Selecione um evento para inscrição";
-    } else {
-      // Verificar se o evento selecionado permite inscrições
-      const selectedEvent = availableEvents.find(
-        (e) => e.id === formData.eventId
-      );
-      if (selectedEvent && !selectedEvent.canRegister) {
-        if (selectedEvent.registrationStatus === "not_open") {
-          newErrors.eventId = `As inscrições para este evento abrem em ${selectedEvent.registrationStartDate ? new Date(selectedEvent.registrationStartDate).toLocaleDateString("pt-BR") : "data não definida"}`;
-        } else if (selectedEvent.registrationStatus === "closed") {
-          newErrors.eventId = "As inscrições para este evento já encerraram";
-        } else if (selectedEvent.registrationStatus === "full") {
-          newErrors.eventId = "Este evento já está lotado";
-        }
-      }
-    }
-
-    setErrors(newErrors);
-
-    // Log para debug
-    if (Object.keys(newErrors).length > 0) {
-      console.log("Erros de validação:", newErrors);
-    }
-
-    // Retornar resultado da validação com mensagem
-    if (Object.keys(newErrors).length === 0) {
-      return { isValid: true, message: "Formulário válido" };
-    } else {
-      // Pegar o primeiro erro para mostrar no toast
-      const firstErrorKey = Object.keys(newErrors)[0];
-      const firstErrorMessage = newErrors[firstErrorKey];
-
-      // Criar mensagem personalizada baseada no tipo de erro
-      let message = "";
-      switch (firstErrorKey) {
-        case "name":
-          message = `Nome: ${firstErrorMessage}`;
-          break;
-        case "email":
-          message = `Email: ${firstErrorMessage}`;
-          break;
-        // categoria/experiência não obrigatórias
-        case "eventId":
-          message = `Evento: ${firstErrorMessage}`;
-          break;
-        case "acceptsTerms":
-          message = `Confirmação: ${firstErrorMessage}`;
-          break;
-        case "specialNeedsDescription":
-          message = `Necessidades especiais: ${firstErrorMessage}`;
-          break;
-        default:
-          message = firstErrorMessage;
-      }
-
-      return { isValid: false, message };
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const validation = validateForm();
-
-    if (!validation.isValid) {
-      // Mostrar toast de erro com mensagem específica
-      toast.error(validation.message, {
+  const onSubmit = async (data: FormData) => {
+    // Validação adicional do evento
+    const eventError = validateEventSelection(data.eventId);
+    if (eventError) {
+      toast.error(eventError, {
         duration: 5000,
         style: {
           background: "#ef4444",
@@ -302,26 +288,23 @@ export default function ParticipantRegistrationPage() {
           border: "1px solid #dc2626",
         },
       });
-
-      // Mostrar resumo de todos os erros no console para debug
-      console.log("Resumo de erros:", errors);
-
-      // Scroll para o primeiro campo com erro
-      const firstErrorField = Object.keys(errors)[0];
-      if (firstErrorField) {
-        const element = document.getElementById(firstErrorField);
-        if (element) {
-          element.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-      }
-
       return;
     }
 
     setLoading(true);
 
     try {
-      const payload: any = { ...formData };
+      // Converter campos opcionais para string vazia quando undefined
+      const payload = {
+        ...data,
+        stageName: data.stageName || "",
+        phone: data.phone || "",
+        category: data.category || "",
+        experience: data.experience || "",
+        additionalInfo: data.additionalInfo || "",
+        specialNeedsDescription: data.specialNeedsDescription || "",
+        rankingPhoto: data.rankingPhoto || "",
+      };
       const result = await registerParticipant(payload);
 
       if (result.success) {
@@ -332,8 +315,8 @@ export default function ParticipantRegistrationPage() {
         if (result.registrationId) {
           const qrData = JSON.stringify({
             registrationId: result.registrationId,
-            email: formData.email,
-            eventId: formData.eventId,
+            email: data.email,
+            eventId: data.eventId,
           });
           try {
             const url = await QRCode.toDataURL(qrData, { width: 160 });
@@ -455,7 +438,7 @@ export default function ParticipantRegistrationPage() {
                   </div>
                   <div className="flex items-center space-x-2 mt-4">
                     <Link
-                      href={`/events/${formData.eventId}/registration/confirmation?registration=${registrationResult.registrationId}`}
+                      href={`/events/${watch("eventId")}/registration/confirmation?registration=${registrationResult.registrationId}`}
                     >
                       <Button size="sm" variant="outline">
                         Ver Credencial Completa
@@ -466,7 +449,7 @@ export default function ParticipantRegistrationPage() {
                       onClick={() => {
                         const w = window.open("", "_blank");
                         if (!w) return;
-                        const html = `<!doctype html><html><head><meta charset='utf-8'><title>Credencial</title><style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,'Helvetica Neue',Arial,'Noto Sans','Apple Color Emoji','Segoe UI Emoji';padding:24px} .card{border:1px solid #e5e7eb;border-radius:12px;padding:16px;max-width:360px} .row{display:flex;gap:12px;align-items:center}</style></head><body><div class='card'><div class='row'><img src='${qrUrl}' width='120' height='120'/><div><h3 style='margin:0'>${availableEvents.find((e) => e.id === formData.eventId)?.name || "Evento"}</h3><div style='font-size:12px;color:#6b7280;margin-top:4px'>${formData.name} • ${formData.email}</div><div style='font-size:12px;color:#6b7280;margin-top:4px'>Inscrição #${registrationResult.registrationId.slice(-8).toUpperCase()}</div></div></div></div><script>window.onload=()=>window.print()</script></body></html>`;
+                        const html = `<!doctype html><html><head><meta charset='utf-8'><title>Credencial</title><style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,'Helvetica Neue',Arial,'Noto Sans','Apple Color Emoji','Segoe UI Emoji';padding:24px} .card{border:1px solid #e5e7eb;border-radius:12px;padding:16px;max-width:360px} .row{display:flex;gap:12px;align-items:center}</style></head><body><div class='card'><div class='row'><img src='${qrUrl}' width='120' height='120'/><div><h3 style='margin:0'>${availableEvents.find((e: Event) => e.id === watch("eventId"))?.name || "Evento"}</h3><div style='font-size:12px;color:#6b7280;margin-top:4px'>${watch("name")} • ${watch("email")}</div><div style='font-size:12px;color:#6b7280;margin-top:4px'>Inscrição #${registrationResult?.registrationId?.slice(-8).toUpperCase()}</div></div></div></div><script>window.onload=()=>window.print()</script></body></html>`;
                         w.document.write(html);
                         w.document.close();
                       }}
@@ -478,8 +461,10 @@ export default function ParticipantRegistrationPage() {
               )}
 
               {/* Informações do Evento */}
-              {formData.eventId &&
-                availableEvents.find((e) => e.id === formData.eventId) && (
+              {watch("eventId") &&
+                availableEvents.find(
+                  (e: Event) => e.id === watch("eventId")
+                ) && (
                   <div className="bg-verde-suave/10 border border-verde-suave/20 rounded-lg p-4 mb-6">
                     <h4 className="font-semibold text-verde-suave mb-2">
                       Evento Selecionado
@@ -488,33 +473,34 @@ export default function ParticipantRegistrationPage() {
                       <p>
                         <strong>Nome:</strong>{" "}
                         {
-                          availableEvents.find((e) => e.id === formData.eventId)
-                            ?.name
+                          availableEvents.find(
+                            (e: Event) => e.id === watch("eventId")
+                          )?.name
                         }
                       </p>
                       <p>
                         <strong>Modalidade:</strong>{" "}
                         {
-                          availableEvents.find((e) => e.id === formData.eventId)
-                            ?.category
+                          availableEvents.find(
+                            (e: Event) => e.id === watch("eventId")
+                          )?.category
                         }
                       </p>
                       <p>
                         <strong>Data:</strong>{" "}
-                        {availableEvents.find((e) => e.id === formData.eventId)
-                          ?.startDate
-                          ? new Date(
-                              availableEvents.find(
-                                (e) => e.id === formData.eventId
-                              )!.startDate
-                            ).toLocaleDateString("pt-BR")
+                        {availableEvents.find(
+                          (e: Event) => e.id === watch("eventId")
+                        )?.startDate
+                          ? availableEvents
+                              .find((e: Event) => e.id === watch("eventId"))!
+                              .startDate.toLocaleDateString("pt-BR")
                           : "N/A"}
                       </p>
                       <p>
                         <strong>Status das Inscrições:</strong>{" "}
                         {(() => {
                           const event = availableEvents.find(
-                            (e) => e.id === formData.eventId
+                            (e: Event) => e.id === watch("eventId")
                           );
                           if (!event) return "N/A";
 
@@ -526,9 +512,9 @@ export default function ParticipantRegistrationPage() {
                             );
                           } else if (event.registrationStatus === "not_open") {
                             const startDate = event.registrationStartDate
-                              ? new Date(
-                                  event.registrationStartDate
-                                ).toLocaleDateString("pt-BR")
+                              ? event.registrationStartDate.toLocaleDateString(
+                                  "pt-BR"
+                                )
                               : "data não definida";
                             return (
                               <span className="text-blue-600 font-medium">
@@ -663,7 +649,7 @@ export default function ParticipantRegistrationPage() {
           </div>
 
           {activeTab === "new" ? (
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* Informações Pessoais */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-cinza-chumbo flex items-center">
@@ -674,9 +660,9 @@ export default function ParticipantRegistrationPage() {
                 <div>
                   <Label>Foto para o Ranking (Opcional)</Label>
                   <DiscreteImageUpload
-                    value={formData.rankingPhoto}
+                    value={watch("rankingPhoto") || ""}
                     onChange={(value: string) =>
-                      handleInputChange("rankingPhoto", value)
+                      setValue("rankingPhoto", value)
                     }
                     maxSize={3}
                     acceptedTypes={[
@@ -697,19 +683,16 @@ export default function ParticipantRegistrationPage() {
                   <div>
                     <Label isRequired>Nome do Representante</Label>
                     <Input
+                      {...register("name")}
                       id="name"
                       type="text"
-                      value={formData.name}
-                      onChange={(e) =>
-                        handleInputChange("name", e.target.value)
-                      }
                       placeholder="Nome do representante"
                       className={`${errors.name ? "border-red-500 ring-red-200" : "border-gray-300"} focus:ring-2 focus:ring-verde-suave focus:border-transparent`}
                     />
                     {errors.name && (
                       <p className="text-red-600 text-sm mt-1 font-medium flex items-center">
                         <span className="w-1 h-1 bg-red-500 rounded-full mr-2"></span>
-                        {errors.name}
+                        {errors.name.message}
                       </p>
                     )}
                   </div>
@@ -717,33 +700,33 @@ export default function ParticipantRegistrationPage() {
                   <div>
                     <Label>Nome Artístico</Label>
                     <Input
+                      {...register("stageName")}
                       id="stageName"
                       type="text"
-                      value={formData.stageName}
-                      onChange={(e) =>
-                        handleInputChange("stageName", e.target.value)
-                      }
                       placeholder="Ex: Banda X, Duo Y, Nome Artístico"
-                      className={`border-gray-300 focus:ring-2 focus:ring-verde-suave focus:border-transparent`}
+                      className={`${errors.stageName ? "border-red-500 ring-red-200" : "border-gray-300"} focus:ring-2 focus:ring-verde-suave focus:border-transparent`}
                     />
+                    {errors.stageName && (
+                      <p className="text-red-600 text-sm mt-1 font-medium flex items-center">
+                        <span className="w-1 h-1 bg-red-500 rounded-full mr-2"></span>
+                        {errors.stageName.message}
+                      </p>
+                    )}
                   </div>
 
                   <div>
                     <Label isRequired>Email</Label>
                     <Input
+                      {...register("email")}
                       id="email"
                       type="email"
-                      value={formData.email}
-                      onChange={(e) =>
-                        handleInputChange("email", e.target.value)
-                      }
                       placeholder="seu@email.com"
                       className={`${errors.email ? "border-red-500 ring-red-200" : "border-gray-300"} focus:ring-2 focus:ring-verde-suave focus:border-transparent`}
                     />
                     {errors.email && (
                       <p className="text-red-600 text-sm mt-1 font-medium flex items-center">
                         <span className="w-1 h-1 bg-red-500 rounded-full mr-2"></span>
-                        {errors.email}
+                        {errors.email.message}
                       </p>
                     )}
 
@@ -794,12 +777,18 @@ export default function ParticipantRegistrationPage() {
                   <div>
                     <Label>Telefone</Label>
                     <PhoneInput
-                      value={formData.phone}
-                      onChange={(value) => handleInputChange("phone", value)}
+                      value={watch("phone") || ""}
+                      onChange={(value) => setValue("phone", value || "")}
                       placeholder="(11) 99999-9999"
                       error={!!errors.phone}
                       className="w-full"
                     />
+                    {errors.phone && (
+                      <p className="text-red-600 text-sm mt-1 font-medium flex items-center">
+                        <span className="w-1 h-1 bg-red-500 rounded-full mr-2"></span>
+                        {errors.phone.message}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -837,10 +826,8 @@ export default function ParticipantRegistrationPage() {
                   <div>
                     <Label isRequired>Selecione o Evento</Label>
                     <Select
-                      value={formData.eventId}
-                      onValueChange={(value) =>
-                        handleInputChange("eventId", value)
-                      }
+                      value={watch("eventId")}
+                      onValueChange={(value) => setValue("eventId", value)}
                       disabled={eventLocked || availableEvents.length === 1}
                     >
                       <SelectTrigger
@@ -856,11 +843,9 @@ export default function ParticipantRegistrationPage() {
                         />
                       </SelectTrigger>
                       <SelectContent>
-                        {availableEvents.map((event) => {
-                          const eventDate = new Date(event.startDate);
-                          const registrationStart = event.registrationStartDate
-                            ? new Date(event.registrationStartDate)
-                            : null;
+                        {availableEvents.map((event: Event) => {
+                          const eventDate = event.startDate;
+                          const registrationStart = event.registrationStartDate;
 
                           let statusText = "";
                           let statusColor = "";
@@ -903,7 +888,7 @@ export default function ParticipantRegistrationPage() {
                     {errors.eventId && (
                       <p className="text-red-600 text-sm mt-1 font-medium flex items-center">
                         <span className="w-1 h-1 bg-red-500 rounded-full mr-2"></span>
-                        {errors.eventId}
+                        {errors.eventId.message}
                       </p>
                     )}
                     {availableEvents.length === 1 && !eventLocked && (
@@ -934,10 +919,8 @@ export default function ParticipantRegistrationPage() {
                   <div>
                     <Label>Nível de Experiência</Label>
                     <Select
-                      value={formData.experience}
-                      onValueChange={(value) =>
-                        handleInputChange("experience", value)
-                      }
+                      value={watch("experience") || ""}
+                      onValueChange={(value) => setValue("experience", value)}
                     >
                       <SelectTrigger
                         id="experience"
@@ -958,10 +941,8 @@ export default function ParticipantRegistrationPage() {
                   <div>
                     <Label>Categoria</Label>
                     <Select
-                      value={formData.category}
-                      onValueChange={(value) =>
-                        handleInputChange("category", value)
-                      }
+                      value={watch("category") || ""}
+                      onValueChange={(value) => setValue("category", value)}
                     >
                       <SelectTrigger
                         id="category"
@@ -984,17 +965,24 @@ export default function ParticipantRegistrationPage() {
                   <Label>Informações Adicionais</Label>
 
                   <textarea
-                    value={formData.additionalInfo}
-                    onChange={(e) =>
-                      handleInputChange("additionalInfo", e.target.value)
-                    }
+                    {...register("additionalInfo")}
                     placeholder="Conte-nos um pouco sobre sua experiência musical, instrumentos que toca, etc."
-                    className="w-full p-3 border border-cinza-chumbo/20 rounded-lg resize-none h-24"
+                    className={`w-full p-3 border rounded-lg resize-none h-24 ${
+                      errors.additionalInfo
+                        ? "border-red-500"
+                        : "border-cinza-chumbo/20"
+                    }`}
                     maxLength={500}
                   />
                   <p className="text-xs text-cinza-chumbo/60 mt-1">
-                    {formData.additionalInfo.length}/500 caracteres
+                    {watch("additionalInfo")?.length || 0}/500 caracteres
                   </p>
+                  {errors.additionalInfo && (
+                    <p className="text-red-600 text-sm mt-1 font-medium flex items-center">
+                      <span className="w-1 h-1 bg-red-500 rounded-full mr-2"></span>
+                      {errors.additionalInfo.message}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -1009,9 +997,9 @@ export default function ParticipantRegistrationPage() {
                   <div className="flex items-start space-x-2">
                     <Checkbox
                       id="specialNeeds"
-                      checked={formData.hasSpecialNeeds}
+                      checked={watch("hasSpecialNeeds")}
                       onCheckedChange={(checked) =>
-                        handleInputChange("hasSpecialNeeds", !!checked)
+                        setValue("hasSpecialNeeds", !!checked)
                       }
                     />
                     <label
@@ -1022,18 +1010,12 @@ export default function ParticipantRegistrationPage() {
                     </label>
                   </div>
 
-                  {formData.hasSpecialNeeds && (
+                  {watch("hasSpecialNeeds") && (
                     <div>
                       <Label isRequired>Descreva suas necessidades</Label>
 
                       <textarea
-                        value={formData.specialNeedsDescription}
-                        onChange={(e) =>
-                          handleInputChange(
-                            "specialNeedsDescription",
-                            e.target.value
-                          )
-                        }
+                        {...register("specialNeedsDescription")}
                         placeholder="Descreva as adaptações necessárias para sua participação"
                         className={`w-full p-3 border rounded-lg resize-none h-20 ${
                           errors.specialNeedsDescription
@@ -1044,11 +1026,12 @@ export default function ParticipantRegistrationPage() {
                       />
                       {errors.specialNeedsDescription && (
                         <p className="text-red-500 text-sm mt-1">
-                          {errors.specialNeedsDescription}
+                          {errors.specialNeedsDescription.message}
                         </p>
                       )}
                       <p className="text-xs text-cinza-chumbo/60 mt-1">
-                        {formData.specialNeedsDescription.length}/300 caracteres
+                        {watch("specialNeedsDescription")?.length || 0}/300
+                        caracteres
                       </p>
                     </div>
                   )}
@@ -1066,12 +1049,9 @@ export default function ParticipantRegistrationPage() {
                   <div className="flex items-start space-x-2">
                     <Checkbox
                       id="emailNotifications"
-                      checked={formData.acceptsEmailNotifications}
+                      checked={watch("acceptsEmailNotifications")}
                       onCheckedChange={(checked) =>
-                        handleInputChange(
-                          "acceptsEmailNotifications",
-                          !!checked
-                        )
+                        setValue("acceptsEmailNotifications", !!checked)
                       }
                     />
                     <label
@@ -1086,9 +1066,9 @@ export default function ParticipantRegistrationPage() {
                   <div className="flex items-start space-x-2">
                     <Checkbox
                       id="acceptsTerms"
-                      checked={formData.acceptsTerms}
+                      checked={watch("acceptsTerms")}
                       onCheckedChange={(checked) =>
-                        handleInputChange("acceptsTerms", !!checked)
+                        setValue("acceptsTerms", !!checked)
                       }
                     />
                     <label
@@ -1100,8 +1080,8 @@ export default function ParticipantRegistrationPage() {
                       <span className="text-red-500"> *</span>{" "}
                       <Link
                         href={
-                          formData.eventId
-                            ? `/regulation/${formData.eventId}`
+                          watch("eventId")
+                            ? `/regulation/${watch("eventId")}`
                             : "/regulation"
                         }
                         className="text-verde-suave hover:text-verde-escuro font-medium inline-flex items-center ml-1"
@@ -1114,7 +1094,7 @@ export default function ParticipantRegistrationPage() {
                     {errors.acceptsTerms && (
                       <p className="text-red-600 text-sm mt-1 font-medium flex items-center">
                         <span className="w-1 h-1 bg-red-500 rounded-full mr-2"></span>
-                        {errors.acceptsTerms}
+                        {errors.acceptsTerms.message}
                       </p>
                     )}
                   </div>
@@ -1123,10 +1103,12 @@ export default function ParticipantRegistrationPage() {
 
               <Button
                 type="submit"
-                disabled={loading}
+                disabled={isSubmitting || loading}
                 className="festival-button w-full text-lg py-6"
               >
-                {loading ? "Registrando..." : "Registrar como Participante"}
+                {isSubmitting || loading
+                  ? "Registrando..."
+                  : "Registrar como Participante"}
               </Button>
             </form>
           ) : (
@@ -1184,12 +1166,12 @@ export default function ParticipantRegistrationPage() {
                       Participante Encontrado!
                     </h4>
                     <p className="text-cinza-chumbo mb-4">
-                      <strong>{existingParticipant.name}</strong>
+                      <strong>{existingParticipant?.name}</strong>
                     </p>
                     <Badge className="mb-4">
                       {PARTICIPANT_CATEGORIES.find(
-                        (c) => c.value === existingParticipant.category
-                      )?.label || existingParticipant.category}
+                        (c) => c.value === existingParticipant?.category
+                      )?.label || existingParticipant?.category}
                     </Badge>
 
                     <div className="space-y-3">
