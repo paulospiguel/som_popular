@@ -46,6 +46,17 @@ export default function EventRegistrationPage() {
   const router = useRouter();
   const eventId = params.id as string;
 
+  // Redirect to unified participant registration with preselected event
+  useEffect(() => {
+    if (eventId) {
+      router.replace(`/participant-registration?event=${eventId}`);
+    } else {
+      router.replace(`/participant-registration`);
+    }
+  }, [eventId, router]);
+
+  return null;
+
   const [event, setEvent] = useState<PublicEvent | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);

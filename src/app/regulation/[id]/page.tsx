@@ -148,7 +148,7 @@ export default function RegulationPage({ params }: RegulationPageProps) {
           {/* Ações */}
           <div className="flex flex-col sm:flex-row gap-4">
             {event.canRegister && (
-              <Link href={`/events/${eventId}/registration`} className="flex-1">
+              <Link href={`/participant-registration?event=${eventId}`} className="flex-1">
                 <Button className="festival-button w-full">
                   <FileText className="w-4 h-4 mr-2" />
                   Aceitar e Registrar-se

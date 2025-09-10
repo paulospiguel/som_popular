@@ -15,6 +15,7 @@ import {
   User,
 } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import QRCode from "qrcode";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -34,7 +35,10 @@ import {
 } from "@/components/ui/select";
 // Categoria não utilizada nesta tela (campo removido)
 import { EXPERIENCE_LEVELS, PARTICIPANT_CATEGORIES } from "@/constants";
-import { getAvailableEventsForRegistration } from "@/server/events-public";
+import {
+  getAvailableEventsForRegistration,
+  getRegistrationByEmail,
+} from "@/server/events-public";
 import {
   getParticipantByEmail,
   registerParticipant,
@@ -59,6 +63,8 @@ interface FormData {
 }
 
 export default function ParticipantRegistrationPage() {
+  const searchParams = useSearchParams();
+  const preselectedEventId = searchParams.get("event");
   const [activeTab, setActiveTab] = useState<"new" | "existing">("new");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -72,6 +78,8 @@ export default function ParticipantRegistrationPage() {
   const [checkingEmail, setCheckingEmail] = useState(false);
   const [registrationResult, setRegistrationResult] = useState<any>(null);
   const [qrUrl, setQrUrl] = useState<string>("");
+  const [eventLocked, setEventLocked] = useState(false);
+  const [existingNotice, setExistingNotice] = useState("");
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -95,6 +103,14 @@ export default function ParticipantRegistrationPage() {
   useEffect(() => {
     loadAvailableEvents();
   }, []);
+
+  // Aplicar seleção de evento via querystring
+  useEffect(() => {
+    if (preselectedEventId) {
+      setFormData((prev) => ({ ...prev, eventId: preselectedEventId }));
+      setEventLocked(true);
+    }
+  }, [preselectedEventId]);
 
   const loadAvailableEvents = async () => {
     try {
@@ -348,19 +364,31 @@ export default function ParticipantRegistrationPage() {
     try {
       // Se é email (contém @)
       if (existingSearch.includes("@")) {
-        const result = await getParticipantByEmail(existingSearch);
+        const result = await getRegistrationByEmail(
+          existingSearch,
+          preselectedEventId || undefined
+        );
 
-        if (result.success && result.participant) {
-          setExistingParticipant(result.participant);
-          toast.success("Participante encontrado!");
-        } else {
-          toast.error("Participante não encontrado com este email");
+        if (result.success) {
+          // Segurança de dados: não exibir informações; enviar email se aplicável
           setExistingParticipant(null);
+          setExistingNotice(
+            "Se houver inscrições ativas para este email, você receberá um email com o número da inscrição."
+          );
+          toast.success(
+            "Se houver inscrições ativas para este email, você receberá um email."
+          );
+        } else {
+          toast.error(
+            result.error || "Nenhuma inscrição encontrada para este email"
+          );
+          setExistingParticipant(null);
+          setExistingNotice("");
         }
       } else {
         // É número de registro - enviar por email
         toast.info(
-          "Funcionalidade de envio por email será implementada em breve"
+          "Use o número de inscrição na página 'Consultar Inscrições' para visualizar sua credencial."
         );
         setExistingParticipant(null);
       }
@@ -813,7 +841,7 @@ export default function ParticipantRegistrationPage() {
                       onValueChange={(value) =>
                         handleInputChange("eventId", value)
                       }
-                      disabled={availableEvents.length === 1}
+                      disabled={eventLocked || availableEvents.length === 1}
                     >
                       <SelectTrigger
                         id="eventId"
@@ -878,18 +906,19 @@ export default function ParticipantRegistrationPage() {
                         {errors.eventId}
                       </p>
                     )}
-                    {availableEvents.length === 1 && (
+                    {availableEvents.length === 1 && !eventLocked && (
                       <p className="text-xs text-cinza-chumbo/60 mt-1">
                         Este é o único evento disponível no momento.
                       </p>
                     )}
-
-                    <p className="text-xs text-cinza-chumbo/60 mt-2">
-                      💡 Você pode selecionar um evento mesmo que as inscrições
-                      ainda não tenham começado. O sistema validará se as
-                      inscrições estão abertas quando você submeter o
-                      formulário.
-                    </p>
+                    {!eventLocked && (
+                      <p className="text-xs text-cinza-chumbo/60 mt-2">
+                        💡 Você pode selecionar um evento mesmo que as
+                        inscrições ainda não tenham começado. O sistema validará
+                        se as inscrições estão abertas quando você submeter o
+                        formulário.
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
@@ -1140,6 +1169,12 @@ export default function ParticipantRegistrationPage() {
                   </Button>
                 </div>
               </form>
+
+              {existingNotice && (
+                <div className="festival-card p-4 max-w-md mx-auto bg-blue-50 border border-blue-200">
+                  <p className="text-sm text-blue-800">{existingNotice}</p>
+                </div>
+              )}
 
               {existingParticipant && (
                 <div className="festival-card p-6 max-w-md mx-auto">

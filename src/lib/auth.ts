@@ -9,7 +9,7 @@ import * as schema from "@/server/database/auth-schema";
 
 import { sendEmail } from "./mailer/resend";
 import ResetPasswordTemplate from "./mailer/templates/reset-password";
-import { ac, admin, operator, master } from "./permissions";
+import { ac, admin, master, operator } from "./permissions";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -25,14 +25,17 @@ export const auth = betterAuth({
         to: user.email,
         subject: "Redefinição de senha",
         text: `Para redefinir a tua senha, abre: ${url}`,
-        react: ResetPasswordTemplate({
+        template: ResetPasswordTemplate({
           name: user.name || "utilizador",
           resetUrl: url,
         }),
       });
     },
   },
-  plugins: [nextCookies(), adminPlugin({ ac, roles: { admin, operator, master } })],
+  plugins: [
+    nextCookies(),
+    adminPlugin({ ac, roles: { admin, operator, master } }),
+  ],
   hooks: {},
   user: {
     additionalFields: {

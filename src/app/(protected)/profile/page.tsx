@@ -19,6 +19,7 @@ export default function ProfilePage() {
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [nameError, setNameError] = useState<string>("");
   const [form, setForm] = useState({ name: "", email: "", image: "" });
   const [pwd, setPwd] = useState({ current: "", next: "", confirm: "" });
 
@@ -39,6 +40,12 @@ export default function ProfilePage() {
 
   const onSave = async () => {
     try {
+      if (!form.name || form.name.trim().length < 2) {
+        setNameError("Informe um nome válido (mín. 2 caracteres)");
+        showToast({ type: "error", title: "Nome inválido" });
+        return;
+      }
+      setNameError("");
       setSubmitting(true);
       const res = await updateMyProfile({ name: form.name, image: form.image || null });
       if (res.success) {
@@ -83,7 +90,11 @@ export default function ProfilePage() {
                 <Input
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className={nameError ? "border-red-500 ring-red-200" : undefined}
                 />
+                {nameError && (
+                  <p className="text-xs text-red-600 mt-1">{nameError}</p>
+                )}
               </div>
               <div>
                 <label className="text-sm text-cinza-chumbo/70">Email</label>

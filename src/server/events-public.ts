@@ -2,12 +2,15 @@
 
 import { and, eq, sql } from "drizzle-orm";
 
+import { sendEmail } from "@/lib/mailer/resend";
 import { db } from "@/server/database";
 import {
   eventRegistrations,
   events,
   participants,
 } from "@/server/database/schema";
+
+import RegistrationEventTemplate from "@/lib/mailer/templates/registration-event";
 
 export interface PublicEvent {
   id: string;
@@ -320,22 +323,22 @@ export async function registerForEvent(data: EventRegistrationData): Promise<{
     } else {
       // Criar novo participante
       const newParticipant = await db
-      .insert(participants)
-      .values({
-        name: data.name,
-        stageName: (data as any).stageName || null,
-        email: data.email,
-        phone: data.phone,
-        avatar: data.avatar,
-        category: data.category || "livre",
-        experience: data.experience || "nao-tem-experiencia",
-        age: data.age ?? null,
-        additionalInfo: data.additionalInfo,
-        hasSpecialNeeds: data.hasSpecialNeeds,
-        specialNeedsDescription: data.specialNeedsDescription,
-        acceptsEmailNotifications: data.acceptsEmailNotifications,
-        status: "approved", // Auto-aprovado para inscrições públicas
-      })
+        .insert(participants)
+        .values({
+          name: data.name,
+          stageName: (data as any).stageName || null,
+          email: data.email,
+          phone: data.phone,
+          avatar: data.avatar,
+          category: data.category || "livre",
+          experience: data.experience || "nao-tem-experiencia",
+          age: data.age ?? null,
+          additionalInfo: data.additionalInfo,
+          hasSpecialNeeds: data.hasSpecialNeeds,
+          specialNeedsDescription: data.specialNeedsDescription,
+          acceptsEmailNotifications: data.acceptsEmailNotifications,
+          status: "approved", // Auto-aprovado para inscrições públicas
+        })
         .returning({ id: participants.id });
 
       participantId = newParticipant[0].id;
@@ -524,6 +527,7 @@ export async function getRegistrationByEmail(
         registrationId: eventRegistrations.id,
         eventName: events.name,
         eventId: events.id,
+        eventStatus: events.status,
         participantName: participants.name,
         status: eventRegistrations.status,
         registrationDate: eventRegistrations.registeredAt,
@@ -541,6 +545,7 @@ export async function getRegistrationByEmail(
       id: reg.registrationId,
       eventName: reg.eventName,
       eventId: reg.eventId,
+      eventStatus: reg.eventStatus,
       participantName: reg.participantName,
       status: reg.status,
       registrationDate: reg.registrationDate,
@@ -553,6 +558,29 @@ export async function getRegistrationByEmail(
         email: email,
       }),
     }));
+
+    // Segurança: se a consulta foi por email, e existir inscrição ativa
+    // para evento não finalizado (status diferente de 'completed' e 'cancelled'),
+    // enviar email com os números de inscrição.
+    try {
+      const active = registrationsWithQR.filter(
+        (r) => r.eventStatus !== "completed" && r.eventStatus !== "cancelled"
+      );
+      if (active.length > 0) {
+        const text = `Encontramos uma inscrição ativa em evento(s) com o número da inscrição: ${active.map((r) => r.id).join(", ")}`;
+
+        await sendEmail({
+          to: email,
+          subject: "Suas inscrições — Festival Som Popular",
+          text: text,
+          template: RegistrationEventTemplate({
+            registrations: active,
+          }),
+        });
+      }
+    } catch (e) {
+      console.error("Falha ao enviar email com inscrições:", e);
+    }
 
     return {
       success: true,

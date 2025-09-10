@@ -336,7 +336,7 @@ function EventCard({ event, isCurrentEvent = false }: EventCardProps) {
               className="flex-1 festival-button"
               onClick={(e) => {
                 e.stopPropagation();
-                router.push(`/events/${event.id}/registration`);
+                router.push(`/participant-registration?event=${event.id}`);
               }}
             >
               Inscrever-me
