@@ -21,8 +21,21 @@ export async function checkAdminAccess() {
 
   if (!session?.user) redirect("/auth/login");
 
-  const userRole = (session.user as any).role ?? ROLES.OPERATOR;
+  const userRole = session.user.role ?? ROLES.OPERATOR;
   if (userRole !== ROLES.ADMIN) redirect("/dashboard");
 
   return { user: session.user, role: userRole };
+}
+
+export async function getSession() {
+  let session = await auth.api.getSession({ headers: await headers() });
+
+  if (!session) return null;
+
+  const user = session.user;
+  user.role = user.role ?? ROLES.OPERATOR;
+
+  session.user = user;
+
+  return session;
 }

@@ -1,7 +1,22 @@
+import { getSession } from "@/lib/auth-utils";
 import Image from "next/image";
 import Link from "next/link";
 
-export default function Footer() {
+export default async function Footer() {
+
+  const session = await getSession();
+
+  const isLogged = !!session;
+
+  const dashboardOption = isLogged ? {
+    name: "Login",
+    href: "/auth/login",
+  } :
+    {
+      name: "Dashboard",
+      href: "/dashboard"
+    };
+
   const MENU = {
     participants: [
       {
@@ -53,10 +68,7 @@ export default function Footer() {
             name: "Ajuda",
             href: "/help",
           },
-          {
-            name: "Login",
-            href: "/auth/login",
-          },
+          { ...dashboardOption }
           // {
           //   name: "WhatsApp",
           //   href: "https://wa.me/5511999999999",
@@ -64,10 +76,6 @@ export default function Footer() {
           // {
           //   name: "55 (43) ****-****",
           //   href: "tel:554399999-9999",
-          // },
-          // {
-          //   name: "Dashboard (Admin)",
-          //   href: "/auth/login",
           // },
         ],
       },
