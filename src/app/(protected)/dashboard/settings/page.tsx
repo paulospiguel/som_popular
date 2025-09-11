@@ -1,4 +1,4 @@
-import { Shield, Tags, Users, Wrench } from "lucide-react";
+import { Home, Shield, Tags, Users, Wrench } from "lucide-react";
 import Link from "next/link";
 
 import { requireMaster } from "@/lib/action-guards";
@@ -7,6 +7,12 @@ export default async function SettingsPage() {
   await requireMaster();
 
   const cards = [
+    {
+      icon: Home,
+      title: "Configurações da Página Principal",
+      description: "Tema, cores e configurações da home",
+      href: "/dashboard/settings/homepage",
+    },
     {
       icon: Users,
       title: "Utilizadores e Regras",
@@ -43,7 +49,7 @@ export default async function SettingsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {cards.map((c) => {
           const Icon = c.icon;
           return (

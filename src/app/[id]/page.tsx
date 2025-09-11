@@ -1,21 +1,44 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 import CurrentStatusCard from "@/components/CurrentStatusCard";
 import EventsSection from "@/components/EventsSection";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import { Ripple } from "@/components/magicui/ripple";
+import { getPublicEvents } from "@/server/events-public";
 import { getHomePageSettings } from "@/server/settings";
 
-export default async function Home() {
+interface SingleEventPageProps {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+export default async function SingleEventPage({
+  params,
+}: SingleEventPageProps) {
+  const { id } = await params;
+
   // Buscar configurações da página principal
   const settings = await getHomePageSettings();
 
-  // Se o modo único evento estiver ativado, redirecionar para o evento específico
-  if (settings.singleEventMode && settings.singleEventId) {
-    redirect(`/${settings.singleEventId}`);
+  // Se o modo único evento não estiver ativado ou o ID não corresponder, mostrar 404
+  if (!settings.singleEventMode || settings.singleEventId !== id) {
+    notFound();
   }
+
+  // Buscar o evento específico
+  const eventsResult = await getPublicEvents();
+  if (!eventsResult.success || !eventsResult.events) {
+    notFound();
+  }
+
+  const event = eventsResult.events.find((e) => e.id === id);
+  if (!event) {
+    notFound();
+  }
+
   return (
     <div className="min-h-screen">
       {/* Header com fundo verde médio */}
@@ -27,12 +50,13 @@ export default async function Home() {
         <div className="container mx-auto text-center max-w-4xl">
           {/* Título em verde escuro */}
           <h1 className="festival-title text-5xl md:text-7xl mb-8 leading-tight">
-            Festival Som Popular
+            {event.name}
           </h1>
 
           {/* Subtítulo em cinza escuro */}
           <p className="festival-subtitle text-xl md:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed">
-            Celebrando os talentos da nossa terra com música, tradição e paixão
+            {event.description ||
+              "Celebrando os talentos da nossa terra com música, tradição e paixão"}
           </p>
 
           {/* CTA Buttons com nova paleta */}
@@ -46,16 +70,16 @@ export default async function Home() {
             </Link>
 
             {/* Botão secundário - Verde */}
-            <Link
+            {/* <Link
               href="/#events"
               className="festival-button-secondary text-lg px-10 py-4 font-semibold"
             >
               📋 Ver Eventos
-            </Link>
+            </Link> */}
 
             {/* Botão terciário - Rankings */}
             <Link
-              href="/ranking"
+              href={`/ranking/${id}`}
               className="festival-button-secondary text-lg px-10 py-4 font-semibold"
             >
               📊 Acompanhar
@@ -118,35 +142,53 @@ export default async function Home() {
       {settings.showSupporters && (
         <section
           id="partners"
-          className="py-16 px-6 bg-gradient-to-r from-bege-claro/30 to-verde-suave/5"
+          className="py-16 px-6 bg-gradient-to-r from-verde-muito-suave/20 to-dourado-muito-claro/20"
         >
           <div className="container mx-auto">
-            {/* Título da Seção */}
             <div className="text-center mb-12">
               <h2 className="festival-title text-3xl md:text-4xl mb-4 text-verde-suave">
-                Apoiadores & Parceiros
+                Nossos Apoiadores
               </h2>
-              <p className="festival-subtitle text-base md:text-lg text-cinza-chumbo max-w-xl mx-auto mb-8">
-                Juntos, construímos um festival que celebra a música local
+              <p className="festival-subtitle text-base md:text-lg text-cinza-chumbo max-w-2xl mx-auto">
+                Agradecemos o apoio de todos os nossos parceiros
               </p>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {Array.from({ length: 10 }).map((_, index) => (
-                <div
-                  key={`${index}`}
-                  className="flex-shrink-0 h-36 bg-white hover:bg-white/60 hover:shadow-dourado-claro/8 rounded-lg flex items-center justify-center border border-verde-suave/10 hover:border-verde-suave/20 transition-all duration-200 hover:scale-105"
-                >
-                  <span className="text-verde-suave text-xs font-semibold tracking-wider">
-                    APOIADOR {index}
+            <div className="relative overflow-hidden">
+              <div className="flex animate-marquee space-x-8">
+                {/* Logos dos apoiadores - você pode adicionar mais */}
+                <div className="flex-shrink-0 flex items-center justify-center w-32 h-20 bg-white/80 rounded-lg shadow-sm">
+                  <span className="text-2xl font-bold text-verde-suave">
+                    PM
                   </span>
                 </div>
-              ))}
+                <div className="flex-shrink-0 flex items-center justify-center w-32 h-20 bg-white/80 rounded-lg shadow-sm">
+                  <span className="text-2xl font-bold text-dourado-claro">
+                    SC
+                  </span>
+                </div>
+                <div className="flex-shrink-0 flex items-center justify-center w-32 h-20 bg-white/80 rounded-lg shadow-sm">
+                  <span className="text-2xl font-bold text-verde-suave">
+                    FP
+                  </span>
+                </div>
+                <div className="flex-shrink-0 flex items-center justify-center w-32 h-20 bg-white/80 rounded-lg shadow-sm">
+                  <span className="text-2xl font-bold text-dourado-claro">
+                    CC
+                  </span>
+                </div>
+                <div className="flex-shrink-0 flex items-center justify-center w-32 h-20 bg-white/80 rounded-lg shadow-sm">
+                  <span className="text-2xl font-bold text-verde-suave">
+                    AC
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </section>
       )}
 
+      {/* Footer */}
       <Footer />
     </div>
   );

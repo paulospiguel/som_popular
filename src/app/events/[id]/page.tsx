@@ -29,10 +29,11 @@ const EVENT_TYPE_LABELS = {
   final: "Final",
 };
 
+// Cores alinhadas com EventsSection (tons 100, sem borda)
 const EVENT_TYPE_COLORS = {
-  classificatoria: "bg-blue-50 text-blue-700 border-blue-200",
-  "semi-final": "bg-orange-50 text-orange-700 border-orange-200",
-  final: "bg-red-50 text-red-700 border-red-200",
+  classificatoria: "bg-blue-100 text-blue-800",
+  "semi-final": "bg-orange-100 text-orange-800",
+  final: "bg-red-100 text-red-800",
 };
 
 const STATUS_LABELS = {
@@ -42,24 +43,27 @@ const STATUS_LABELS = {
   full: "Lotado",
 };
 
+// Cores alinhadas com EventsSection
 const STATUS_COLORS = {
-  not_open: "bg-gray-50 text-gray-700 border-gray-200",
-  open: "bg-green-50 text-green-700 border-green-200",
-  closed: "bg-red-50 text-red-700 border-red-200",
-  full: "bg-yellow-50 text-yellow-700 border-yellow-200",
+  not_open: "bg-gray-100 text-gray-800",
+  open: "bg-green-100 text-green-800",
+  closed: "bg-red-100 text-red-800",
+  full: "bg-yellow-100 text-yellow-800",
 };
 
+// Ícones alinhados com EventsSection
 const STATUS_ICONS = {
   not_open: Clock,
   open: Users,
   closed: Calendar,
-  full: Users,
+  full: Trophy,
 };
 
+// Ajuste para aparência mais suave e coesa
 const PHASE_COLORS = {
-  classificatoria: "bg-blue-50 border-blue-200 text-blue-700",
-  "semi-final": "bg-orange-50 border-orange-200 text-orange-700",
-  final: "bg-red-50 border-red-200 text-red-700",
+  classificatoria: "bg-blue-100 text-blue-800",
+  "semi-final": "bg-orange-100 text-orange-800",
+  final: "bg-red-100 text-red-800",
 };
 
 export default function EventPage() {
@@ -132,10 +136,10 @@ export default function EventPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-verde-muito-suave/30 to-dourado-muito-claro/30 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Carregando evento...</p>
+          <div className="w-8 h-8 border-2 border-verde-suave border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-cinza-chumbo">Carregando evento...</p>
         </div>
       </div>
     );
@@ -143,21 +147,21 @@ export default function EventPage() {
 
   if (error || !event) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto px-6">
+      <div className="min-h-screen bg-gradient-to-br from-verde-muito-suave/30 to-dourado-muito-claro/30 flex items-center justify-center px-6">
+        <div className="text-center max-w-md mx-auto">
           <Button onClick={() => router.back()} variant="outline" size="sm">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Voltar
           </Button>
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+          <h1 className="text-2xl font-bold text-cinza-chumbo mb-4">
             Evento não encontrado
           </h1>
-          <p className="text-gray-600 mb-6">
+          <p className="text-cinza-chumbo/80 mb-6">
             {error ||
               "O evento solicitado não foi encontrado ou não está disponível."}
           </p>
           <Link href="/">
-            <Button>Voltar à Página Inicial</Button>
+            <Button className="festival-button">Voltar à Página Inicial</Button>
           </Link>
         </div>
       </div>
@@ -165,7 +169,7 @@ export default function EventPage() {
   }
 
   const formatDateOnly = (date: Date) => {
-    return new Intl.DateTimeFormat("pt-BR", {
+    return new Intl.DateTimeFormat("pt-PT", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -233,8 +237,8 @@ export default function EventPage() {
   const eventSchedule = generateEventSchedule();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-6 py-8 max-w-4xl">
+    <div className="min-h-screen bg-gradient-to-br from-verde-muito-suave/30 to-dourado-muito-claro/30">
+      <div className="container mx-auto px-6 py-8 max-w-5xl">
         {/* Botão Voltar */}
         <div className="mb-6">
           <Button onClick={() => router.back()} variant="outline" size="sm">
@@ -244,8 +248,8 @@ export default function EventPage() {
         </div>
 
         {/* Header do Evento */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-8">
-          <div className="flex flex-col lg:flex-row items-start justify-between gap-6">
+        <div className="festival-card p-6 md:p-8 mb-8">
+          <div className="flex flex-col lg:flex-row items-start justify-between gap-8">
             <div className="flex-1 w-full">
               {/* Badges de Status */}
               <div className="flex items-center gap-3 mb-4">
@@ -279,37 +283,37 @@ export default function EventPage() {
               </div>
 
               {/* Título */}
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              <h1 className="festival-title text-3xl md:text-4xl mb-4 text-verde-suave">
                 {event.name}
               </h1>
 
               {/* Descrição */}
               {event.description && (
-                <p className="text-gray-600 mb-6 leading-relaxed">
+                <p className="text-cinza-chumbo/80 mb-6 leading-relaxed">
                   {event.description}
                 </p>
               )}
 
               {/* Informações Principais */}
               <div className="flex flex-col gap-2 mb-6">
-                <div className="flex items-center gap-3 text-gray-600">
-                  <MapPin className="w-5 h-5 text-green-600" />
+                <div className="flex items-center gap-3 text-cinza-chumbo">
+                  <MapPin className="w-5 h-5 text-dourado-claro" />
                   <span>{event.location}</span>
                 </div>
 
-                <div className="flex items-center  gap-3 text-gray-600">
-                  <Music className="w-5 h-5 text-purple-600" />
+                <div className="flex items-center gap-3 text-cinza-chumbo">
+                  <Music className="w-5 h-5 text-dourado-claro" />
                   <span className="capitalize">{event.category}</span>
                 </div>
-                <div className="grid grid-cols-1  md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Datas de Inscrição */}
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    <h3 className="text-lg font-semibold text-cinza-chumbo mb-3">
                       Período de Inscrições
                     </h3>
 
                     {event.registrationStartDate && (
-                      <div className="flex items-center gap-6 text-sm text-gray-500">
+                      <div className="flex items-center gap-6 text-sm text-cinza-chumbo/70">
                         <div className="flex items-center gap-2">
                           <Clock className="w-4 h-4" />
                           <span>
@@ -321,7 +325,7 @@ export default function EventPage() {
                     )}
 
                     {event.registrationEndDate && (
-                      <div className="flex items-center gap-6 text-sm text-gray-500">
+                      <div className="flex items-center gap-6 text-sm text-cinza-chumbo/70">
                         <div className="flex items-center gap-2">
                           <CheckCircle className="w-4 h-4" />
                           <span>
@@ -334,12 +338,12 @@ export default function EventPage() {
 
                   {/* Datas do Evento */}
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    <h3 className="text-lg font-semibold text-cinza-chumbo mb-3">
                       Datas do Evento
                     </h3>
 
                     {event.startDate && (
-                      <div className="flex items-center gap-6 text-sm text-gray-500">
+                      <div className="flex items-center gap-6 text-sm text-cinza-chumbo/70">
                         <div className="flex items-center gap-2">
                           <Clock className="w-4 h-4" />
                           <span>Início: {formatDateOnly(event.startDate)}</span>
@@ -348,7 +352,7 @@ export default function EventPage() {
                     )}
 
                     {event.endDate && (
-                      <div className="flex items-center gap-6 text-sm text-gray-500">
+                      <div className="flex items-center gap-6 text-sm text-cinza-chumbo/70">
                         <div className="flex items-center gap-2">
                           <CheckCircle className="w-4 h-4" />
                           <span>Fim: {formatDateOnly(event.endDate)}</span>
@@ -361,12 +365,12 @@ export default function EventPage() {
 
               {/* Contador de Dias */}
               {daysUntilEvent > 0 && (
-                <div className="bg-blue-50 rounded-lg p-4 inline-block border border-blue-200">
+                <div className="bg-verde-suave/10 rounded-lg p-4 inline-block border border-verde-suave/20">
                   <div className="flex items-center gap-3">
-                    <Clock className="w-5 h-5 text-blue-600" />
+                    <Clock className="w-5 h-5 text-verde-suave" />
                     <div>
-                      <p className="text-sm text-blue-600">Faltam</p>
-                      <p className="text-xl font-bold text-blue-700">
+                      <p className="text-sm text-verde-suave">Faltam</p>
+                      <p className="text-xl font-bold text-verde-suave">
                         {daysUntilEvent} dias
                       </p>
                     </div>
@@ -376,19 +380,19 @@ export default function EventPage() {
             </div>
 
             {/* Sidebar com Informações Rápidas */}
-            <div className="lg:w-64 space-y-4 w-full">
+            <div className="lg:w-72 space-y-4 w-full">
               {/* Prémios */}
               {event.prizes && (
-                <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
+                <div className="festival-card p-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <Star className="w-5 h-5 text-amber-600" />
-                    <h3 className="font-semibold text-amber-800">Prémios</h3>
+                    <Star className="w-5 h-5 text-dourado-claro" />
+                    <h3 className="font-semibold text-cinza-chumbo">Prémios</h3>
                   </div>
                   <div className="space-y-1">
                     {event.prizes
                       .split(",")
                       .map((prize: string, index: number) => (
-                        <div key={index} className="text-sm text-amber-700">
+                        <div key={index} className="text-sm text-cinza-chumbo/80">
                           • {prize.trim()}
                         </div>
                       ))}
@@ -397,17 +401,17 @@ export default function EventPage() {
               )}
 
               {/* Estatísticas */}
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                <h3 className="font-semibold flex items-center gap-2 text-gray-900 mb-3">
-                  <Users className="w-5 h-5 mr-2" />
+              <div className="festival-card p-4">
+                <h3 className="font-semibold flex items-center gap-2 text-cinza-chumbo mb-3">
+                  <Users className="w-5 h-5 mr-2 text-dourado-claro" />
                   <span>Participantes inscritos</span>
                 </h3>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">
+                  <div className="text-2xl font-bold text-verde-suave">
                     {event.currentParticipants}
                   </div>
                   {event.maxParticipants && (
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-cinza-chumbo/70">
                       de {event.maxParticipants} vagas
                     </div>
                   )}
@@ -418,9 +422,9 @@ export default function EventPage() {
         </div>
 
         {/* Cronograma do Evento */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-            <Calendar className="w-6 h-6 text-blue-600" />
+        <div className="festival-card p-6 md:p-8 mb-8">
+          <h2 className="text-2xl font-bold text-cinza-chumbo mb-6 flex items-center gap-3">
+            <Calendar className="w-6 h-6 text-dourado-claro" />
             Cronograma do Evento
           </h2>
 
@@ -431,16 +435,14 @@ export default function EventPage() {
               return (
                 <div key={phase.phase} className="flex items-start gap-4">
                   {/* Indicador de Fase */}
-                  <div
-                    className={`w-12 h-12 rounded-full ${phase.color} flex items-center justify-center flex-shrink-0`}
-                  >
+                  <div className={`w-12 h-12 rounded-full ${phase.color} flex items-center justify-center flex-shrink-0`}>
                     <PhaseIcon className="w-6 h-6" />
                   </div>
 
                   {/* Detalhes da Fase */}
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">
+                      <h3 className="text-lg font-semibold text-cinza-chumbo">
                         {phase.title}
                       </h3>
                       <Badge className={phase.color}>
@@ -452,9 +454,9 @@ export default function EventPage() {
                       </Badge>
                     </div>
 
-                    <p className="text-gray-600 mb-3">{phase.description}</p>
+                    <p className="text-cinza-chumbo/80 mb-3">{phase.description}</p>
 
-                    <div className="flex items-center gap-6 text-sm text-gray-500">
+                    <div className="flex items-center gap-6 text-sm text-cinza-chumbo/70">
                       <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4" />
                         <span>Início: {formatDateOnly(phase.startDate)}</span>
@@ -475,18 +477,18 @@ export default function EventPage() {
 
         {/* Seção de Inscrição */}
         {event.canRegister && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <div className="festival-card p-6 md:p-8 text-center mb-8">
+            <h2 className="text-2xl font-bold text-cinza-chumbo mb-4">
               Inscreva-se Agora
             </h2>
-            <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+            <p className="text-cinza-chumbo/80 mb-6 max-w-2xl mx-auto">
               Não perca a oportunidade de participar neste evento incrível! A
               inscrição é gratuita e o processo é rápido.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href={`/participant-registration?event=${event.id}`}>
-                <Button className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3">
+                <Button className="festival-button text-lg px-8 py-3">
                   <UserPlus className="w-5 h-5 mr-2" />
                   Inscrever-se
                 </Button>
@@ -500,7 +502,7 @@ export default function EventPage() {
                 <Share2 className="w-5 h-5 mr-2" />
                 Partilhar
                 {shareStatus && (
-                  <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-green-600 text-white text-sm px-3 py-2 rounded-lg whitespace-nowrap">
+                  <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-verde-suave text-white text-sm px-3 py-2 rounded-lg whitespace-nowrap">
                     {shareStatus}
                   </div>
                 )}
@@ -511,12 +513,12 @@ export default function EventPage() {
 
         {/* Regulamento (se existir) */}
         {event.rules && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <div className="festival-card p-6 md:p-8">
+            <h2 className="text-2xl font-bold text-cinza-chumbo mb-4">
               Regulamento
             </h2>
-            <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-              <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+            <div className="bg-white/60 rounded-lg p-6 border border-gray-200">
+              <div className="whitespace-pre-wrap text-cinza-chumbo leading-relaxed">
                 {event.rules}
               </div>
             </div>
@@ -524,7 +526,7 @@ export default function EventPage() {
         )}
 
         {/* Footer Simples */}
-        <div className="mt-8 text-center text-gray-500">
+        <div className="mt-8 text-center text-cinza-chumbo/70">
           <p className="text-sm">
             © 2024 Festival Som Popular. Todos os direitos reservados.
           </p>

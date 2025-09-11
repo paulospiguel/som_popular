@@ -221,6 +221,27 @@ export const eventEvaluations = pgTable("event_evaluations", {
   ),
 });
 
+/**
+ * Tabela de configurações do sistema
+ */
+export const systemSettings = pgTable("system_settings", {
+  id: varchar("id", { length: 128 })
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  key: varchar("key", { length: 255 }).notNull().unique(),
+  value: text("value").notNull(),
+  description: text("description"),
+  category: varchar("category", { length: 100 }).notNull().default("general"),
+  isPublic: boolean("is_public").notNull().default(false),
+  updatedBy: varchar("updated_by", { length: 128 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).$defaultFn(
+    () => new Date()
+  ),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$defaultFn(
+    () => new Date()
+  ),
+});
+
 // Tipos derivados dos schemas
 export type SystemLog = typeof systemLogs.$inferSelect;
 export type NewSystemLog = typeof systemLogs.$inferInsert;
@@ -245,3 +266,6 @@ export type NewEvaluationSession = typeof evaluationSessions.$inferInsert;
 
 export type EventEvaluation = typeof eventEvaluations.$inferSelect;
 export type NewEventEvaluation = typeof eventEvaluations.$inferInsert;
+
+export type SystemSetting = typeof systemSettings.$inferSelect;
+export type NewSystemSetting = typeof systemSettings.$inferInsert;
