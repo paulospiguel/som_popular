@@ -10,6 +10,8 @@ import {
   type NewSystemLog,
 } from "@/server/database/schema";
 
+const isDevelopment = process.env.NODE_ENV === "development";
+
 /**
  * Criar log do sistema
  */
@@ -17,8 +19,8 @@ export async function createSystemLog(
   data: Omit<NewSystemLog, "id" | "createdAt">
 ) {
   try {
-    if (process.env.NODE_ENV !== "production") {
-      return;
+    if (isDevelopment) {
+      return { success: true, data: null };
     }
 
     const [log] = await db
@@ -154,7 +156,10 @@ export async function getLogsStats() {
       "email",
     ] as const;
 
-    const stats: Record<string, number> = { total: 0 } as Record<string, number>;
+    const stats: Record<string, number> = { total: 0 } as Record<
+      string,
+      number
+    >;
 
     for (const cat of categories) stats[cat] = 0;
 
@@ -209,8 +214,8 @@ export async function updateLogStatus(
   status: string,
   logType: "system" | "event"
 ) {
-  if (process.env.NODE_ENV !== "production") {
-    return;
+  if (isDevelopment) {
+    return { success: true, data: null };
   }
 
   try {
@@ -245,6 +250,10 @@ export async function logPasswordReset({
   message?: string;
   metadata?: Record<string, any>;
 }) {
+  if (isDevelopment) {
+    return { success: true, data: null };
+  }
+
   return createSystemLog({
     action: "password_reset_attempt",
     category: "auth",
