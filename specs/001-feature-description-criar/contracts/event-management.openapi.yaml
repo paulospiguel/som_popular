@@ -1,0 +1,44 @@
+openapi: 3.0.3
+info:
+  title: Event Management API
+  version: 1.0.0
+paths:
+  /api/event:
+    post:
+      summary: Create a new event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nome
+                - local
+                - datas
+                - regulamento
+                - premiacao
+              properties:
+                nome:
+                  type: string
+                local:
+                  type: string
+                datas:
+                  type: array
+                  items:
+                    type: string
+                    format: date
+                fases:
+                  type: array
+                  items:
+                    type: string
+                regulamento:
+                  type: string
+                  format: binary
+                premiacao:
+                  type: string
+      responses:
+        "201":
+          description: Event created
+        "400":
+          description: Invalid input

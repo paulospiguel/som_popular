@@ -1,0 +1,47 @@
+openapi: 3.0.3
+info:
+  title: Participant Registration API
+  version: 1.0.0
+paths:
+  /api/participant/register:
+    post:
+      summary: Register a new participant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nome
+                - email
+                - telefone
+                - aceite_regulamento
+                - evento_id
+              properties:
+                nome:
+                  type: string
+                representante:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                telefone:
+                  type: string
+                estilo_musical:
+                  type: string
+                foto:
+                  type: string
+                  format: binary
+                aceite_regulamento:
+                  type: boolean
+                evento_id:
+                  type: string
+                  format: uuid
+      responses:
+        "201":
+          description: Registration successful
+        "400":
+          description: Invalid input
+        "409":
+          description: Duplicate registration

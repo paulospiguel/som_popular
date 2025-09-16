@@ -1,0 +1,43 @@
+openapi: 3.0.3
+info:
+  title: Result Publication API
+  version: 1.0.0
+paths:
+  /api/event/{evento_id}/results:
+    post:
+      summary: Publish event results
+      parameters:
+        - in: path
+          name: evento_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - resultados
+              properties:
+                resultados:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      participante_id:
+                        type: string
+                        format: uuid
+                      nota:
+                        type: number
+                      fase:
+                        type: string
+      responses:
+        "200":
+          description: Results published
+        "400":
+          description: Invalid input
+        "404":
+          description: Event not found

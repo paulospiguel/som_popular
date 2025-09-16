@@ -1,0 +1,20 @@
+openapi: 3.0.3
+info:
+  title: Audit Log API
+  version: 1.0.0
+paths:
+  /api/audit/logs:
+    get:
+      summary: Retrieve audit logs
+      parameters:
+        - in: query
+          name: evento_id
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Audit logs retrieved
+        "404":
+          description: No logs found

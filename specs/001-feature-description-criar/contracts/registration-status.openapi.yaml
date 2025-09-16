@@ -1,0 +1,20 @@
+openapi: 3.0.3
+info:
+  title: Registration Status API
+  version: 1.0.0
+paths:
+  /api/registration/status:
+    get:
+      summary: Get registration status
+      parameters:
+        - in: query
+          name: participante_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Registration status retrieved
+        "404":
+          description: Registration not found
