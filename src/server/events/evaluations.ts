@@ -3,8 +3,7 @@
 import { and, desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-import { requireOperatorOrAdmin } from "@/lib/action-guards";
-import { db } from "@/server/database";
+import { db } from "@/infra/database";
 import {
   evaluationSessions,
   eventEvaluations,
@@ -13,7 +12,8 @@ import {
   participants,
   type NewEvaluationSession,
   type NewEventEvaluation,
-} from "@/server/database/schema";
+} from "@/infra/database/schema";
+import { requireOperatorOrAdmin } from "@/lib/action-guards";
 
 /**
  * Criar nova avaliação

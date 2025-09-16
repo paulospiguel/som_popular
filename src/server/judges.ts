@@ -3,8 +3,8 @@
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-import { db } from "@/server/database";
-import { eventJudges, judges, type NewJudge } from "@/server/database/schema";
+import { db } from "@/infra/database";
+import { eventJudges, judges, type NewJudge } from "@/infra/database/schema";
 
 /**
  * Criar novo jurado

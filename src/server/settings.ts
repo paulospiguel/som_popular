@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 
-import { db } from "./database";
-import { systemSettings } from "./database/schema";
+import { db } from "../infra/database";
+import { systemSettings } from "../infra/database/schema";
 
 export interface HomePageSettings {
   // Configurações de tema

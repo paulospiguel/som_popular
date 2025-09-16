@@ -2,13 +2,13 @@
 
 import { and, eq, sql } from "drizzle-orm";
 
-import { sendEmail } from "@/lib/mailer/resend";
-import { db } from "@/server/database";
+import { db } from "@/infra/database";
 import {
   eventRegistrations,
   events,
   participants,
-} from "@/server/database/schema";
+} from "@/infra/database/schema";
+import { sendEmail } from "@/lib/mailer/resend";
 
 import RegistrationEventTemplate from "@/lib/mailer/templates/registration-event";
 

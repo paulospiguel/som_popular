@@ -3,9 +3,9 @@
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-import { participantSchema } from "@/schemas/participant";
-import { db } from "@/server/database";
-import { eventRegistrations, participants } from "@/server/database/schema";
+import { db } from "@/infra/database";
+import { eventRegistrations, participants } from "@/infra/database/schema";
+import { participantSchema } from "@/types/participant";
 
 export interface ParticipantRegistrationData {
   name: string;
@@ -57,12 +57,17 @@ export async function registerParticipant(
         .update(participants)
         .set({
           name: validatedData.name,
-          stageName: (validatedData as any).stageName || (existingParticipant[0] as any).stageName,
+          stageName:
+            (validatedData as any).stageName ||
+            (existingParticipant[0] as any).stageName,
           phone: validatedData.phone || existingParticipant[0].phone,
           category: validatedData.category || existingParticipant[0].category,
           experience:
             validatedData.experience || existingParticipant[0].experience,
-          age: (validatedData as any).age ?? (existingParticipant[0] as any).age ?? null,
+          age:
+            (validatedData as any).age ??
+            (existingParticipant[0] as any).age ??
+            null,
           additionalInfo:
             validatedData.additionalInfo ||
             existingParticipant[0].additionalInfo,
@@ -121,12 +126,15 @@ export async function registerParticipant(
 
       if (existingRegistration.length === 0) {
         // Criar inscrição no evento
-        const inserted = await db.insert(eventRegistrations).values({
-          eventId: validatedData.eventId,
-          participantId: participantId,
-          status: "registered",
-          registeredAt: new Date(),
-        }).returning({ id: eventRegistrations.id });
+        const inserted = await db
+          .insert(eventRegistrations)
+          .values({
+            eventId: validatedData.eventId,
+            participantId: participantId,
+            status: "registered",
+            registeredAt: new Date(),
+          })
+          .returning({ id: eventRegistrations.id });
         registrationId = inserted[0]?.id;
       } else {
         registrationId = existingRegistration[0].id;

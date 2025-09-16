@@ -3,9 +3,9 @@
 import { desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
+import { db } from "@/infra/database";
+import { events, type Event, type NewEvent } from "@/infra/database/schema";
 import { requireAdmin } from "@/lib/action-guards";
-import { db } from "@/server/database";
-import { events, type Event, type NewEvent } from "@/server/database/schema";
 
 /**
  * Criar novo evento

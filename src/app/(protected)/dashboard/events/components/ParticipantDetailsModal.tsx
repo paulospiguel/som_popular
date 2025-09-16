@@ -13,7 +13,7 @@ import {
 import { Modal } from "@/components/Modal";
 import { Avatar } from "@/components/ui/avatar";
 import { EVENT_CATEGORIES } from "@/constants";
-import { Participant } from "@/server/database/schema";
+import { Participant } from "@/infra/database/schema";
 
 interface ParticipantDetailsModalProps {
   isOpen: boolean;

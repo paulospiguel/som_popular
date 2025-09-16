@@ -4,8 +4,8 @@ import { nextCookies } from "better-auth/next-js";
 import { admin as adminPlugin } from "better-auth/plugins";
 
 import { ROLES } from "@/constants";
-import { db } from "@/server/database";
-import * as schema from "@/server/database/auth-schema";
+import { db } from "@/infra/database";
+import * as schema from "@/infra/database/auth-schema";
 
 import { sendEmail } from "./mailer/resend";
 import ResetPasswordTemplate from "./mailer/templates/reset-password";

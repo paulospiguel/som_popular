@@ -5,6 +5,8 @@ import { join } from "path";
 
 import { createId } from "@paralleldrive/cuid2";
 
+import { UPLOAD_CONFIG, validateFile } from "@/lib/upload-config";
+
 export interface UploadResult {
   success: boolean;
   url?: string;
@@ -22,23 +24,8 @@ export interface UploadOptions {
 
 const DEFAULT_OPTIONS: UploadOptions = {
   folder: "general",
-  allowedTypes: [
-    // Imagens
-    "image/jpeg",
-    "image/jpg",
-    "image/png",
-    "image/webp",
-    "image/gif",
-    // PDFs
-    "application/pdf",
-    // Documentos
-    "application/msword",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    "application/vnd.ms-excel",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    "text/plain",
-  ],
-  maxSize: 10 * 1024 * 1024, // 10MB
+  allowedTypes: UPLOAD_CONFIG.ALLOWED_TYPES,
+  maxSize: UPLOAD_CONFIG.MAX_FILE_SIZE,
   renameFile: true,
 };
 
@@ -54,20 +41,12 @@ export async function uploadFile(
   try {
     const config = { ...DEFAULT_OPTIONS, ...options };
 
-    // Validar tipo de arquivo
-    if (!config.allowedTypes!.includes(file.type)) {
+    // Validar arquivo usando a nova função de validação
+    const validation = validateFile(file);
+    if (!validation.valid) {
       return {
         success: false,
-        error: `Tipo de arquivo não permitido: ${file.type}. Tipos aceitos: ${config.allowedTypes!.join(", ")}`,
-      };
-    }
-
-    // Validar tamanho
-    if (file.size > config.maxSize!) {
-      const maxSizeMB = config.maxSize! / (1024 * 1024);
-      return {
-        success: false,
-        error: `Arquivo muito grande. Máximo permitido: ${maxSizeMB}MB`,
+        error: validation.error || "Arquivo inválido",
       };
     }
 

@@ -3,14 +3,14 @@
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-import { requireAdmin } from "@/lib/action-guards";
-import { sendEmail } from "@/lib/mailer/resend";
-import { db } from "@/server/database";
+import { db } from "@/infra/database";
 import {
   eventRegistrations,
   events,
   participants,
-} from "@/server/database/schema";
+} from "@/infra/database/schema";
+import { requireAdmin } from "@/lib/action-guards";
+import { sendEmail } from "@/lib/mailer/resend";
 
 /**
  * Buscar todos os participantes aprovados

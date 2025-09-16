@@ -6,6 +6,12 @@ const nextConfig: NextConfig = {
   images: {
     domains: ["127.0.0.1", "images.unsplash.com", "picsum.photos"],
   },
+  // Configurações para upload de arquivos maiores
+  serverExternalPackages: ["sharp"],
+  // Configuração específica para Server Actions
+  serverActions: {
+    // bodySizeLimit: "5mb",
+  },
 };
 
 export default withSentryConfig(nextConfig, {

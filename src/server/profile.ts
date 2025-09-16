@@ -3,9 +3,9 @@
 import bcrypt from "bcryptjs";
 import { and, eq, isNotNull } from "drizzle-orm";
 
+import { db } from "@/infra/database";
+import { user as users } from "@/infra/database/auth-schema";
 import { requireAuth } from "@/lib/action-guards";
-import { db } from "@/server/database";
-import { user as users } from "@/server/database/auth-schema";
 
 export async function getMyProfile() {
   const { user } = await requireAuth();
@@ -70,7 +70,7 @@ export async function changeMyPassword(input: {
   }
 
   // procurar conta local com password
-  const { account } = await import("@/server/database/auth-schema");
+  const { account } = await import("@/infra/database/auth-schema");
   const rows = await db
     .select()
     .from(account)

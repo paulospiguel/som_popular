@@ -9,16 +9,19 @@
 ## 🔧 Configuração Local
 
 ### 1. Instalar dependências
+
 ```bash
 npm install
 ```
 
 ### 2. Configurar banco de dados local
+
 ```bash
 npm run db:setup
 ```
 
 ### 3. Testar build localmente
+
 ```bash
 npm run build
 ```
@@ -26,9 +29,11 @@ npm run build
 ## 🚀 Deploy no Vercel
 
 ### 1. Configuração Automática
+
 O projeto está configurado para deploy automático no Vercel.
 
 ### 2. Configuração Manual (se necessário)
+
 ```bash
 # Fazer login no Vercel
 npx vercel login
@@ -72,6 +77,7 @@ npm run db:studio
 ## 🔍 Solução de Problemas
 
 ### Erro de Build
+
 Se o build falhar, verifique:
 
 1. **Dependências**: `npm install`
@@ -79,6 +85,7 @@ Se o build falhar, verifique:
 3. **Configuração**: Verifique `next.config.ts`
 
 ### Erro de Banco de Dados
+
 Se houver problemas com o banco:
 
 1. **Verificar migrations**: `npm run db:generate`
@@ -86,9 +93,10 @@ Se houver problemas com o banco:
 3. **Verificar schema**: Abra `drizzle/0000_initial_schema.sql`
 
 ### Erro de SQLite
+
 Para problemas com SQLite:
 
-1. **Verificar arquivo**: `src/server/database/sqlite.db`
+1. **Verificar arquivo**: `src/infra/database/sqlite.db`
 2. **Permissões**: Verificar permissões do arquivo
 3. **Caminho**: Verificar `drizzle.config.ts`
 

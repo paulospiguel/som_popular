@@ -1,6 +1,6 @@
 {
-  "id": "5afd131e-7efe-4e68-9d46-920cb8dbb6cb",
-  "prevId": "b4d64c8f-85f3-42bb-a8b9-32a515485e2f",
+  "id": "e052600d-41d0-4c10-9e0e-4e593e1d77e1",
+  "prevId": "5afd131e-7efe-4e68-9d46-920cb8dbb6cb",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -344,6 +344,12 @@
         "description": {
           "name": "description",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "subtitle": {
+          "name": "subtitle",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
         },

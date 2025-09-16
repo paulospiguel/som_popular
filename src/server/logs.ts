@@ -2,13 +2,13 @@
 
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 
-import { db } from "@/server/database";
+import { db } from "@/infra/database";
 import {
   eventLogs,
   systemLogs,
   type NewEventLog,
   type NewSystemLog,
-} from "@/server/database/schema";
+} from "@/infra/database/schema";
 
 const isDevelopment = process.env.NODE_ENV === "development";
 

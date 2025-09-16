@@ -5,15 +5,15 @@ import {
   Calendar,
   CalendarDays,
   Copy,
+  ExternalLink,
   Eye,
   MapPin,
   MoreVertical,
   Plus,
+  Trash2,
   Users,
   Vote,
-  ExternalLink,
 } from "lucide-react";
-import { Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -35,18 +35,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSonner } from "@/hooks/use-sonner";
+import { Event } from "@/infra/database/schema";
 import { useSession } from "@/lib/auth-client";
-import { Event } from "@/server/database/schema";
-import { copyEvent, getEvents } from "@/server/events";
-
-import AddEventModal from "./components/add-new";
-import EventDetailsModal from "./components/event-detail";
 import {
+  formatEventDate,
   getCategoryText,
   getStatusColor,
   getStatusText,
   getTypeText,
-} from "./utils";
+} from "@/lib/utils";
+import { copyEvent, getEvents } from "@/server/events";
+
+import { EventModalNew } from "./components/EventModalNew";
 
 export default function EventsPage() {
   const { data: session, isPending } = useSession();
@@ -57,7 +57,9 @@ export default function EventsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [confirmCopyEvent, setConfirmCopyEvent] = useState<Event | null>(null);
-  const [confirmDeleteEvent, setConfirmDeleteEvent] = useState<Event | null>(null);
+  const [confirmDeleteEvent, setConfirmDeleteEvent] = useState<Event | null>(
+    null
+  );
 
   useEffect(() => {
     // ProtectedProvider já faz a validação de permissões
@@ -151,19 +153,11 @@ export default function EventsPage() {
             })}
           </div>
           <div className="text-sm text-cinza-chumbo/70">
-            {event.startDate.toLocaleTimeString("pt-PT", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-            {event.endDate && (
-              <>
-                {" "}
-                -{" "}
-                {event.endDate.toLocaleTimeString("pt-PT", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </>
+            {formatEventDate(event.startDate, "dd/MM/yyyy HH:mm")}
+            {event.endDate ? (
+              <> - {formatEventDate(event.endDate, "dd/MM/yyyy HH:mm")}</>
+            ) : (
+              <> - Sem fim definido</>
             )}
           </div>
         </div>
@@ -225,13 +219,20 @@ export default function EventsPage() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
-                <Link href={`/votings/${event.id}`} className="flex items-center gap-2">
+                <Link
+                  href={`/votings/${event.id}`}
+                  className="flex items-center gap-2"
+                >
                   <Vote className="w-4 h-4" />
                   Ir para votação
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href={`/events/${event.id}`} className="flex items-center gap-2" target="_blank">
+                <Link
+                  href={`/events/${event.id}`}
+                  className="flex items-center gap-2"
+                  target="_blank"
+                >
                   <ExternalLink className="w-4 h-4" />
                   Abrir página do evento
                 </Link>
@@ -398,22 +399,25 @@ export default function EventsPage() {
       </main>
 
       {/* Modais */}
-      <AddEventModal
+      <EventModalNew
         isOpen={showAddModal}
+        event={null}
+        mode="create"
         onClose={() => setShowAddModal(false)}
-        onEventAdded={() => {
-          loadEvents(); // Recarregar eventos após adicionar
+        onEventUpdated={() => {
+          loadEvents();
           setShowAddModal(false);
         }}
       />
 
-      <EventDetailsModal
+      <EventModalNew
+        mode={selectedEvent ? "edit" : "view"}
         isOpen={showModal}
+        event={selectedEvent}
         onClose={() => {
           setShowModal(false);
           setSelectedEvent(null);
         }}
-        event={selectedEvent}
         onEventUpdated={() => {
           loadEvents();
         }}
@@ -456,8 +460,7 @@ export default function EventsPage() {
             <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
           </AlertDialogHeader>
           <div>
-            Tem certeza que deseja excluir o evento
-            {" "}
+            Tem certeza que deseja excluir o evento{" "}
             <strong>{confirmDeleteEvent?.name}</strong>?
             <br />
             Esta ação é irreversível e só é permitida para eventos em rascunho.
@@ -469,7 +472,8 @@ export default function EventsPage() {
             <AlertDialogAction
               disabled={loading || confirmDeleteEvent?.status !== "draft"}
               onClick={async () => {
-                if (confirmDeleteEvent) await handleDeleteEvent(confirmDeleteEvent);
+                if (confirmDeleteEvent)
+                  await handleDeleteEvent(confirmDeleteEvent);
                 setConfirmDeleteEvent(null);
               }}
             >

@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Modal } from "@/components/Modal";
-import { Participant } from "@/server/database/schema";
+import { Participant } from "@/infra/database/schema";
 import {
   approveParticipant,
   deactivateParticipant,
@@ -388,7 +388,9 @@ export default function ParticipantDetailsModal({
                     <label className="text-sm text-cinza-chumbo/70 font-medium">
                       Idade
                     </label>
-                    <p className="font-medium">{(participant as any)?.age ?? "N/A"}</p>
+                    <p className="font-medium">
+                      {(participant as any)?.age ?? "N/A"}
+                    </p>
                   </div>
                 </div>
               </div>

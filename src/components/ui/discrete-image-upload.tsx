@@ -1,4 +1,5 @@
 import { Camera, Loader2, X } from "lucide-react";
+import Image from "next/image";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -127,9 +128,11 @@ export const DiscreteImageUpload = ({
         ) : value ? (
           <div className="flex items-center justify-between p-3">
             <div className="flex items-center space-x-3">
-              <img
+              <Image
                 src={value}
                 alt="Foto preview"
+                width={48}
+                height={48}
                 className="w-12 h-12 rounded-full object-cover border border-gray-200"
               />
               <div className="text-sm">

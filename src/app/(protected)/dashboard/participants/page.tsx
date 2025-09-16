@@ -16,18 +16,18 @@ import { useEffect, useState } from "react";
 
 import { DataTable } from "@/components/DataTable";
 import Loading from "@/components/loading";
+import { Participant } from "@/infra/database/schema";
 import { useSession } from "@/lib/auth-client";
-import { Participant } from "@/server/database/schema";
-import { getAllParticipants } from "@/server/participants";
-
-import AddParticipantModal from "./components/add-new";
-import ParticipantDetailsModal from "./components/participant-detail";
 import {
   getCategoryText,
   getExperienceText,
   getStatusColor,
   getStatusText,
-} from "./utils";
+} from "@/lib/utils";
+import { getAllParticipants } from "@/server/participants";
+
+import AddParticipantModal from "./components/add-new";
+import ParticipantDetailsModal from "./components/participant-detail";
 
 export default function ParticipantsManagement() {
   const searchParams = useSearchParams();

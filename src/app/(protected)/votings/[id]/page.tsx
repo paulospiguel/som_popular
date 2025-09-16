@@ -6,6 +6,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
+  ExternalLink,
   FileText,
   Pause,
   Plus,
@@ -21,6 +22,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import CountDownEvent from "@/components/CountDownEvent";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,8 +36,9 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { Button as StatefulButton } from "@/components/ui/stateful-button";
 import { ROLES } from "@/constants";
+import { Event as EventType, Judge } from "@/infra/database/schema";
 import { useSession } from "@/lib/auth-client";
-import { Judge } from "@/server/database/schema";
+import { getStatusText } from "@/lib/utils";
 import { getEventById } from "@/server/events";
 import {
   createEvaluation,
@@ -88,17 +91,6 @@ interface EvaluationStats {
   isComplete: boolean;
 }
 
-interface Event {
-  id: string;
-  name: string;
-  type: string;
-  category: string;
-  status: string;
-  description?: string;
-  location?: string;
-  eventDate?: Date;
-}
-
 export default function VotingEventPage() {
   const { data: session } = useSession();
   const router = useRouter();
@@ -118,7 +110,20 @@ export default function VotingEventPage() {
   const [showCreateJudgeModal, setShowCreateJudgeModal] = useState(false);
   const [newJudgeName, setNewJudgeName] = useState("");
   const [newJudgeDescription, setNewJudgeDescription] = useState("");
-  const [currentEvent, setCurrentEvent] = useState<Event | null>(null);
+  const [currentEvent, setCurrentEvent] = useState<EventType | null>(null);
+  const [canStartVoting, setCanStartVoting] = useState(false);
+
+  // Função para verificar se o evento pode iniciar votação
+  const checkCanStartVoting = useCallback((event: EventType) => {
+    const now = new Date();
+    const eventStartDate = new Date(event.startDate);
+
+    // Verifica se o status é "in_progress" e se a data atual é igual ou posterior à data de início
+    const isStatusInProgress = event.status === "in_progress";
+    const isTimeToStart = now >= eventStartDate;
+
+    return isStatusInProgress && isTimeToStart;
+  }, []);
 
   const loadEventData = useCallback(async () => {
     if (!eventId) return;
@@ -132,7 +137,11 @@ export default function VotingEventPage() {
         return;
       }
 
-      setCurrentEvent(eventResult?.data as Event);
+      const eventData = eventResult?.data as EventType;
+      setCurrentEvent(eventData);
+
+      // Verificar se pode iniciar votação
+      setCanStartVoting(checkCanStartVoting(eventData));
 
       // Carregar dados em paralelo
       const [judgesResult, participantsResult, statsResult] = await Promise.all(
@@ -160,7 +169,7 @@ export default function VotingEventPage() {
     } finally {
       setLoading(false);
     }
-  }, [eventId, router]);
+  }, [eventId, router, checkCanStartVoting]);
 
   useEffect(() => {
     // Verificar permissões de acesso
@@ -386,11 +395,52 @@ export default function VotingEventPage() {
               </p>
             </div>
 
-            <div className="flex items-center space-x-2 text-verde-suave">
-              <Clock className="w-5 h-5" />
-              <span className="font-medium">
-                {currentEvent?.status?.toUpperCase() || "ATIVO"}
-              </span>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 text-verde-suave">
+                <Clock className="w-5 h-5" />
+                <span className="font-medium">
+                  {getStatusText(currentEvent?.status || "ATIVO")}
+                </span>
+              </div>
+              <div className="flex flex-col items-end space-y-2">
+                <button
+                  onClick={() =>
+                    window.open(`/live-ranking/${eventId}`, "_blank")
+                  }
+                  disabled={!canStartVoting}
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                    canStartVoting
+                      ? "bg-verde-suave text-white hover:bg-verde-suave/90"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  }`}
+                  title={
+                    canStartVoting
+                      ? "Abrir painel de votação em nova aba"
+                      : "Votação só pode ser iniciada quando o evento estiver 'In progress' e a data/hora de início for atingida"
+                  }
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  <span className="text-sm font-medium">Painel</span>
+                </button>
+
+                {/* Countdown */}
+                {currentEvent && !canStartVoting && (
+                  <div>
+                    <CountDownEvent
+                      event={currentEvent}
+                      size="sm"
+                      onFinish={() => {
+                        setCanStartVoting(true);
+                      }}
+                    />
+                    {/* Debug info */}
+                    <div className="text-xs text-gray-500 mt-1">
+                      Debug: Status={currentEvent.status}, CanStart=
+                      {canStartVoting.toString()}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -426,6 +476,27 @@ export default function VotingEventPage() {
             </div>
           )}
         </div>
+
+        {/* Aviso sobre disponibilidade de votação */}
+        {currentEvent && !canStartVoting && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <div className="flex items-start space-x-3">
+              <Clock className="w-5 h-5 text-yellow-600 mt-1" />
+              <div>
+                <h3 className="font-semibold text-yellow-800 mb-1">
+                  Votação Indisponível
+                </h3>
+              </div>
+              <div className="text-sm text-cinza-chumbo/70">
+                {currentEvent.status !== "in_progress"
+                  ? `O evento precisa estar com status "In progress" para iniciar as votações. Status atual: ${currentEvent.status?.toUpperCase()}`
+                  : canStartVoting
+                    ? `A votação será liberada automaticamente quando o countdown zerar.`
+                    : `A votação só pode ser iniciada a partir de ${new Date(currentEvent.startDate).toLocaleString("pt-BR")}`}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Verificar se há dados para mostrar */}
         {currentEvent?.id &&

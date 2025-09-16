@@ -111,6 +111,7 @@ export const events = pgTable("events", {
     .$defaultFn(() => createId()),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
+  subtitle: varchar("subtitle", { length: 255 }),
   type: varchar("type", { length: 100 }).notNull(),
   category: varchar("category", { length: 100 }).notNull(),
   location: varchar("location", { length: 255 }).notNull(),
@@ -242,6 +243,27 @@ export const systemSettings = pgTable("system_settings", {
   ),
 });
 
+/**
+ * Tabela de uploads
+ */
+export const uploads = pgTable("uploads", {
+  id: varchar("id", { length: 128 })
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  name: varchar("name", { length: 255 }).notNull(),
+  uuid: varchar("uuid", { length: 128 }).notNull(),
+  extension: varchar("extension", { length: 100 }).notNull(),
+  folder: varchar("folder", { length: 100 }).notNull(),
+  url: text("url").notNull(),
+  tags: text("tags"),
+  createdAt: timestamp("created_at", { withTimezone: true }).$defaultFn(
+    () => new Date()
+  ),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$defaultFn(
+    () => new Date()
+  ),
+});
+
 // Tipos derivados dos schemas
 export type SystemLog = typeof systemLogs.$inferSelect;
 export type NewSystemLog = typeof systemLogs.$inferInsert;
@@ -269,3 +291,5 @@ export type NewEventEvaluation = typeof eventEvaluations.$inferInsert;
 
 export type SystemSetting = typeof systemSettings.$inferSelect;
 export type NewSystemSetting = typeof systemSettings.$inferInsert;
+
+export type Upload = typeof uploads.$inferSelect;

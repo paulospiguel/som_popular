@@ -2,13 +2,13 @@
 
 import { and, desc, eq, gte, inArray, sql } from "drizzle-orm";
 
-import { db } from "@/server/database";
+import { db } from "@/infra/database";
 import {
   eventEvaluations,
   eventJudges,
   events,
   participants,
-} from "@/server/database/schema";
+} from "@/infra/database/schema";
 
 // Função auxiliar para converter status em texto legível
 function getStatusText(status: string): string {

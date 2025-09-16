@@ -2,28 +2,27 @@
 
 import { ArrowRight, Calendar, Clock, MapPin, Users, Vote } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { ROLES } from "@/constants";
 import { useSession } from "@/lib/auth-client";
+import {
+  formatDateTime,
+  getCategoryText,
+  getEventTypeText,
+  getStatusColor,
+  getStatusText,
+} from "@/lib/utils";
 import { getEvents } from "@/server/events";
-
-interface Event {
-  id: string;
-  name: string;
-  type: string;
-  category: string;
-  status: string;
-  description: string | null;
-  location: string | null;
-  eventDate?: Date | null;
-  createdAt: Date | null;
-}
+import { Event } from "@/types";
 
 export default function VotingsSelectionPage() {
   const { data: session, isPending } = useSession();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     // ProtectedProvider já faz a validação de permissões
@@ -59,32 +58,6 @@ export default function VotingsSelectionPage() {
       setEvents([]);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "ongoing":
-        return "bg-green-100 text-green-800 border-green-200";
-      case "published":
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      case "completed":
-        return "bg-gray-100 text-gray-800 border-gray-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "ongoing":
-        return "Em Curso";
-      case "published":
-        return "Publicado";
-      case "completed":
-        return "Concluído";
-      default:
-        return status;
     }
   };
 
@@ -176,11 +149,11 @@ export default function VotingsSelectionPage() {
                       <div className="flex items-center space-x-4 text-sm text-cinza-chumbo/70 mb-3">
                         <span className="flex items-center">
                           <Users className="w-4 h-4 mr-1" />
-                          {event.type}
+                          {getEventTypeText(event.type)}
                         </span>
                         <span className="flex items-center">
                           <Calendar className="w-4 h-4 mr-1" />
-                          {event.category}
+                          {getCategoryText(event.category)}
                         </span>
                         {event.location && (
                           <span className="flex items-center">
@@ -195,14 +168,36 @@ export default function VotingsSelectionPage() {
                         </p>
                       )}
                     </div>
+                    <div className="flex flex-col items-center space-x-2">
+                      <Button
+                        disabled={event.status !== "ongoing"}
+                        variant="primary"
+                        className="flex items-center space-x-2 h-12 px-6 rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
+                        size="md"
+                        shape="default"
+                        appearance="default"
+                        onClick={() => router.push(`/votings/${event.id}`)}
+                      >
+                        <span>Iniciar Votação</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </Button>
 
-                    <Link
-                      href={`/votings/${event.id}`}
-                      className="ml-4 px-4 py-2 bg-verde-suave text-white rounded-lg hover:bg-verde-suave/90 transition-colors flex items-center space-x-2 whitespace-nowrap"
-                    >
-                      <span>Iniciar Votação</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </Link>
+                      {new Date(event.startDate) > new Date() && (
+                        <div className="mt-2">
+                          <p className="text-sm italic text-cinza-chumbo/70">
+                            Inicia em:{" "}
+                            {event.startDate.toLocaleDateString("pt-PT", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              second: "2-digit",
+                            })}
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Informações adicionais */}
@@ -221,17 +216,9 @@ export default function VotingsSelectionPage() {
                             )
                           : "Data desconhecida"}
                       </span>
-                      {event.eventDate && (
-                        <span>
-                          Data do evento:{" "}
-                          {new Date(event.eventDate).toLocaleDateString(
-                            "pt-PT",
-                            {
-                              day: "2-digit",
-                              month: "2-digit",
-                              year: "numeric",
-                            }
-                          )}
+                      {event.startDate && (
+                        <span className="text-cinza-chumbo/70">
+                          Início em: {formatDateTime(new Date(event.startDate))}
                         </span>
                       )}
                     </div>

@@ -121,5 +121,3 @@ export const participantSchema = z
       path: ["specialNeedsDescription"], // Mostra o erro no campo correto
     }
   );
-
-export type ParticipantFormData = z.infer<typeof participantSchema>;

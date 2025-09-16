@@ -24,9 +24,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { EVENT_CATEGORIES } from "@/constants";
+import { Participant } from "@/infra/database/schema";
 import { cn } from "@/lib/utils";
-import { participantSchema } from "@/schemas/participant";
-import { Participant } from "@/server/database/schema";
+import { participantSchema } from "@/types/participant";
 
 const AddParticipantModal = ({
   isOpen,

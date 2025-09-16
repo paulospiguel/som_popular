@@ -4,9 +4,9 @@ import { createId } from "@paralleldrive/cuid2";
 import { asc, eq, ilike, or } from "drizzle-orm";
 
 import { ROLES } from "@/constants";
+import { db } from "@/infra/database";
+import { user as usersTable } from "@/infra/database/auth-schema";
 import { requireMaster } from "@/lib/action-guards";
-import { db } from "@/server/database";
-import { user as usersTable } from "@/server/database/auth-schema";
 
 export type AppUser = typeof usersTable.$inferSelect;
 

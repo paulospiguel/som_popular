@@ -115,7 +115,7 @@ O sistema de regulamentos foi atualizado para ser individual por evento, permiti
 
 ### Processo Correto para Migrações:
 
-1. **Atualizar o schema** em `src/server/database/schema.ts`
+1. **Atualizar o schema** em `src/infra/database/schema.ts`
 2. **Executar o comando** para gerar migrações:
    ```bash
    npx drizzle-kit generate
@@ -133,13 +133,13 @@ O sistema de regulamentos foi atualizado para ser individual por evento, permiti
 
 ### Arquivos que DEVEM ser editados:
 
-- `src/server/database/schema.ts` - Schema do banco de dados
+- `src/infra/database/schema.ts` - Schema do banco de dados
 - Interfaces TypeScript relacionadas
 - Código da aplicação que usa os novos campos
 
 ## Arquivos Modificados
 
-- `src/server/database/schema.ts` - Adicionado campo rulesFile e rankingPhoto
+- `src/infra/database/schema.ts` - Adicionado campo rulesFile e rankingPhoto
 - `src/server/events-public.ts` - Interface e funções atualizadas
 - `src/server/participants-public.ts` - Sistema de participantes multi-eventos
 - `src/components/EventsSection.tsx` - Botão de regulamento adicionado
