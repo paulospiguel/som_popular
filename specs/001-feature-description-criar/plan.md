@@ -9,6 +9,7 @@
 1. Load feature spec from Input path
    → If not found: ERROR "No feature spec at {path}"
 2. Fill Technical Context (complemented by research and conventions from the docs/ folder; see below for key patterns and rules)
+   → Most business logic is implemented using Next.js Server Actions; API routes are used only for essential integrations or when required by the framework (e.g., webhooks, file uploads).
    → Detect Project Type from context (web=frontend+backend, mobile=app+api)
    → Set Structure Decision based on project type
 3. Fill the Constitution Check section based on the content of the constitution document.

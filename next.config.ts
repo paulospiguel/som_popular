@@ -4,7 +4,20 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "standalone",
   images: {
-    domains: ["127.0.0.1", "images.unsplash.com", "picsum.photos"],
+    domains: [
+      "127.0.0.1",
+      "images.unsplash.com",
+      "picsum.photos",
+      "public.blob.vercel-storage.com",
+    ],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "*.public.blob.vercel-storage.com",
+        port: "",
+        pathname: "/**",
+      },
+    ],
   },
   // Configurações para upload de arquivos maiores
   serverExternalPackages: ["sharp"],

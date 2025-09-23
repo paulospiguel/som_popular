@@ -1,7 +1,6 @@
 import { Settings } from "lucide-react";
 import { Control } from "react-hook-form";
 
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   FormControl,
   FormField,
@@ -16,8 +15,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { APPROVAL_MODES } from "@/constants";
-import { EventFormData } from "@/types";
+import { EventFormData } from "@/validators/events";
 
 interface EventSettingsSectionProps {
   formValues: EventFormData;
@@ -48,7 +48,7 @@ export function EventSettingsSection({
             <FormItem>
               <div className="flex items-center space-x-3">
                 <FormControl>
-                  <Checkbox
+                  <Switch
                     id="isPublic"
                     disabled={!isEditing}
                     checked={!!field.value}
@@ -74,7 +74,7 @@ export function EventSettingsSection({
             <FormItem>
               <div className="flex items-center space-x-3">
                 <FormControl>
-                  <Checkbox
+                  <Switch
                     id="requiresApproval"
                     disabled={!isEditing}
                     checked={!!field.value}
@@ -103,7 +103,7 @@ export function EventSettingsSection({
                   <FormLabel>Modalidade de Aprovação</FormLabel>
                   <FormControl>
                     <Select
-                      value={field.value as string}
+                      defaultValue={field.value as string}
                       onValueChange={field.onChange}
                     >
                       <SelectTrigger
@@ -114,7 +114,7 @@ export function EventSettingsSection({
                       <SelectContent>
                         {APPROVAL_MODES.map((mode) => (
                           <SelectItem key={mode.value} value={mode.value}>
-                            <div>
+                            <div className="flex flex-col items-start space-x-2">
                               <div className="font-medium">{mode.label}</div>
                               <div className="text-xs text-gray-500">
                                 {mode.description}

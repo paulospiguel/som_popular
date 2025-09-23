@@ -16,15 +16,16 @@ import { useEffect, useState } from "react";
 
 import { DataTable } from "@/components/DataTable";
 import Loading from "@/components/loading";
+import { useParticipants } from "@/hooks/use-participants";
 import { Participant } from "@/infra/database/schema";
 import { useSession } from "@/lib/auth-client";
 import {
   getCategoryText,
   getExperienceText,
   getStatusColor,
+  getStatusIcon,
   getStatusText,
 } from "@/lib/utils";
-import { getAllParticipants } from "@/server/participants";
 
 import AddParticipantModal from "./components/add-new";
 import ParticipantDetailsModal from "./components/participant-detail";
@@ -32,21 +33,20 @@ import ParticipantDetailsModal from "./components/participant-detail";
 export default function ParticipantsManagement() {
   const searchParams = useSearchParams();
   const { isPending } = useSession();
-  const [participants, setParticipants] = useState<Partial<Participant>[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedParticipant, setSelectedParticipant] = useState<any>(null);
   const [showAddModal, setShowAddModal] = useState(false);
 
-  // ProtectedProvider já faz a validação de permissões
+  const { data: participants, isLoading: loading, error } = useParticipants();
+
+  const activeParticipants = participants?.data ?? [];
 
   const handleArchiveParticipant = (id: string) => {
-    setParticipants((prev) =>
-      prev.map((p) =>
-        p.id === id ? { ...p, archived: true, updatedAt: new Date() } : p
-      )
-    );
+    // setParticipants((prev) =>
+    //   prev.map((p) =>
+    //     p.id === id ? { ...p, archived: true, updatedAt: new Date() } : p
+    //   )
+    // );
   };
 
   const columns = [
@@ -110,15 +110,19 @@ export default function ParticipantsManagement() {
     {
       key: "status",
       header: "Status",
-      render: (participant: any) => (
-        <span
-          className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-            participant.status
-          )}`}
-        >
-          {getStatusText(participant.status)}
-        </span>
-      ),
+      render: (participant: any) => {
+        const StatusIcon = getStatusIcon(participant.status);
+        return (
+          <span
+            className={`px-3 py-1 rounded-full text-xs inline-flex items-center gap-2 ${getStatusColor(
+              participant.status
+            )}`}
+          >
+            <StatusIcon className="w-4 h-4" />
+            {getStatusText(participant.status)}
+          </span>
+        );
+      },
     },
     {
       key: "actions",
@@ -153,33 +157,6 @@ export default function ParticipantsManagement() {
     },
   ];
 
-  const activeParticipants = participants.filter((p) => !p.archived);
-
-  const loadParticipants = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const result = await getAllParticipants();
-      if (result.success && result.data) {
-        setParticipants(result.data as Partial<Participant>[]);
-      } else {
-        setError(result.error || "Erro ao carregar participantes");
-      }
-    } catch (err) {
-      console.error("Erro ao carregar participantes:", err);
-      setError("Erro ao carregar participantes");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (!isPending) {
-      loadParticipants();
-    }
-  }, [isPending]);
-
-  // Abrir modal de adicionar se solicitado via querystring
   useEffect(() => {
     const open = searchParams.get("open");
     if (open === "add") {
@@ -188,12 +165,12 @@ export default function ParticipantsManagement() {
   }, [searchParams]);
 
   const stats = {
-    total: participants.length,
+    total: participants?.data?.length ?? 0,
     active: activeParticipants.length,
     pending: activeParticipants.filter((p) => p.status === "pending").length,
     approved: activeParticipants.filter((p) => p.status === "approved").length,
     rejected: activeParticipants.filter((p) => p.status === "rejected").length,
-    archived: participants.filter((p) => p.archived).length,
+    archived: participants?.data?.filter((p) => p.archived).length ?? 0,
   };
 
   if (isPending || loading) {
@@ -338,7 +315,7 @@ export default function ParticipantsManagement() {
 
           {error && (
             <div className="festival-card p-4 mb-6 border-l-4 border-vermelho-suave bg-vermelho-suave/5">
-              <p className="text-sm text-cinza-chumbo">{error}</p>
+              <p className="text-sm text-cinza-chumbo">{error.message}</p>
             </div>
           )}
 
@@ -364,7 +341,7 @@ export default function ParticipantsManagement() {
       {showAddModal && (
         <AddParticipantModal
           setParticipant={(participant: Participant) => {
-            setParticipants([...participants, participant]);
+            //  setParticipants([...participants, participant]);
           }}
           isOpen={showAddModal}
           onClose={() => setShowAddModal(false)}

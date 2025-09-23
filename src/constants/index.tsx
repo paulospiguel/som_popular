@@ -1,3 +1,5 @@
+import { Archive, CheckCircle, Clock, XCircle } from "lucide-react";
+
 export enum ROLES {
   MASTER = "master",
   ADMIN = "manager",
@@ -32,19 +34,60 @@ export const LOG_SEVERITY_LEVELS = [
 ] as const;
 
 export const EVENT_STATUSES = [
-  { label: "Rascunho", value: "draft", color: "text-gray-600 bg-gray-100" },
   {
+    label: "Rascunho",
+    icon: Clock,
+    value: "draft",
+    color: "text-gray-600 bg-gray-100",
+  },
+  {
+    icon: CheckCircle,
     label: "Publicado",
     value: "published",
     color: "text-green-600 bg-green-100",
   },
-  { label: "Em Curso", value: "ongoing", color: "text-blue-600 bg-blue-100" },
+  {
+    label: "Em Curso",
+    icon: Clock,
+    value: "ongoing",
+    color: "text-blue-600 bg-blue-100",
+  },
   {
     label: "Concluído",
+    icon: CheckCircle,
     value: "completed",
     color: "text-yellow-600 bg-yellow-100",
   },
-  { label: "Cancelado", value: "cancelled", color: "text-red-600 bg-red-100" },
+  {
+    label: "Cancelado",
+    icon: XCircle,
+    value: "cancelled",
+    color: "text-red-600 bg-red-100",
+  },
+  {
+    label: "Arquivado",
+    icon: Archive,
+    value: "archived",
+    color: "text-gray-600 bg-gray-100",
+  },
+  {
+    label: "Aprovado",
+    icon: CheckCircle,
+    value: "approved",
+    color: "text-green-600 bg-green-100",
+  },
+  {
+    label: "Rejeitado",
+    icon: XCircle,
+    value: "rejected",
+    color: "text-red-600 bg-red-100",
+  },
+  {
+    label: "Pendente",
+    icon: Clock,
+    value: "pending",
+    color: "text-yellow-600 bg-yellow-100",
+  },
 ] as const;
 
 export const PARTICIPANT_CATEGORIES = [
@@ -75,15 +118,20 @@ export const EVENT_CATEGORIES = [
   { label: "Livre", value: "livre" },
 ] as const;
 
+export enum APPROVAL_MODES_VALUES {
+  AUTOMATIC = "automatic",
+  MANUAL = "manual",
+}
+
 export const APPROVAL_MODES = [
   {
     label: "Automática",
-    value: "automatic",
+    value: APPROVAL_MODES_VALUES.AUTOMATIC,
     description: "Participantes são aprovados automaticamente",
   },
   {
-    label: "Revisada",
-    value: "manual",
+    label: "Supervisionada",
+    value: APPROVAL_MODES_VALUES.MANUAL,
     description: "Participantes precisam ser aprovados manualmente",
   },
 ] as const;

@@ -1,6 +1,6 @@
 // Exemplo de como usar upload com Server Actions
 import { uploadFile } from "@/server/upload";
-import { UPLOAD_CONFIG } from "@/lib/upload-config";
+import { UPLOAD_CONFIG } from "@/services/upload/upload-config";
 
 /**
  * Exemplo de Server Action para upload de arquivo

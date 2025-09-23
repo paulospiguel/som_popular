@@ -9,6 +9,8 @@ import {
 
 import { ROLES } from "@/constants";
 
+import { uploads } from "./models/uploads";
+
 export const user = pgTable("user", {
   id: varchar("id", { length: 128 })
     .primaryKey()
@@ -20,7 +22,10 @@ export const user = pgTable("user", {
   emailVerified: boolean("email_verified")
     .$defaultFn(() => false)
     .notNull(),
-  image: text("image"),
+  imageId: varchar("image_id", { length: 128 }).references(() => uploads.id, {
+    onDelete: "set null",
+    onUpdate: "cascade",
+  }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .$defaultFn(() => /* @__PURE__ */ new Date())
     .notNull(),

@@ -8,6 +8,8 @@ import {
   Rye,
 } from "next/font/google";
 import { Toaster } from "sonner";
+
+import { QueryProvider } from "@/components/providers/query-provider";
 import "../styles/globals.css";
 
 const inter = Inter({
@@ -70,8 +72,10 @@ export default function RootLayout({
       className={`${classnames.map((className) => className.className).join(" ")}`}
     >
       <body className="antialiased festival-text min-h-screen">
-        <Toaster />
-        {children}
+        <QueryProvider>
+          <Toaster />
+          {children}
+        </QueryProvider>
       </body>
     </html>
   );

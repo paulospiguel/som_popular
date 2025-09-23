@@ -163,12 +163,12 @@ const EventDetailsModal = ({
         requiresApproval: event.requiresApproval,
         rules: event.rules,
         prizes: event.prizes || "",
-        rulesFile: event.rulesFile,
+        rulesFileUrl: event.rulesFileUrl,
         notes: event.notes,
       };
 
       // Definir modo de regulamento baseado no que está disponível
-      if (event.rulesFile) {
+      if (event.rulesFileUrl) {
         setRegulationMode("pdf");
       } else {
         setRegulationMode("text");
@@ -911,12 +911,12 @@ const EventDetailsModal = ({
                 requiresApproval: event.requiresApproval,
                 rules: event.rules,
                 prizes: event.prizes || "",
-                rulesFile: event.rulesFile,
+                rulesFileUrl: event.rulesFileUrl,
                 notes: event.notes,
               });
 
               // Restaurar modo de regulamento
-              if (event.rulesFile) {
+              if (event.rulesFileUrl) {
                 setRegulationMode("pdf");
               } else {
                 setRegulationMode("text");
@@ -1579,7 +1579,7 @@ const EventDetailsModal = ({
                       <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                         Regulamento em PDF
                       </label>
-                      {editedEvent.rulesFile ? (
+                      {editedEvent.rulesFileUrl ? (
                         <div className="space-y-3">
                           <div className="flex items-center space-x-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                             <FileText className="w-5 h-5 text-green-600" />
@@ -1589,7 +1589,7 @@ const EventDetailsModal = ({
                           </div>
                           <div className="flex space-x-2">
                             <a
-                              href={editedEvent.rulesFile}
+                              href={editedEvent.rulesFileUrl}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
@@ -1598,7 +1598,7 @@ const EventDetailsModal = ({
                               Visualizar
                             </a>
                             <a
-                              href={editedEvent.rulesFile}
+                              href={editedEvent.rulesFileUrl}
                               download
                               className="flex items-center space-x-2 px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
                             >
@@ -1610,7 +1610,7 @@ const EventDetailsModal = ({
                               onClick={() => {
                                 setEditedEvent({
                                   ...editedEvent,
-                                  rulesFile: "",
+                                  rulesFileUrl: "",
                                 });
                                 setRegulationMode("text");
                               }}
@@ -1638,7 +1638,7 @@ const EventDetailsModal = ({
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {viewEvent.rulesFile ? (
+                  {viewEvent.rulesFileUrl ? (
                     <div className="space-y-3">
                       <div className="flex items-center space-x-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                         <FileText className="w-5 h-5 text-blue-600" />
@@ -1648,7 +1648,7 @@ const EventDetailsModal = ({
                       </div>
                       <div className="flex space-x-2">
                         <a
-                          href={viewEvent.rulesFile}
+                          href={viewEvent.rulesFileUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
@@ -1657,7 +1657,7 @@ const EventDetailsModal = ({
                           Visualizar PDF
                         </a>
                         <a
-                          href={viewEvent.rulesFile}
+                          href={viewEvent.rulesFileUrl}
                           download
                           className="flex items-center space-x-2 px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
                         >

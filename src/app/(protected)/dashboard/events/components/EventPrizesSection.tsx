@@ -4,7 +4,7 @@ import { Trophy } from "lucide-react";
 import { Control, Controller } from "react-hook-form";
 
 import { TagsInput } from "@/components/ui/tags-input";
-import { EventFormData } from "@/types";
+import { EventFormData } from "@/validators/events";
 
 interface EventPrizesSectionProps {
   control: Control<EventFormData>;

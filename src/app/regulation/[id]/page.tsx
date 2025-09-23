@@ -120,18 +120,18 @@ export default function RegulationPage({ params }: RegulationPageProps) {
           {/* PDF Viewer */}
           <div className="mb-6">
             <PDFViewer
-              pdfUrl={event.rulesFile}
+              pdfUrl={event.rulesFileUrl}
               title={`Regulamento - ${event.name}`}
               fileName={
-                event.rulesFile
-                  ? event.rulesFile.split("/").pop() || "regulamento.pdf"
+                event.rulesFileUrl
+                  ? event.rulesFileUrl.split("/").pop() || "regulamento.pdf"
                   : "regulamento.pdf"
               }
               height="800px"
             />
 
             {/* Exibir regras do evento se disponíveis e não houver PDF */}
-            {!event.rulesFile && event.rules && (
+            {!event.rulesFileUrl && event.rules && (
               <div className="mt-6 bg-white border border-cinza-chumbo/20 rounded-lg p-6">
                 <h4 className="font-bold text-verde-suave mb-4 text-center">
                   REGRAS DO EVENTO
@@ -148,7 +148,10 @@ export default function RegulationPage({ params }: RegulationPageProps) {
           {/* Ações */}
           <div className="flex flex-col sm:flex-row gap-4">
             {event.canRegister && (
-              <Link href={`/participant-registration?event=${eventId}`} className="flex-1">
+              <Link
+                href={`/participant-registration?event=${eventId}`}
+                className="flex-1"
+              >
                 <Button className="festival-button w-full">
                   <FileText className="w-4 h-4 mr-2" />
                   Aceitar e Registrar-se

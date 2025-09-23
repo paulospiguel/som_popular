@@ -483,7 +483,7 @@ export async function copyEvent(id: string) {
       requiresApproval: originalEvent.requiresApproval,
       rules: originalEvent.rules,
       prizes: originalEvent.prizes,
-      rulesFile: originalEvent.rulesFile,
+      rulesFileId: originalEvent.rulesFileId,
       notes: originalEvent.notes,
       status: "draft", // Sempre como rascunho
       category: originalEvent.category,
@@ -512,5 +512,23 @@ export async function copyEvent(id: string) {
     const errorMessage =
       error instanceof Error ? error.message : "Erro ao copiar evento";
     return { success: false, error: errorMessage };
+  }
+}
+
+export async function addFileIdToEvent(id: string, fileId: string) {
+  try {
+    const [event] = await db
+      .update(events)
+      .set({ rulesFileId: fileId })
+      .where(eq(events.id, id))
+      .returning();
+
+    return { success: true, data: event };
+  } catch (error) {
+    console.error("Erro ao adicionar ID de arquivo ao evento:", error);
+    return {
+      success: false,
+      error: "Erro ao adicionar ID de arquivo ao evento",
+    };
   }
 }

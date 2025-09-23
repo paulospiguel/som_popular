@@ -2,25 +2,27 @@
 
 import { Wand2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useFormContext } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
 import { generateContent } from "@/server/ai/generate";
+import { Metadata } from "@/validators/ia-generate";
 
-import { Checkbox } from "./checkbox";
-import { Label } from "./label";
+import { ShimmeringText } from "../ui/shimmering-text";
+
+import createDescription from "./templates/create-description";
 
 const targetLabels = {
-  name: "Título",
-  description: "Descrição",
-  rules: "Regras",
-  notes: "Observações",
+  curto: "Curto",
+  longo: "Longo",
 } as const;
 
 type TargetField = keyof typeof targetLabels;
@@ -30,13 +32,21 @@ export function AISuggestionForm({
   label = "Sugerir com IA",
   defaultTargets = Object.keys(targetLabels) as TargetField[],
   targets = targetLabels,
+  references = ["title", "startDate", "location", "category", "type"],
+  onChangeValue,
+  outputLaguage = "Português Brasileiro",
+  context = {},
 }: {
   className?: string;
   label?: string;
   defaultTargets?: TargetField[];
   targets?: typeof targetLabels;
+  references?: string[];
+  onChangeValue?: (value: string) => void;
+  outputLaguage?: string;
+  context?: Record<string, any>;
 }) {
-  const { setValue, getValues } = useFormContext();
+  const { showToast } = useToast();
   const [open, setOpen] = useState(false);
   const [objective, setObjective] = useState("");
   const [loading, setLoading] = useState(false);
@@ -44,10 +54,8 @@ export function AISuggestionForm({
     Record<TargetField, boolean>
   >(() => {
     const initial: Record<TargetField, boolean> = {
-      name: false,
-      description: false,
-      rules: false,
-      notes: false,
+      curto: false,
+      longo: false,
     };
 
     defaultTargets.forEach((key) => {
@@ -65,10 +73,8 @@ export function AISuggestionForm({
     setSelectedTargets(
       () =>
         ({
-          name: false,
-          description: false,
-          rules: false,
-          notes: false,
+          curto: false,
+          longo: false,
           [key]: true,
         }) as Record<TargetField, boolean>
     );
@@ -76,43 +82,38 @@ export function AISuggestionForm({
 
   const generateFieldContent = useCallback(
     async (field: TargetField, prompt: string) => {
-      const context = {
-        title: getValues("title"),
-        startDate: getValues("startDate"),
-        location: getValues("location"),
-        category: getValues("category"),
-        type: getValues("type"),
-        fields: [field],
-      };
+      try {
+        const fieldConfig = {
+          curto: { limit: 30, type: "Curto" },
+          longo: { limit: 800, type: "Longo" },
+        }[field] as Metadata["fieldConfig"];
 
-      const fieldConfig = {
-        name: { limit: 30, type: "título" },
-        description: { limit: 100, type: "descrição" },
-        rules: { limit: 200, type: "regras" },
-        notes: { limit: 200, type: "observações" },
-      }[field];
+        const enhancedPrompt = createDescription({
+          prompt,
+          context,
+          metadata: {
+            fieldConfig: fieldConfig,
+            outputLaguage: outputLaguage as Metadata["outputLaguage"],
+          },
+        });
 
-      const language = getValues("language") || "Português Brasileiro";
+        const result = await generateContent({
+          prompt: enhancedPrompt,
+          context: { ...context, fields: [field] },
+        });
 
-      const enhancedPrompt = `Gerar um ${fieldConfig.type} resumido e criativo para: ${prompt}. 
-      Use as informações: ${JSON.stringify(context)}. 
-      Idioma: ${language}. 
-      Limite: máximo ${fieldConfig.limit} caracteres. 
-      Responda apenas com o texto, sem marcações.`;
-
-      const result = await generateContent({
-        prompt: enhancedPrompt,
-        context,
-      });
-
-      if (result) {
-        setValue(field, result, {
-          shouldValidate: true,
-          shouldDirty: true,
+        if (result) {
+          onChangeValue?.(result);
+        }
+      } catch (error) {
+        showToast({
+          type: "error",
+          title: "Erro",
+          description: "Falha ao gerar conteúdo com IA",
         });
       }
     },
-    [getValues, setValue]
+    [references, showToast, onChangeValue, context]
   );
 
   const submit = useCallback(async () => {
@@ -166,7 +167,14 @@ export function AISuggestionForm({
           )}
         >
           <Wand2 className="w-3.5 h-3.5" />
-          {label}
+          <ShimmeringText
+            text={label}
+            className="text-xs font-bold"
+            color="var(--color-primary)"
+            shimmerColor="var(--color-white)"
+            duration={1.5}
+            repeatDelay={1}
+          />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[360px] p-0 overflow-hidden" align="end">

@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Calendar, Wand2 } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -10,14 +10,19 @@ import { Button } from "@/components/ui/button";
 import { Form, FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { APPROVAL_MODES_VALUES } from "@/constants";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useSonner } from "@/hooks/use-sonner";
 import { copyEvent, deleteEvent, updateEvent } from "@/server/events";
-import { Event, EventFormData, eventFormSchema } from "@/types";
+import { Event } from "@/types";
+import { EventFormData, eventFormSchema } from "@/validators/events";
 
 import { EventActionsMenu } from "./EventActionsMenu";
 import EventFieldError from "./EventFieldError";
 import { EventFormFields } from "./EventFormFields";
+import { EventInternalNotesSection } from "./EventInternalNotesSection";
+import { EventJodgesSection } from "./EventJodgesSection";
+import { EventParticipantsSection } from "./EventParticipantsSection";
 import { EventPrizesSection } from "./EventPrizesSection";
 import { EventRegulationSection } from "./EventRegulationSection";
 import { EventSettingsSection } from "./EventSettingsSection";
@@ -46,23 +51,11 @@ export function EventModalNew({
 
   const initialValues = useMemo(() => {
     return {
-      name: event?.name || "",
-      subtitle: event?.subtitle || "",
-      description: event?.description || undefined,
-      location: event?.location || "",
-      type: event?.type || "",
-      category: event?.category || "",
-      maxParticipants: event?.maxParticipants || undefined,
+      ...event,
       startDate: event?.startDate || new Date(),
-      endDate: event?.endDate || undefined,
-      registrationStartDate: event?.registrationStartDate || undefined,
-      registrationEndDate: event?.registrationEndDate || undefined,
       isPublic: event?.isPublic ?? true,
       requiresApproval: event?.requiresApproval ?? false,
-      rules: event?.rules || undefined,
-      prizes: event?.prizes || undefined,
-      rulesFile: event?.rulesFile || undefined,
-      notes: event?.notes || undefined,
+      approvalMode: event?.approvalMode ?? APPROVAL_MODES_VALUES.AUTOMATIC,
       status: event?.status || "draft",
     };
   }, [event]);
@@ -70,7 +63,7 @@ export function EventModalNew({
   const form = useForm<EventFormData>({
     resolver: zodResolver(eventFormSchema),
     defaultValues: initialValues,
-    mode: "onChange", // Validação em tempo real
+    mode: "onSubmit",
   });
 
   const {
@@ -78,18 +71,13 @@ export function EventModalNew({
     control,
     reset,
     watch,
-    formState: { errors, isSubmitted },
+    formState: { errors, isSubmitted, isDirty },
   } = form;
 
-  // Usar watch para obter os valores atuais do formulário
   const formValues = watch();
 
-  // Monitorar erros de validação quando o formulário é submetido
   useEffect(() => {
-    console.log("Erros atuais:", errors);
-    console.log("isSubmitted:", isSubmitted);
     if (isSubmitted && Object.keys(errors).length > 0) {
-      // Mapear nomes dos campos para português
       const fieldNames: { [key: string]: string } = {
         name: "Nome do Evento",
         subtitle: "Etapa do Evento",
@@ -107,14 +95,12 @@ export function EventModalNew({
         notes: "Notas",
       };
 
-      // Processar erros e criar mensagens específicas
       const errorMessages = Object.entries(errors).map(([field, error]) => {
         const fieldName = fieldNames[field] || field;
-        const message = error?.message || "Campo inválido";
+        const message = (error as any)?.message || "Campo inválido";
         return `${fieldName}: ${message}`;
       });
 
-      // Mostrar erros específicos
       if (errorMessages.length === 1) {
         showError(errorMessages[0]);
       } else if (errorMessages.length > 1) {
@@ -125,7 +111,6 @@ export function EventModalNew({
     }
   }, [isSubmitted, errors, showError]);
 
-  // Tratamento de erro global para capturar erros do Zod
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
       if (event.error?.name === "ZodError") {
@@ -139,25 +124,20 @@ export function EventModalNew({
     return () => window.removeEventListener("error", handleError);
   }, [showError]);
 
-  // Resetar formulário quando o evento mudar
   useEffect(() => {
     if (event && initialValues) {
       reset(initialValues);
     }
   }, [event, reset, initialValues]);
 
-  // Resetar estado de edição quando o modal for fechado ou quando o modo mudar
   useEffect(() => {
     if (!isOpen) {
-      // Quando o modal fechar, sempre resetar para modo view (exceto create)
       setIsEditing(false);
     } else {
-      // Quando o modal abrir, definir o estado baseado no modo
       setIsEditing(mode === "create");
     }
   }, [isOpen, mode]);
 
-  // Garantir que o formulário seja resetado quando alternar para modo de edição
   useEffect(() => {
     if (isEditing && event) {
       reset(initialValues);
@@ -166,34 +146,27 @@ export function EventModalNew({
 
   if (!event && !creating) return null;
 
-  // Função para converter dados do formulário para o formato do banco
+  const handleCancelEdit = () => {
+    if (!isEditing || creating) {
+      reset(initialValues);
+      onClose();
+    } else {
+      setIsEditing(false);
+      reset(initialValues);
+    }
+  };
+
   const convertFormDataToEventData = (data: EventFormData) => {
     return {
-      name: data.name,
-      description: data.description || null,
-      subtitle: data.subtitle || null,
-      type: data.type,
-      category: data.category,
-      location: data.location,
-      maxParticipants: data.maxParticipants || null,
-      startDate: data.startDate,
-      endDate: data.endDate || null,
-      registrationStartDate: data.registrationStartDate || null,
-      registrationEndDate: data.registrationEndDate || null,
+      ...data,
       status: data.status || "draft",
       isPublic: data.isPublic ?? true,
       requiresApproval: data.requiresApproval ?? false,
-      rules: data.rules || null,
-      rulesFile: data.rulesFile || null,
-      prizes: data.prizes || null,
-      notes: data.notes || null,
-    };
+    } as Event;
   };
 
-  // Função para salvar edições do evento
   const handleSaveEvent = async (data: EventFormData) => {
     if (!event) return;
-    console.log("data:", data);
     try {
       const eventData = convertFormDataToEventData(data);
       const result = await updateEvent(event.id, eventData);
@@ -203,7 +176,7 @@ export function EventModalNew({
           onEventUpdated(result.data);
         }
         setIsEditing(false);
-        onClose(); // Fechar o modal após salvar
+        onClose();
       } else {
         showError(result.error || "Erro ao atualizar evento");
       }
@@ -213,7 +186,6 @@ export function EventModalNew({
     }
   };
 
-  // Função wrapper para tratar erros de validação
   const handleFormSubmit = async (data: EventFormData) => {
     try {
       await handleSaveEvent(data);
@@ -223,7 +195,6 @@ export function EventModalNew({
     }
   };
 
-  // Funções para ações do menu
   const handleCopyEvent = async () => {
     if (!event) return;
 
@@ -235,8 +206,6 @@ export function EventModalNew({
         confirmText: "Sim, copiar",
         cancelText: "Cancelar",
       });
-
-      console.log("Confirm result:", confirmed);
 
       if (!confirmed) return;
 
@@ -289,7 +258,6 @@ export function EventModalNew({
     }
   };
 
-  // Funções para ações do menu
   const handleToggleVisibility = () => {
     showSuccess("Funcionalidade de visibilidade será implementada em breve!");
   };
@@ -303,21 +271,12 @@ export function EventModalNew({
       isEditing={isEditing}
       event={event}
       onEdit={() => setIsEditing(true)}
-      onSave={handleSubmit(handleSaveEvent)}
-      onCancelEdit={() => {
-        setIsEditing(false);
-        reset(initialValues);
-      }}
       onCopyEvent={handleCopyEvent}
       onToggleVisibility={handleToggleVisibility}
       onPauseEvent={handlePauseEvent}
       onDeleteEvent={handleDeleteEvent}
     />
   ) : null;
-
-  const handleAIGenerate = () => {
-    showSuccess("Funcionalidade de IA será implementada em breve!");
-  };
 
   return (
     <ModalNew
@@ -326,7 +285,7 @@ export function EventModalNew({
       title={creating ? "Criar Evento" : "Detalhes do Evento"}
       subtitle={formValues.name || event?.name || ""}
       icon={<Calendar className="w-6 h-6 text-verde-suave" />}
-      size="large"
+      size="xl"
       headerActions={headerActions}
     >
       <ModalForm onSubmit={handleSubmit(handleFormSubmit)}>
@@ -334,18 +293,6 @@ export function EventModalNew({
           <div className="p-8 space-y-8">
             {/* Nome e Ações de IA */}
             <div className="border-b border-gray-200 pb-6">
-              <div className="flex items-center justify-end mb-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleAIGenerate}
-                  className="inline-flex items-center gap-2"
-                >
-                  <Wand2 className="w-3.5 h-3.5" /> Gerar com IA
-                </Button>
-              </div>
-
               <div className="w-full">
                 <div className="flex flex-col gap-2">
                   <div className="gap-2 flex flex-col">
@@ -404,6 +351,7 @@ export function EventModalNew({
             <EventRegulationSection
               control={control}
               isEditing={isEditing}
+              eventId={event?.id || ""}
               formValues={formValues}
             />
 
@@ -422,15 +370,45 @@ export function EventModalNew({
               formValues={formValues}
             />
 
+            {/* Notas Internas */}
+            <EventInternalNotesSection
+              control={control}
+              isEditing={isEditing}
+              formValues={formValues}
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Jurados */}
+              <EventJodgesSection
+                control={control}
+                isEditing={isEditing}
+                formValues={formValues}
+                eventId={event?.id || ""}
+                eventName={event?.name || ""}
+              />
+
+              {/* Participantes */}
+              <EventParticipantsSection
+                eventId={event?.id || ""}
+                control={control}
+                isEditing={isEditing}
+                formValues={formValues}
+                eventName={event?.name || ""}
+              />
+            </div>
             {/* Footer Ações */}
             <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
-              <Button type="button" variant="outline" onClick={onClose}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancelEdit}
+              >
                 {isEditing ? "Cancelar" : "Fechar"}
               </Button>
               {isEditing && (
                 <Button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || !isDirty}
                   className="bg-verde-suave hover:bg-verde-suave/90"
                 >
                   {loading

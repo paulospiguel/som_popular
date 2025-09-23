@@ -1,10 +1,15 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, ilike, sql, SQL } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { db } from "@/infra/database";
-import { eventJudges, judges, type NewJudge } from "@/infra/database/schema";
+import {
+  eventJudges,
+  judges,
+  uploads,
+  type NewJudge,
+} from "@/infra/database/schema";
 
 /**
  * Criar novo jurado
@@ -32,10 +37,26 @@ export async function createJudge(
 
 /**
  * Listar todos os jurados
+ * @param filters - Filtros para buscar jurados
+ * @returns Lista de jurados
  */
-export async function getJudges() {
+export async function getJudges(filters?: {
+  id?: string;
+  isActive?: boolean;
+  search?: string;
+}) {
   try {
-    const allJudges = await db.select().from(judges);
+    const whereClause: SQL<any> = sql`1=1`;
+
+    if (filters?.id) {
+      whereClause.append(eq(judges.id, filters.id));
+    }
+
+    if (filters?.search) {
+      whereClause.append(ilike(judges.name, `%${filters.search}%`));
+    }
+
+    const allJudges = await db.select().from(judges).where(whereClause);
     return { success: true, data: allJudges };
   } catch (error) {
     console.error("Erro ao buscar jurados:", error);
@@ -122,9 +143,11 @@ export async function getEventJudges(eventId: string) {
       .select({
         judge: judges,
         eventJudge: eventJudges,
+        photoImage: uploads,
       })
       .from(eventJudges)
       .innerJoin(judges, eq(eventJudges.judgeId, judges.id))
+      .leftJoin(uploads, eq(judges.photoImageId, uploads.id))
       .where(eq(eventJudges.eventId, eventId));
 
     return { success: true, data: eventJudgesList };
@@ -178,5 +201,19 @@ export async function deactivateJudge(judgeId: string) {
   } catch (error) {
     console.error("Erro ao desativar jurado:", error);
     return { success: false, error: "Erro ao desativar jurado" };
+  }
+}
+
+/**
+ * Deletar jurado
+ */
+export async function deleteJudge(judgeId: string) {
+  try {
+    await db.delete(judges).where(eq(judges.id, judgeId));
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao deletar jurado:", error);
+    return { success: false, error: "Erro ao deletar jurado" };
   }
 }

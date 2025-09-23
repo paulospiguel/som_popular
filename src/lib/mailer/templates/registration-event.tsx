@@ -1,4 +1,4 @@
-import { getBaseUri } from "@/lib/base-url";
+import { getBaseUri } from "@/services/url/base-url";
 
 export interface RegistrationEvent {
   id: string;

@@ -4,10 +4,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Calendar, Plus, Trophy, Upload } from "lucide-react";
 import { useMemo } from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import z from "zod";
 
+import { AISuggestionForm } from "@/components/automation-form";
 import { Modal } from "@/components/Modal";
-import { AISuggestionForm } from "@/components/ui/ai-suggestion-form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DateTimePicker } from "@/components/ui/date-picker";
 import {
@@ -31,35 +30,10 @@ import { useToast } from "@/components/ui/toast";
 import { APPROVAL_MODES, EVENT_CATEGORIES, EVENT_TYPES } from "@/constants";
 import { Event } from "@/infra/database/schema";
 import { createEvent } from "@/server/events";
-
-// Schema de validação para eventos
-const eventSchema = z.object({
-  name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
-  description: z.string().optional(),
-  type: z.enum(EVENT_TYPES.map((type) => type.value)),
-  category: z.enum(["pop", "rock", "sertanejo", "samba", "forró", "livre"]),
-  location: z.string().min(3, "Local é obrigatório"),
-  maxParticipants: z.number().min(1).optional(),
-  startDate: z.date(),
-  endDate: z.date().optional(),
-  registrationStartDate: z.date().optional(),
-  registrationEndDate: z.date().optional(),
-  customRegistrationWindow: z.boolean().optional().default(false),
-  isPublic: z.boolean(),
-  requiresApproval: z.boolean(),
-  approvalMode: z.enum(["automatic", "manual"]),
-  rules: z.string().optional(),
-  rulesFile: z.any().optional(),
-  prizes: z
-    .string()
-    .optional()
-    .refine((val) => {
-      if (!val) return true;
-      const prizes = val.split(",").filter(Boolean);
-      return prizes.length <= 5;
-    }, "Máximo de 5 prémios permitidos"),
-  notes: z.string().optional(),
-});
+import {
+  eventCreationSchema,
+  type EventCreationFormData,
+} from "@/validators/events";
 
 // Mantemos o formulário tipado genericamente para evitar conflitos de defaultValues com enums obrigatórios
 
@@ -77,40 +51,40 @@ const AddEventModal = ({
   const { showToast } = useToast();
 
   const eventDefaultValues = useMemo(
-    () => ({
+    (): EventCreationFormData => ({
       name: "",
       description: "",
-      type: "" as const,
-      category: "" as const,
+      type: EVENT_TYPES[0]?.value || "",
+      category: EVENT_CATEGORIES[0]?.value || "",
       location: "",
-      maxParticipants: undefined as number | undefined,
+      maxParticipants: undefined,
       startDate: new Date(),
-      endDate: undefined as Date | undefined,
-      registrationStartDate: undefined as Date | undefined,
-      registrationEndDate: undefined as Date | undefined,
+      endDate: undefined,
+      registrationStartDate: undefined,
+      registrationEndDate: undefined,
       customRegistrationWindow: false,
       isPublic: true,
       requiresApproval: false,
-      approvalMode: "automatic" as const,
-      rules: "",
-      rulesFile: undefined,
+      approvalMode: APPROVAL_MODES[0]?.value || "automatic",
+      rulesText: "",
+      rulesFileId: undefined,
       prizes: "",
       notes: "",
     }),
     []
   );
 
-  const form = useForm<{ [k: string]: any }>({
-    resolver: zodResolver(eventSchema),
+  const form = useForm<any>({
+    resolver: zodResolver(eventCreationSchema),
     defaultValues: eventDefaultValues,
   });
 
-  const onSubmit = async (value: any) => {
+  const onSubmit = async (value: EventCreationFormData) => {
     try {
-      const validatedData = eventSchema.parse(value);
+      const validatedData = eventCreationSchema.parse(value);
 
-      const { customRegistrationWindow, ...rest } = validatedData as any;
-      const payload: any = { ...rest };
+      const { customRegistrationWindow, ...rest } = validatedData;
+      const payload = { ...rest };
 
       if (!customRegistrationWindow) {
         // Início das inscrições = publicação (não definido agora)
@@ -322,7 +296,7 @@ const AddEventModal = ({
                       </FormControl>
                       <AISuggestionForm
                         className="float-right"
-                        defaultTargets={["description"]}
+                        defaultTargets={["longo"]}
                       />
                       <FormMessage />
                     </FormItem>
@@ -618,7 +592,7 @@ const AddEventModal = ({
                         </FormControl>
                         <AISuggestionForm
                           className="float-right"
-                          defaultTargets={["rules"]}
+                          defaultTargets={["longo"]}
                         />
                         <FormMessage />
                       </FormItem>

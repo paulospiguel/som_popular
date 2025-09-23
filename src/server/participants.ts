@@ -1,26 +1,57 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, ilike, sql, SQL } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { db } from "@/infra/database";
 import {
   eventRegistrations,
   events,
+  NewParticipant,
+  Participant,
   participants,
+  uploads,
 } from "@/infra/database/schema";
 import { requireAdmin } from "@/lib/action-guards";
 import { sendEmail } from "@/lib/mailer/resend";
 
+type filters = {
+  status?: string;
+  category?: string;
+  experience?: string;
+  search?: string;
+  eventId?: string;
+  isActive?: boolean;
+  archived?: boolean;
+};
+
 /**
  * Buscar todos os participantes aprovados
  */
-export async function getApprovedParticipants() {
+export async function getApprovedParticipants(filters?: filters) {
   try {
+    const whereClause: any = {};
+
+    if (filters?.status) {
+      whereClause.status = eq(participants.status, filters.status);
+    }
+
+    if (filters?.category) {
+      whereClause.category = eq(participants.category, filters.category);
+    }
+
+    if (filters?.experience) {
+      whereClause.experience = eq(participants.experience, filters.experience);
+    }
+
+    if (filters?.search) {
+      whereClause.search = ilike(participants.name, `%${filters.search}%`);
+    }
+
     const approvedParticipants = await db
       .select()
       .from(participants)
-      .where(eq(participants.status, "approved"));
+      .where(whereClause);
 
     return { success: true, data: approvedParticipants };
   } catch (error) {
@@ -32,11 +63,46 @@ export async function getApprovedParticipants() {
 /**
  * Buscar todos os participantes (qualquer status)
  */
-export async function getAllParticipants() {
+export async function getAllParticipants(filters?: filters) {
   try {
-    const allParticipants = await db.select().from(participants);
+    const whereClause: SQL<any> = sql`1=1`;
 
-    return { success: true, data: allParticipants };
+    if (filters?.status) {
+      whereClause.append(eq(participants.status, filters.status));
+    }
+
+    if (filters?.category) {
+      whereClause.append(eq(participants.category, filters.category));
+    }
+
+    if (filters?.experience) {
+      whereClause.append(eq(participants.experience, filters.experience));
+    }
+
+    if (filters?.search) {
+      whereClause.append(ilike(participants.name, `%${filters.search}%`));
+    }
+
+    if (filters?.eventId) {
+      whereClause.append(eq(eventRegistrations.eventId, filters.eventId));
+    }
+
+    const allParticipants = await db
+      .select({
+        participant: participants,
+        photoImage: uploads,
+      })
+      .from(participants)
+      .leftJoin(uploads, eq(participants.photoImageId, uploads.id))
+      .where(whereClause);
+
+    return {
+      success: true,
+      data: allParticipants.map((item) => ({
+        ...item.participant,
+        photoImage: item.photoImage,
+      })),
+    };
   } catch (error) {
     console.error("Erro ao buscar todos os participantes:", error);
     return { success: false, error: "Erro ao buscar participantes" };
@@ -198,15 +264,23 @@ export async function getEventParticipants(eventId: string) {
       .select({
         registration: eventRegistrations,
         participant: participants,
+        photoImage: uploads,
       })
       .from(eventRegistrations)
       .innerJoin(
         participants,
         eq(eventRegistrations.participantId, participants.id)
       )
+      .leftJoin(uploads, eq(participants.photoImageId, uploads.id))
       .where(eq(eventRegistrations.eventId, eventId));
 
-    return { success: true, data: eventParticipants };
+    return {
+      success: true,
+      data: eventParticipants.map((item) => ({
+        ...item.participant,
+        photoImage: item.photoImage,
+      })),
+    };
   } catch (error) {
     console.error("Erro ao buscar participantes do evento:", error);
     return { success: false, error: "Erro ao buscar participantes do evento" };
@@ -297,5 +371,86 @@ export async function removeParticipantFromEvent(
     const errorMessage =
       error instanceof Error ? error.message : "Erro ao remover participante";
     return { success: false, error: errorMessage };
+  }
+}
+
+/**
+ * Criar participante
+ */
+export async function createParticipant(participant: NewParticipant) {
+  try {
+    await requireAdmin();
+
+    console.log("participant", participant);
+
+    return { success: true, data: participant };
+  } catch (error) {
+    console.error("Erro ao criar participante:", error);
+    return { success: false, error: "Erro ao criar participante" };
+  }
+
+  //   // Validação segura (não lança)
+  //   const parsed = participantFormSchema.safeParse(participant);
+  //   if (!parsed.success) {
+  //     const fieldErrors = parsed.error.flatten().fieldErrors; // { campo?: ["mensagem"] }
+  //     return {
+  //       success: false as const,
+  //       error: "Dados inválidos",
+  //       errors: fieldErrors,
+  //       status: 400 as const,
+  //     };
+  //   }
+
+  //   const [newParticipant] = await db
+  //     .insert(participants)
+  //     .values(parsed.data as NewParticipant)
+  //     .returning();
+
+  //   return { success: true as const, data: newParticipant };
+  // } catch (error) {
+  //   console.error("Erro ao criar participante:", error);
+  //   return {
+  //     success: false as const,
+  //     error: "Erro ao criar participante",
+  //     status: 500 as const,
+  //   };
+  // }
+}
+
+/**
+ * Atualizar participante
+ */
+export async function updateParticipant(
+  participantId: string,
+  participant: Participant
+) {
+  try {
+    await requireAdmin();
+    const [updatedParticipant] = await db
+      .update(participants)
+      .set({
+        ...participant,
+        updatedAt: new Date(),
+      })
+      .where(eq(participants.id, participantId))
+      .returning();
+    return { success: true, data: updatedParticipant };
+  } catch (error) {
+    console.error("Erro ao atualizar participante:", error);
+    return { success: false, error: "Erro ao atualizar participante" };
+  }
+}
+
+/**
+ * Deletar participante
+ */
+export async function deleteParticipant(participantId: string) {
+  try {
+    await requireAdmin();
+    await db.delete(participants).where(eq(participants.id, participantId));
+    return { success: true, data: participantId };
+  } catch (error) {
+    console.error("Erro ao deletar participante:", error);
+    return { success: false, error: "Erro ao deletar participante" };
   }
 }

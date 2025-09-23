@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 
 import { db } from "@/infra/database";
 import { eventRegistrations, participants } from "@/infra/database/schema";
-import { participantSchema } from "@/types/participant";
+import { participantFormSchema } from "@/validators/participants";
 
 export interface ParticipantRegistrationData {
   name: string;
@@ -36,7 +36,7 @@ export async function registerParticipant(
 }> {
   try {
     // Validar dados usando schema
-    const validatedData = participantSchema.parse(data as any);
+    const validatedData = participantFormSchema.parse(data as any);
 
     // Verificar se email já existe
     const existingParticipant = await db
@@ -76,8 +76,8 @@ export async function registerParticipant(
             validatedData.specialNeedsDescription ||
             existingParticipant[0].specialNeedsDescription,
           acceptsEmailNotifications: validatedData.acceptsEmailNotifications,
-          rankingPhoto:
-            validatedData.rankingPhoto || existingParticipant[0].rankingPhoto,
+          photoImageId:
+            validatedData.photoImageId || existingParticipant[0].photoImageId,
           updatedAt: new Date(),
         })
         .where(eq(participants.id, participantId));
@@ -90,8 +90,7 @@ export async function registerParticipant(
           stageName: (validatedData as any).stageName || null,
           email: validatedData.email,
           phone: validatedData.phone || null,
-          avatar: validatedData.avatar || null,
-          rankingPhoto: validatedData.rankingPhoto || null,
+          photoImageId: validatedData.photoImageId || null,
           category: validatedData.category || "livre",
           experience: validatedData.experience || "nao-tem-experiencia",
           age: (validatedData as any).age ?? null,

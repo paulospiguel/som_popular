@@ -4,7 +4,6 @@ import {
   AlertTriangle,
   Calendar,
   CalendarDays,
-  CheckCircle,
   Clock,
   Copy,
   Download,
@@ -12,16 +11,13 @@ import {
   Eye,
   EyeOff,
   FileText,
-  Globe,
   MapPin,
   MoreVertical,
   Pause,
   Plus,
-  RefreshCw,
   Save,
   SaveOff,
   Settings,
-  StickyNote,
   ToggleLeft as Toggle,
   Trash2,
   Trophy,
@@ -36,6 +32,7 @@ import { useEffect, useState } from "react";
 
 import { JudgeDetailsModal } from "@/app/(protected)/dashboard/events/components/JudgeDetailsModal";
 import { ParticipantDetailsModal } from "@/app/(protected)/dashboard/events/components/ParticipantDetailsModal";
+import { EventFileUpload } from "@/components/file-upload/event-file-upload";
 import { Modal } from "@/components/Modal";
 import { AvatarGroup } from "@/components/ui/avatar-group";
 import { DateTimePicker } from "@/components/ui/date-picker";
@@ -59,6 +56,7 @@ import { EVENT_CATEGORIES, EVENT_STATUSES, EVENT_TYPES } from "@/constants";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useSonner } from "@/hooks/use-sonner";
 import { Event, Participant } from "@/infra/database/schema";
+import { getUploadUrlById } from "@/lib/upload-helpers";
 import {
   formatEventDate,
   formatEventTime,
@@ -91,7 +89,7 @@ import {
   registerParticipantInEvent,
   removeParticipantFromEvent,
 } from "@/server/participants";
-import { uploadrulesFile } from "@/server/upload";
+import { uploadRegulationFile } from "@/server/upload-vercel";
 
 interface EventDetailsModalProps {
   isOpen: boolean;
@@ -141,6 +139,23 @@ const EventDetailsModal = ({
   // Estado para menu de três pontos
   const [showMenu, setShowMenu] = useState(false);
 
+  // Estado para URL do PDF do regulamento
+  const [rulesFileUrl, setRulesFileUrl] = useState<string | null>(null);
+
+  // Carregar URL do PDF do regulamento
+  useEffect(() => {
+    const loadRulesFileUrl = async () => {
+      if (event?.rulesFileId) {
+        const url = await getUploadUrlById(event.rulesFileId);
+        setRulesFileUrl(url);
+      } else {
+        setRulesFileUrl(null);
+      }
+    };
+
+    loadRulesFileUrl();
+  }, [event?.rulesFileId]);
+
   // Carregar jurados e participantes quando o modal abrir
   useEffect(() => {
     if (isOpen && event) {
@@ -163,12 +178,12 @@ const EventDetailsModal = ({
         requiresApproval: event.requiresApproval,
         rules: event.rules,
         prizes: event.prizes || "",
-        rulesFile: event.rulesFile,
+        rulesFileId: event.rulesFileId,
         notes: event.notes,
       };
 
       // Definir modo de regulamento baseado no que está disponível
-      if (event.rulesFile) {
+      if (event.rulesFileId) {
         setRegulationMode("pdf");
       } else {
         setRegulationMode("text");
@@ -518,9 +533,11 @@ const EventDetailsModal = ({
       const dataToSave = {
         ...editedEvent,
         prizes: editedEvent.prizes || "",
+        rulesFileId: editedEvent.rulesFileId || null, // Ensure rulesFileId is saved
       };
 
       console.log("Salvando dados:", dataToSave);
+      console.log("rulesFileId sendo salvo:", editedEvent.rulesFileId);
 
       const result = await updateEvent(event.id, dataToSave);
       if (result.success) {
@@ -707,179 +724,6 @@ const EventDetailsModal = ({
     setIsEditingName(false);
   };
 
-  // Funções de ação dinâmicas
-  const handleCompleteEvent = async () => {
-    if (!event) return;
-
-    const confirmed = await confirm({
-      title: "Concluir Evento",
-      description: `Tem certeza que deseja concluir o evento "${event.name}"? Esta ação finalizará todas as avaliações.`,
-      confirmText: "Sim, concluir",
-      cancelText: "Cancelar",
-      icon: <CheckCircle className="w-5 h-5 text-green-500" />,
-    });
-
-    if (!confirmed) return;
-
-    try {
-      const result = await completeEvent(event.id, "admin");
-
-      if (result.success && result.data) {
-        showSuccess(result.message || "Evento concluído com sucesso!");
-        onEventUpdated?.(result.data);
-      } else {
-        showError(result.error || "Erro ao concluir evento");
-      }
-    } catch (error) {
-      console.error("Erro ao concluir evento:", error);
-      showError("Erro ao concluir evento");
-    }
-  };
-
-  const handlePublishResults = async () => {
-    if (!event) return;
-
-    const confirmed = await confirm({
-      title: "Publicar Resultados",
-      description: `Tem certeza que deseja publicar os resultados do evento "${event.name}" no site?`,
-      confirmText: "Sim, publicar",
-      cancelText: "Cancelar",
-      icon: <Globe className="w-5 h-5 text-blue-500" />,
-    });
-
-    if (!confirmed) return;
-
-    try {
-      // TODO: Implementar publicação de resultados
-      showSuccess("Resultados publicados com sucesso!");
-    } catch (error) {
-      console.error("Erro ao publicar resultados:", error);
-      showError("Erro ao publicar resultados");
-    }
-  };
-
-  const handleResetVotings = async () => {
-    if (!event) return;
-
-    const confirmed = await confirm({
-      title: "Resetar Votações",
-      description: `Tem certeza que deseja resetar todas as votações do evento "${event.name}"? Esta ação é irreversível.`,
-      confirmText: "Sim, resetar",
-      cancelText: "Cancelar",
-      destructive: true,
-      icon: <RefreshCw className="w-5 h-5 text-red-500" />,
-    });
-
-    if (!confirmed) return;
-
-    try {
-      // TODO: Implementar reset de votações
-      showSuccess("Votações resetadas com sucesso!");
-    } catch (error) {
-      console.error("Erro ao resetar votações:", error);
-      showError("Erro ao resetar votações");
-    }
-  };
-
-  const handleAddNotes = () => {
-    // TODO: Implementar modal para adicionar notas
-    showSuccess("Funcionalidade de notas será implementada em breve!");
-  };
-
-  const handlePauseEventTemporarily = async () => {
-    if (!event) return;
-
-    const confirmed = await confirm({
-      title: "Pausar Evento",
-      description: `Tem certeza que deseja pausar temporariamente o evento "${event.name}"?`,
-      confirmText: "Sim, pausar",
-      cancelText: "Cancelar",
-      icon: <Pause className="w-5 h-5 text-yellow-500" />,
-    });
-
-    if (!confirmed) return;
-
-    try {
-      // TODO: Implementar pausa temporária
-      showSuccess("Evento pausado temporariamente!");
-    } catch (error) {
-      console.error("Erro ao pausar evento:", error);
-      showError("Erro ao pausar evento");
-    }
-  };
-
-  const handleReplaceJudge = () => {
-    // TODO: Implementar substituição de jurado
-    showSuccess(
-      "Funcionalidade de substituição de jurado será implementada em breve!"
-    );
-  };
-
-  const handleAddTemporaryJudge = () => {
-    setShowCreateJudgeForm(true);
-  };
-
-  // Configuração das abas de ações dinâmicas
-  const getActionTabs = () => {
-    const baseTabs = [
-      {
-        title: "Concluir Evento",
-        icon: CheckCircle,
-        action: handleCompleteEvent,
-        disabled: event?.status !== "ongoing",
-        variant: "default" as const,
-      },
-      {
-        title: "Publicar Resultados",
-        icon: Globe,
-        action: handlePublishResults,
-        disabled: event?.status !== "completed",
-        variant: "default" as const,
-      },
-      {
-        type: "separator" as const,
-      },
-      {
-        title: "Resetar Votações",
-        icon: RefreshCw,
-        action: handleResetVotings,
-        disabled: event?.status === "draft",
-        variant: "destructive" as const,
-      },
-      {
-        title: "Adicionar Notas",
-        icon: StickyNote,
-        action: handleAddNotes,
-        variant: "default" as const,
-      },
-      {
-        title: "Pausar Evento",
-        icon: Pause,
-        action: handlePauseEventTemporarily,
-        disabled: event?.status !== "ongoing",
-        variant: "warning" as const,
-      },
-      {
-        type: "separator" as const,
-      },
-      {
-        title: "Substituir Jurado",
-        icon: UserMinus,
-        action: handleReplaceJudge,
-        disabled: eventJudges.length === 0,
-        variant: "default" as const,
-      },
-      {
-        title: "Jurado Temporário",
-        icon: UserPlus,
-        action: handleAddTemporaryJudge,
-        variant: "default" as const,
-      },
-    ];
-
-    return baseTabs;
-  };
-
   const headerActions = (
     <>
       {isEditing ? (
@@ -911,12 +755,12 @@ const EventDetailsModal = ({
                 requiresApproval: event.requiresApproval,
                 rules: event.rules,
                 prizes: event.prizes || "",
-                rulesFile: event.rulesFile,
+                rulesFileId: event.rulesFileId,
                 notes: event.notes,
               });
 
               // Restaurar modo de regulamento
-              if (event.rulesFile) {
+              if (event.rulesFileId) {
                 setRegulationMode("pdf");
               } else {
                 setRegulationMode("text");
@@ -1579,7 +1423,7 @@ const EventDetailsModal = ({
                       <label className="block text-sm font-medium text-cinza-chumbo mb-2">
                         Regulamento em PDF
                       </label>
-                      {editedEvent.rulesFile ? (
+                      {editedEvent.rulesFileId ? (
                         <div className="space-y-3">
                           <div className="flex items-center space-x-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                             <FileText className="w-5 h-5 text-green-600" />
@@ -1589,7 +1433,7 @@ const EventDetailsModal = ({
                           </div>
                           <div className="flex space-x-2">
                             <a
-                              href={editedEvent.rulesFile}
+                              href={rulesFileUrl || ""}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
@@ -1598,7 +1442,7 @@ const EventDetailsModal = ({
                               Visualizar
                             </a>
                             <a
-                              href={editedEvent.rulesFile}
+                              href={rulesFileUrl || ""}
                               download
                               className="flex items-center space-x-2 px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
                             >
@@ -1610,7 +1454,7 @@ const EventDetailsModal = ({
                               onClick={() => {
                                 setEditedEvent({
                                   ...editedEvent,
-                                  rulesFile: "",
+                                  rulesFileId: null,
                                 });
                                 setRegulationMode("text");
                               }}
@@ -1638,7 +1482,7 @@ const EventDetailsModal = ({
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {viewEvent.rulesFile ? (
+                  {rulesFileUrl ? (
                     <div className="space-y-3">
                       <div className="flex items-center space-x-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                         <FileText className="w-5 h-5 text-blue-600" />
@@ -1648,7 +1492,7 @@ const EventDetailsModal = ({
                       </div>
                       <div className="flex space-x-2">
                         <a
-                          href={viewEvent.rulesFile}
+                          href={rulesFileUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
@@ -1657,7 +1501,7 @@ const EventDetailsModal = ({
                           Visualizar PDF
                         </a>
                         <a
-                          href={viewEvent.rulesFile}
+                          href={rulesFileUrl}
                           download
                           className="flex items-center space-x-2 px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
                         >
@@ -1683,6 +1527,47 @@ const EventDetailsModal = ({
                   )}
                 </div>
               )}
+            </div>
+
+            {/* Arquivos do Evento */}
+            <div>
+              <h4 className="font-semibold text-cinza-chumbo mb-4 flex items-center">
+                <FileText className="w-5 h-5 mr-2" />
+                Arquivos do Evento
+              </h4>
+              <EventFileUpload
+                eventId={event.id}
+                onFileUploaded={(fileUrl, fileInfo) => {
+                  console.log("Arquivo enviado:", fileUrl, fileInfo);
+                  // Aqui você pode adicionar lógica para salvar a referência do arquivo no evento
+                  showSuccess("Arquivo adicionado ao evento com sucesso!");
+                }}
+                onFileRemoved={(fileUrl) => {
+                  console.log("Arquivo removido:", fileUrl);
+                  showSuccess("Arquivo removido do evento com sucesso!");
+                }}
+                initialFiles={event.rulesFileId ? [event.rulesFileId] : []}
+                maxFiles={10}
+                allowedTypes={[
+                  "application/pdf",
+                  "image/jpeg",
+                  "image/jpg",
+                  "image/png",
+                  "image/webp",
+                  "application/msword",
+                  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                  "application/vnd.ms-excel",
+                  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                  "application/vnd.ms-powerpoint",
+                  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                  "text/plain",
+                  "text/csv",
+                ]}
+                maxSize={50 * 1024 * 1024} // 50MB
+                folder="events"
+                title="Documentos do Evento"
+                description="Adicione documentos, imagens e outros arquivos relacionados ao evento"
+              />
             </div>
 
             {/* Prémios */}
@@ -2311,12 +2196,12 @@ const EventDetailsModal = ({
                     if (file) {
                       try {
                         setLoading(true);
-                        const result = await uploadrulesFile(file);
+                        const result = await uploadRegulationFile(file);
 
-                        if (result.success && result.url) {
+                        if (result.success && result.uploadId) {
                           setEditedEvent((prev) => ({
                             ...prev,
-                            rulesFile: result.url || null,
+                            rulesFileId: result.uploadId || null,
                           }));
                           setRegulationMode("pdf");
                           setShowRegulationImport(false);

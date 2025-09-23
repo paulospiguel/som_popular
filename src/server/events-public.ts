@@ -9,7 +9,6 @@ import {
   participants,
 } from "@/infra/database/schema";
 import { sendEmail } from "@/lib/mailer/resend";
-
 import RegistrationEventTemplate from "@/lib/mailer/templates/registration-event";
 
 export interface PublicEvent {
@@ -28,7 +27,7 @@ export interface PublicEvent {
   status: string;
   rules: string | null;
   prizes: string | null;
-  rulesFile: string | null;
+  rulesFileUrl: string | null;
   registrationStatus: "not_open" | "open" | "closed" | "full";
   canRegister: boolean;
 }
@@ -78,7 +77,7 @@ export async function getPublicEvents(): Promise<{
         status: events.status,
         rules: events.rules,
         prizes: events.prizes,
-        rulesFile: events.rulesFile,
+        rulesFileUrl: events.rulesFileUrl,
       })
       .from(events)
       .where(
@@ -172,7 +171,7 @@ export async function getPublicEventById(eventId: string): Promise<{
         status: events.status,
         rules: events.rules,
         prizes: events.prizes,
-        rulesFile: events.rulesFile,
+        rulesFileUrl: events.rulesFileUrl,
       })
       .from(events)
       .where(
@@ -234,6 +233,7 @@ export async function getPublicEventById(eventId: string): Promise<{
         ...event,
         registrationStatus,
         canRegister,
+        rulesFileUrl: event.rulesFileUrl,
       },
     };
   } catch (error) {
@@ -406,7 +406,7 @@ export async function getAvailableEventsForRegistration(): Promise<{
         status: events.status,
         rules: events.rules,
         prizes: events.prizes,
-        rulesFile: events.rulesFile,
+        rulesFileUrl: events.rulesFileUrl,
       })
       .from(events)
       .where(

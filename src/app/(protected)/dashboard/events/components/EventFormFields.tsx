@@ -1,8 +1,9 @@
 "use client";
 
 import { CalendarDays, Clock, MapPin, Users } from "lucide-react";
-import { Control, Controller } from "react-hook-form";
+import { Control, Controller, useFormContext } from "react-hook-form";
 
+import AISuggestionForm from "@/components/automation-form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DateTimePicker } from "@/components/ui/date-picker";
 import {
@@ -23,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { EVENT_CATEGORIES, EVENT_TYPES } from "@/constants";
-import { EventFormData } from "@/types";
+import { EventFormData } from "@/validators/events";
 
 interface EventFormFieldsProps {
   control: Control<EventFormData>;
@@ -40,9 +41,7 @@ export function EventFormFields({
   currentParticipants = 0,
   errors,
 }: EventFormFieldsProps) {
-  // Debug: mostrar erros no console
-  console.log("EventFormFields - errors:", errors);
-
+  const { setValue } = useFormContext();
   return (
     <div className="space-y-6">
       {/* Debug visual temporário */}
@@ -127,7 +126,7 @@ export function EventFormFields({
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="location">Local</Label>
+          <Label htmlFor="location">Localização</Label>
           <div className="w-full">
             {isEditing ? (
               <FormField
@@ -138,7 +137,7 @@ export function EventFormFields({
                     {...field}
                     placeholder="Local do evento..."
                     error={errors?.location?.message}
-                    className={`text-lg font-medium w-full`}
+                    className={`font-normal w-full`}
                     viewMode={!isEditing}
                   />
                 )}
@@ -154,21 +153,39 @@ export function EventFormFields({
 
       {/* Descrição */}
       <div>
-        <Label htmlFor="description">Descrição</Label>
+        <Label htmlFor="description">Descrição do Evento</Label>
         {isEditing ? (
-          <Controller
-            control={control}
-            name="description"
-            render={({ field }) => (
-              <Textarea
-                {...field}
-                value={field.value || ""}
-                placeholder="Descrição do evento..."
-                rows={3}
-                className={`mt-1 ${errors?.description ? "!border-red-500 focus:!border-red-500 ring-red-500" : ""}`}
+          <>
+            <div className="flex items-center justify-end mb-2">
+              <AISuggestionForm
+                label="Gerar descrição com IA"
+                className="float-right"
+                defaultTargets={["longo"]}
+                references={["title", "location", "category", "type"]}
+                onChangeValue={(value) => {
+                  setValue("description", value);
+                }}
+                context={{
+                  title: formValues.name,
+                  location: formValues.location,
+                  category: formValues.category,
+                  type: formValues.type,
+                }}
               />
-            )}
-          />
+            </div>
+            <Controller
+              control={control}
+              name="description"
+              render={({ field }) => (
+                <Textarea
+                  {...field}
+                  value={field.value || ""}
+                  placeholder="Descrição do evento..."
+                  className={`mt-1 ${errors?.description ? "!border-red-500 focus:!border-red-500 ring-red-500" : ""}`}
+                />
+              )}
+            />
+          </>
         ) : (
           <p className="mt-1 text-cinza-chumbo whitespace-pre-wrap">
             {formValues.description || "Sem descrição"}

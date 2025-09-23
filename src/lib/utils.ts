@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { formatDate } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Clock } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 
 import {
@@ -24,6 +25,11 @@ export function cn(...inputs: ClassValue[]): string {
 export function getStatusText(status: string): string {
   const statusInfo = EVENT_STATUSES.find((s) => s.value === status);
   return statusInfo?.label || status;
+}
+
+export function getStatusIcon(status: string) {
+  const statusInfo = EVENT_STATUSES.find((s) => s.value === status);
+  return statusInfo?.icon || Clock;
 }
 
 export function getStatusColor(status: string): string {

@@ -15,13 +15,13 @@ import {
   Star,
   User,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import QRCode from "qrcode";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
 
 import PhoneInput from "@/components/PhoneInput";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +29,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DiscreteImageUpload } from "@/components/ui/discrete-image-upload";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -46,82 +47,12 @@ import {
   getParticipantByEmail,
   registerParticipant,
 } from "@/server/participants-public";
+import {
+  ParticipantRegistrationFormData,
+  participantRegistrationSchema,
+} from "@/validators/participants";
 
-import { Label } from "@/components/ui/label";
-
-// Schema de validação com Zod
-const participantRegistrationSchema = z
-  .object({
-    name: z
-      .string()
-      .min(1, "Nome é obrigatório")
-      .min(2, "Nome deve ter pelo menos 2 caracteres")
-      .max(100, "Nome deve ter no máximo 100 caracteres"),
-    stageName: z
-      .string()
-      .max(100, "Nome artístico deve ter no máximo 100 caracteres")
-      .optional(),
-    email: z
-      .string()
-      .min(1, "Email é obrigatório")
-      .email("Email inválido")
-      .max(255, "Email deve ter no máximo 255 caracteres"),
-    phone: z
-      .string()
-      .max(20, "Telefone deve ter no máximo 20 caracteres")
-      .optional(),
-    category: z
-      .string()
-      .max(50, "Categoria deve ter no máximo 50 caracteres")
-      .optional(),
-    experience: z
-      .string()
-      .max(50, "Experiência deve ter no máximo 50 caracteres")
-      .optional(),
-    additionalInfo: z
-      .string()
-      .max(500, "Informações adicionais devem ter no máximo 500 caracteres")
-      .optional(),
-    hasSpecialNeeds: z.boolean().default(false),
-    specialNeedsDescription: z
-      .string()
-      .max(
-        300,
-        "Descrição das necessidades especiais deve ter no máximo 300 caracteres"
-      )
-      .optional(),
-    acceptsEmailNotifications: z.boolean().default(true),
-    acceptsTerms: z
-      .boolean()
-      .refine(
-        (val) => val === true,
-        "Você deve aceitar o regulamento e os termos de participação"
-      ),
-    eventId: z.string().min(1, "Selecione um evento para inscrição"),
-    rankingPhoto: z
-      .string()
-      .max(500, "URL da foto deve ter no máximo 500 caracteres")
-      .optional(),
-  })
-  .refine(
-    (data) => {
-      // Se hasSpecialNeeds é true, specialNeedsDescription deve ser preenchido
-      if (
-        data.hasSpecialNeeds &&
-        (!data.specialNeedsDescription ||
-          data.specialNeedsDescription.trim() === "")
-      ) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: "Descreva as necessidades especiais",
-      path: ["specialNeedsDescription"],
-    }
-  );
-
-type FormData = z.infer<typeof participantRegistrationSchema>;
+type FormData = ParticipantRegistrationFormData;
 
 // Interfaces para os tipos de dados
 interface Event {
@@ -168,6 +99,7 @@ export default function ParticipantRegistrationPage() {
   const [qrUrl, setQrUrl] = useState<string>("");
   const [eventLocked, setEventLocked] = useState(false);
   const [existingNotice, setExistingNotice] = useState("");
+  const [photoImageUrl, setPhotoImageUrl] = useState<string>("");
 
   // Configuração do react-hook-form com validação Zod
   const form = useForm<FormData>({
@@ -185,7 +117,7 @@ export default function ParticipantRegistrationPage() {
       acceptsEmailNotifications: true,
       acceptsTerms: false,
       eventId: "",
-      rankingPhoto: "",
+      photoImageId: "",
     },
     mode: "onChange", // Validação em tempo real
   });
@@ -197,6 +129,11 @@ export default function ParticipantRegistrationPage() {
     setValue,
     formState: { errors, isSubmitting },
   } = form;
+
+  const handleUploadPhotoImage = (value: string) => {
+    setPhotoImageUrl(value);
+    setValue("photoImageId", value);
+  };
 
   // Carregar eventos disponíveis ao montar o componente
   useEffect(() => {
@@ -303,7 +240,7 @@ export default function ParticipantRegistrationPage() {
         experience: data.experience || "",
         additionalInfo: data.additionalInfo || "",
         specialNeedsDescription: data.specialNeedsDescription || "",
-        rankingPhoto: data.rankingPhoto || "",
+        photoImageId: data.photoImageId || "",
       };
       const result = await registerParticipant(payload);
 
@@ -412,7 +349,9 @@ export default function ParticipantRegistrationPage() {
                 <div className="bg-white rounded-lg border p-4 mb-6 inline-block text-left">
                   <div className="flex items-start space-x-4">
                     {qrUrl ? (
-                      <img
+                      <Image
+                        width={112}
+                        height={112}
                         src={qrUrl}
                         alt="QR Code"
                         className="w-28 h-28 border rounded"
@@ -660,10 +599,8 @@ export default function ParticipantRegistrationPage() {
                 <div>
                   <Label>Foto para o Ranking (Opcional)</Label>
                   <DiscreteImageUpload
-                    value={watch("rankingPhoto") || ""}
-                    onChange={(value: string) =>
-                      setValue("rankingPhoto", value)
-                    }
+                    value={photoImageUrl}
+                    onChange={handleUploadPhotoImage}
                     maxSize={3}
                     acceptedTypes={[
                       "image/jpeg",

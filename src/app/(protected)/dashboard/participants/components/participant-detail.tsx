@@ -19,7 +19,7 @@ import {
   rejectParticipant,
 } from "@/server/participants";
 
-import { getCategoryText, getExperienceText } from "../utils";
+import { getCategoryText, getExperienceText } from "@/lib/utils";
 
 interface ParticipantDetailsModalProps {
   participant: Participant;
