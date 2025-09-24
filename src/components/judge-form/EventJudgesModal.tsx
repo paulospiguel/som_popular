@@ -22,6 +22,7 @@ import {
   useJudges,
   useRemoveJudgeFromEvent,
 } from "@/hooks/use-judges";
+import { getInitials } from "@/lib/helpers";
 
 import { JudgeForm } from "./index";
 
@@ -137,15 +138,6 @@ export const EventJudgesModal = ({
       console.error("Erro ao adicionar jurados:", error);
       toast.error("Erro ao adicionar jurados");
     }
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
   };
 
   return (

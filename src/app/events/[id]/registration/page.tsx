@@ -22,8 +22,9 @@ import PhoneInput from "@/components/PhoneInput";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DiscreteImageUpload } from "@/components/ui/discrete-image-upload";
+import DiscreteImageUpload from "@/components/ui/discrete-image-upload";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -39,7 +40,20 @@ import {
   type PublicEvent,
 } from "@/server/events-public";
 
-import { Label } from "@/components/ui/label";
+type FormValues = {
+  name: string;
+  stageName: string;
+  email: string;
+  phone: string;
+  experience: string;
+  additionalInfo: string;
+  hasSpecialNeeds: boolean;
+  specialNeedsDescription: string;
+  acceptsEmailNotifications: boolean;
+  avatar: string;
+  acceptsRegulation: boolean;
+  category: string;
+};
 
 export default function EventRegistrationPage() {
   const params = useParams();
@@ -55,27 +69,10 @@ export default function EventRegistrationPage() {
     }
   }, [eventId, router]);
 
-  return null;
-
   const [event, setEvent] = useState<PublicEvent | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  type FormValues = {
-    name: string;
-    stageName: string;
-    email: string;
-    phone: string;
-    experience: string;
-    additionalInfo: string;
-    hasSpecialNeeds: boolean;
-    specialNeedsDescription: string;
-    acceptsEmailNotifications: boolean;
-    avatar: string;
-    acceptsRegulation: boolean;
-    category: string;
-  };
 
   const {
     control,
@@ -186,6 +183,8 @@ export default function EventRegistrationPage() {
       </div>
     );
   }
+
+  return null;
 
   if (error || !event) {
     return (

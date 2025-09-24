@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq, ilike, sql, SQL } from "drizzle-orm";
+import { and, eq, getTableColumns, ilike } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { db } from "@/infra/database";
@@ -19,10 +19,8 @@ type filters = {
   status?: string;
   category?: string;
   experience?: string;
-  search?: string;
+  search?: string | undefined;
   eventId?: string;
-  isActive?: boolean;
-  archived?: boolean;
 };
 
 /**
@@ -48,6 +46,10 @@ export async function getApprovedParticipants(filters?: filters) {
       whereClause.search = ilike(participants.name, `%${filters.search}%`);
     }
 
+    if (filters?.eventId) {
+      whereClause.eventId = eq(eventRegistrations.eventId, filters.eventId);
+    }
+
     const approvedParticipants = await db
       .select()
       .from(participants)
@@ -65,41 +67,46 @@ export async function getApprovedParticipants(filters?: filters) {
  */
 export async function getAllParticipants(filters?: filters) {
   try {
-    const whereClause: SQL<any> = sql`1=1`;
+    const whereClause: any[] = [];
 
     if (filters?.status) {
-      whereClause.append(eq(participants.status, filters.status));
+      whereClause.push(eq(participants.status, filters.status));
     }
 
     if (filters?.category) {
-      whereClause.append(eq(participants.category, filters.category));
+      whereClause.push(eq(participants.category, filters.category));
     }
 
     if (filters?.experience) {
-      whereClause.append(eq(participants.experience, filters.experience));
+      whereClause.push(eq(participants.experience, filters.experience));
     }
 
     if (filters?.search) {
-      whereClause.append(ilike(participants.name, `%${filters.search}%`));
+      whereClause.push(ilike(participants.name, `%${filters.search}%`));
     }
 
     if (filters?.eventId) {
-      whereClause.append(eq(eventRegistrations.eventId, filters.eventId));
+      whereClause.push(eq(eventRegistrations.eventId, filters.eventId));
     }
 
     const allParticipants = await db
       .select({
-        participant: participants,
+        ...getTableColumns(participants),
         photoImage: uploads,
+        registration: eventRegistrations,
       })
       .from(participants)
       .leftJoin(uploads, eq(participants.photoImageId, uploads.id))
-      .where(whereClause);
+      .leftJoin(
+        eventRegistrations,
+        eq(participants.id, eventRegistrations.participantId)
+      )
+      .where(whereClause.length > 0 ? and(...whereClause) : undefined);
 
     return {
       success: true,
       data: allParticipants.map((item) => ({
-        ...item.participant,
+        ...item,
         photoImage: item.photoImage,
       })),
     };

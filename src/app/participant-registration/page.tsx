@@ -27,7 +27,7 @@ import PhoneInput from "@/components/PhoneInput";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DiscreteImageUpload } from "@/components/ui/discrete-image-upload";
+import DiscreteImageUpload from "@/components/ui/discrete-image-upload";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/select";
 // Categoria não utilizada nesta tela (campo removido)
 import { EXPERIENCE_LEVELS, PARTICIPANT_CATEGORIES } from "@/constants";
+import { FileWithPreview } from "@/hooks/use-file-upload";
 import {
   getAvailableEventsForRegistration,
   getRegistrationByEmail,
@@ -599,16 +600,11 @@ export default function ParticipantRegistrationPage() {
                 <div>
                   <Label>Foto para o Ranking (Opcional)</Label>
                   <DiscreteImageUpload
-                    value={photoImageUrl}
-                    onChange={handleUploadPhotoImage}
+                    defaultAvatar={photoImageUrl}
+                    onFileChange={(value: FileWithPreview | null) =>
+                      handleUploadPhotoImage(value?.preview || "")
+                    }
                     maxSize={3}
-                    acceptedTypes={[
-                      "image/jpeg",
-                      "image/jpg",
-                      "image/png",
-                      "image/webp",
-                    ]}
-                    placeholder="Adicionar foto para ranking"
                   />
                   <p className="text-xs text-cinza-chumbo/60 mt-1">
                     Adicione uma foto para aparecer no ranking. Deixe em branco

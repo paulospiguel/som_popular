@@ -35,14 +35,12 @@ export function useParticipants(filters?: {
   category?: string;
   experience?: string;
   eventId?: string;
-  search?: string;
-  isActive?: boolean;
-  archived?: boolean;
+  search?: string | undefined;
 }) {
   return useQuery({
     queryKey: participantKeys.list(filters || {}),
     queryFn: () => getAllParticipants(filters),
-    staleTime: 2 * 60 * 1000, // 2 minutos
+    //staleTime: 2 * 60 * 1000, // 2 minutos
   });
 }
 

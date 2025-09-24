@@ -22,6 +22,7 @@ import {
   useRegisterParticipantInEvent,
   useRemoveParticipantFromEvent,
 } from "@/hooks/use-participants";
+import { getInitials } from "@/lib/helpers";
 
 interface EventParticipantsModalProps {
   isOpen: boolean;
@@ -51,6 +52,7 @@ export const EventParticipantsModal = ({
     data: eventParticipantsResult,
     isLoading: isLoadingEventParticipants,
   } = useEventParticipants(eventId);
+
   const registerParticipantInEventMutation = useRegisterParticipantInEvent();
   const removeParticipantFromEventMutation = useRemoveParticipantFromEvent();
   const confirm = useConfirm();
@@ -141,15 +143,6 @@ export const EventParticipantsModal = ({
     }
   };
 
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
   return (
     <Drawer open={isOpen} onOpenChange={onClose}>
       <DrawerContent className="h-[90vh] max-w-none px-6">
@@ -225,7 +218,7 @@ export const EventParticipantsModal = ({
                         <div className="relative">
                           <Avatar className="w-10 h-10">
                             <AvatarImage
-                              src={participant.photoImage?.publicUrl || ""}
+                              src={participant?.photoImage?.publicUrl || ""}
                             />
                             <AvatarFallback>
                               {getInitials(participant.name)}

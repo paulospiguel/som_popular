@@ -65,7 +65,7 @@ export function EventParticipantsSection({
                   id: participant.id,
                   name: participant.name,
                   avatar: participant.photoImage?.publicUrl || "",
-                  description: participant.category,
+                  description: participant.email,
                 })) || []
               }
               size="md"

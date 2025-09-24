@@ -22,7 +22,7 @@ import PhoneInput from "@/components/PhoneInput";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DiscreteImageUpload } from "@/components/ui/discrete-image-upload";
+import DiscreteImageUpload from "@/components/ui/discrete-image-upload";
 import {
   Form,
   FormControl,

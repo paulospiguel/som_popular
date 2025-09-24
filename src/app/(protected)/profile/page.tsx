@@ -1,16 +1,21 @@
 "use client";
 
 import { ImageIcon, KeyRound, Save, Shield, User } from "lucide-react";
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import Breadcrumb from "@/components/dashboard/Breadcrumb";
 import { Button } from "@/components/ui/button";
+import DiscreteImageUpload from "@/components/ui/discrete-image-upload";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
-import { useSession, requestPasswordReset } from "@/lib/auth-client";
-import { getMyProfile, updateMyProfile, changeMyPassword } from "@/server/profile";
-import { DiscreteImageUpload } from "@/components/ui/discrete-image-upload";
+import { FileWithPreview } from "@/hooks/use-file-upload";
+import { requestPasswordReset, useSession } from "@/lib/auth-client";
+import {
+  changeMyPassword,
+  getMyProfile,
+  updateMyProfile,
+} from "@/server/profile";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -29,7 +34,11 @@ export default function ProfilePage() {
         setLoading(true);
         const res = await getMyProfile();
         if (res.success) {
-          setForm({ name: res.data.name, email: res.data.email, image: res.data.image || "" });
+          setForm({
+            name: res.data.name,
+            email: res.data.email,
+            image: res.data.image || "",
+          });
         }
       } finally {
         setLoading(false);
@@ -47,7 +56,10 @@ export default function ProfilePage() {
       }
       setNameError("");
       setSubmitting(true);
-      const res = await updateMyProfile({ name: form.name, image: form.image || null });
+      const res = await updateMyProfile({
+        name: form.name,
+        image: form.image || null,
+      });
       if (res.success) {
         showToast({ type: "success", title: "Perfil atualizado" });
         router.refresh();
@@ -90,7 +102,9 @@ export default function ProfilePage() {
                 <Input
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className={nameError ? "border-red-500 ring-red-200" : undefined}
+                  className={
+                    nameError ? "border-red-500 ring-red-200" : undefined
+                  }
                 />
                 {nameError && (
                   <p className="text-xs text-red-600 mt-1">{nameError}</p>
@@ -98,23 +112,18 @@ export default function ProfilePage() {
               </div>
               <div>
                 <label className="text-sm text-cinza-chumbo/70">Email</label>
-                <Input
-                  type="email"
-                  value={form.email}
-                  readOnly
-                  disabled
-                />
+                <Input type="email" value={form.email} readOnly disabled />
               </div>
               <div className="md:col-span-2">
                 <label className="text-sm text-cinza-chumbo/70 flex items-center gap-2">
                   <ImageIcon className="w-4 h-4" /> Foto de Perfil
                 </label>
                 <DiscreteImageUpload
-                  value={form.image}
-                  onChange={(value: string) => setForm({ ...form, image: value })}
+                  defaultAvatar={form.image}
+                  onFileChange={(value: FileWithPreview | null) =>
+                    setForm({ ...form, image: value?.preview || "" })
+                  }
                   maxSize={2}
-                  acceptedTypes={["image/jpeg","image/jpg","image/png","image/webp"]}
-                  placeholder="Adicionar/alterar foto"
                 />
               </div>
             </div>
@@ -136,15 +145,21 @@ export default function ProfilePage() {
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="text-sm text-cinza-chumbo/70">Senha atual</label>
+                  <label className="text-sm text-cinza-chumbo/70">
+                    Senha atual
+                  </label>
                   <Input
                     type="password"
                     value={pwd.current}
-                    onChange={(e) => setPwd({ ...pwd, current: e.target.value })}
+                    onChange={(e) =>
+                      setPwd({ ...pwd, current: e.target.value })
+                    }
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-cinza-chumbo/70">Nova senha</label>
+                  <label className="text-sm text-cinza-chumbo/70">
+                    Nova senha
+                  </label>
                   <Input
                     type="password"
                     value={pwd.next}
@@ -152,11 +167,15 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-cinza-chumbo/70">Confirmar nova senha</label>
+                  <label className="text-sm text-cinza-chumbo/70">
+                    Confirmar nova senha
+                  </label>
                   <Input
                     type="password"
                     value={pwd.confirm}
-                    onChange={(e) => setPwd({ ...pwd, confirm: e.target.value })}
+                    onChange={(e) =>
+                      setPwd({ ...pwd, confirm: e.target.value })
+                    }
                   />
                 </div>
               </div>
@@ -169,19 +188,31 @@ export default function ProfilePage() {
                       return;
                     }
                     if (pwd.next !== pwd.confirm) {
-                      showToast({ type: "error", title: "As senhas não coincidem" });
+                      showToast({
+                        type: "error",
+                        title: "As senhas não coincidem",
+                      });
                       return;
                     }
                     if (pwd.next.length < 6) {
-                      showToast({ type: "error", title: "A senha deve ter pelo menos 6 caracteres" });
+                      showToast({
+                        type: "error",
+                        title: "A senha deve ter pelo menos 6 caracteres",
+                      });
                       return;
                     }
-                    const res = await changeMyPassword({ currentPassword: pwd.current, newPassword: pwd.next });
+                    const res = await changeMyPassword({
+                      currentPassword: pwd.current,
+                      newPassword: pwd.next,
+                    });
                     if (res.success) {
                       showToast({ type: "success", title: "Senha alterada" });
                       setPwd({ current: "", next: "", confirm: "" });
                     } else {
-                      showToast({ type: "error", title: res.error || "Não foi possível alterar a senha" });
+                      showToast({
+                        type: "error",
+                        title: res.error || "Não foi possível alterar a senha",
+                      });
                     }
                   }}
                 >
