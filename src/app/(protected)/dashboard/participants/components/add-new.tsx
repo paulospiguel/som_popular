@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import React, { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
-import z from "zod";
+import { z } from "zod";
 
 import Loading from "@/components/loading";
 import { Modal } from "@/components/Modal";
@@ -40,19 +40,38 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { EVENT_CATEGORIES, EXPERIENCE_LEVELS } from "@/constants";
-import { useCreateParticipant } from "@/hooks/use-participants";
+import { useConfirm } from "@/hooks/use-confirm";
+import {
+  useCheckEmailExists,
+  useCreateParticipantWithTermsEmail,
+} from "@/hooks/use-participants";
 import { useSonner } from "@/hooks/use-sonner";
-import { Participant } from "@/infra/database/schema";
+import {
+  NewParticipant,
+  Participant,
+  participantStatusEnum,
+} from "@/infra/database/schema";
 import { cn } from "@/lib/utils";
-import { ParticipantRegistrationFormData } from "@/validators/participants";
+import { participantRegistrationSchema } from "@/validators/participants";
 
 interface AddParticipantModalProps {
   isOpen: boolean;
   onClose: () => void;
   setParticipant: (participant: Participant) => void;
 }
+
+const modalSchema = participantRegistrationSchema
+  .omit({ eventId: true, acceptsTerms: true })
+  .extend({
+    hasSpecialNeeds: z.boolean(),
+    acceptsEmailNotifications: z.boolean(),
+    sendTermsAndConditionsByEmail: z.boolean(),
+  });
+
+type ParticipantRegistrationForm = z.infer<typeof modalSchema>;
 
 const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
   isOpen,
@@ -61,23 +80,17 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showValidationErrors, setShowValidationErrors] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
 
-  // const modalSchema = useMemo(
-  //   () => participantFormSchema.omit({ eventId: true }),
-  //   []
-  // );
+  const { showError, showSuccess } = useSonner();
+  const { mutate: createParticipant, isPending } =
+    useCreateParticipantWithTermsEmail();
+  const { mutate: checkEmail } = useCheckEmailExists();
+  const { confirm, ConfirmDialog } = useConfirm();
 
-  const modalSchema = z.object({
-    name: z.string().min(1, "Nome é obrigatório"),
-  });
-
-  const { showError, showSuccess, showWarning } = useSonner();
-  const { mutate: createParticipant, isPending } = useCreateParticipant();
-
-  const form = useForm<ParticipantRegistrationFormData>({
+  const form = useForm<ParticipantRegistrationForm>({
     resolver: zodResolver(modalSchema),
-    // Mostra erros de forma imediata e foca no primeiro campo inválido
-    mode: "onChange",
     reValidateMode: "onSubmit",
     criteriaMode: "all",
     shouldFocusError: true,
@@ -87,13 +100,13 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
       email: "",
       phone: "",
       photoImageId: "",
-      category: "",
-      experience: "",
+      category: undefined,
+      experience: undefined,
       additionalInfo: "",
       hasSpecialNeeds: false,
       specialNeedsDescription: "",
       acceptsEmailNotifications: true,
-      acceptsTerms: false,
+      sendTermsAndConditionsByEmail: false,
     },
   });
 
@@ -105,6 +118,41 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
 
   // Observar campo de necessidades especiais
   const hasSpecialNeeds = watch("hasSpecialNeeds");
+
+  // Função para verificar email quando sair do campo
+  const handleEmailCheck = useCallback(
+    (email: string) => {
+      if (!email || email.length < 5) {
+        setEmailError(null);
+        return;
+      }
+
+      setIsCheckingEmail(true);
+      setEmailError(null);
+
+      checkEmail(email, {
+        onSuccess: (response) => {
+          setIsCheckingEmail(false);
+          if (response.exists) {
+            setEmailError("Este email já está cadastrado no sistema");
+            form.setError("email", {
+              type: "manual",
+              message: "Este email já está cadastrado no sistema",
+            });
+          } else {
+            setEmailError(null);
+            form.clearErrors("email");
+          }
+        },
+        onError: (error) => {
+          setIsCheckingEmail(false);
+          console.error("Erro ao verificar email:", error);
+          // Não mostrar erro para o usuário, apenas log
+        },
+      });
+    },
+    [checkEmail, form]
+  );
 
   // Função para formatar erros de forma amigável
   const getFieldError = useCallback((fieldName: string) => {
@@ -132,7 +180,8 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
 
       const [firstKey, firstVal] = entries[0];
       const fieldLabel = getFieldError(firstKey);
-      const message = (firstVal as any)?.message || "Campo inválido";
+      const message =
+        (firstVal as { message?: string })?.message || "Campo inválido";
 
       // Foca no primeiro campo inválido se existir um input com esse name
       const firstEl = document.querySelector(`[name="${firstKey}"]`) as
@@ -149,68 +198,81 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
 
       setShowValidationErrors(true);
     },
-    [getFieldError, showError, form.formState.errors]
+    [getFieldError, showError, form]
   );
 
-  // Função de submit otimizada
-  const onSubmit = async (values: ParticipantRegistrationFormData) => {
+  const onSubmit = async (values: ParticipantRegistrationForm) => {
     try {
       setIsSubmitting(true);
 
-      // Verificar termos
-      if (!values.acceptsTerms) {
-        showWarning("Você precisa aceitar os termos para continuar", {
-          title: "Atenção",
-          description: "Por favor, leia e aceite os termos e condições",
+      // Verificar se há erro de email antes de prosseguir
+      if (emailError) {
+        showError("Por favor, corrija o erro de email antes de continuar", {
+          title: "Email inválido",
+          description: emailError,
         });
         return;
       }
 
-      // Criar objeto do participante
-      const participant: Participant = {
+      if (!values.sendTermsAndConditionsByEmail) {
+        const result = await confirm({
+          title: "Atenção: Termos e condições",
+          description:
+            "O Cadastro só estará ativa se o participante aceitar os termos e condições clicando no link enviado por email",
+          confirmText: "Continuar",
+          cancelText: "Cancelar",
+          destructive: false,
+        });
+
+        if (!result) {
+          return;
+        }
+      }
+
+      const participant: NewParticipant = {
         ...values,
-        id: `participant-${Date.now()}`,
-        status: "pending",
+        stageName: values.stageName || null,
+        phone: values.phone || null,
+        category: values.category || undefined,
+        experience: values.experience || undefined,
+        additionalInfo: values.additionalInfo || null,
+        specialNeedsDescription: values.specialNeedsDescription || null,
+        photoImageId: values.photoImageId || null,
         registrationDate: new Date(),
-        notes: "",
-        archived: false,
-        approvedAt: null,
-        approvedBy: null,
-        rejectedAt: null,
-        rejectedBy: null,
-        rejectionReason: null,
-        updatedAt: new Date(),
-        createdAt: new Date(),
-        age: null,
-        eventId: null,
-      } as Participant;
-      console.log(participant);
+        status: participantStatusEnum.enumValues[1],
+      };
 
-      // Chamar a mutação
-      // createParticipant(participant, {
-      //   onSuccess: () => {
-      //     showSuccess("Participante adicionado com sucesso!", {
-      //       title: "Sucesso",
-      //       description: "O participante foi registrado no sistema",
-      //     });
-
-      //     setParticipant(participant);
-      //     reset();
-      //     onClose();
-      //   },
-      //   onError: (error) => {
-      //     showError(
-      //       error instanceof Error
-      //         ? error.message
-      //         : "Erro ao adicionar participante",
-      //       {
-      //         title: "Erro",
-      //         description:
-      //           "Não foi possível adicionar o participante. Tente novamente.",
-      //       }
-      //     );
-      //   },
-      // });
+      createParticipant(participant, {
+        onSuccess: (response) => {
+          if (response.emailSent) {
+            showSuccess("Participante adicionado com sucesso!", {
+              title: "Sucesso",
+              description:
+                "O participante foi registrado no sistema e os termos foram enviados por email",
+            });
+          } else {
+            showSuccess("Participante adicionado com sucesso!", {
+              title: "Sucesso",
+              description: "O participante foi registrado no sistema",
+            });
+          }
+          setParticipant(response.data as Participant);
+          reset();
+          onClose();
+        },
+        onError: (error) => {
+          showError(
+            error instanceof Error
+              ? error.message
+              : "Erro ao adicionar participante",
+            {
+              title: "Erro",
+              description:
+                "Não foi possível adicionar o participante. Tente novamente.",
+            }
+          );
+        },
+      });
     } catch (error) {
       console.error("Erro ao processar participante:", error);
       showError("Erro inesperado ao processar os dados", {
@@ -222,14 +284,13 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
     }
   };
 
-  // Função para limpar e fechar modal
   const handleClose = useCallback(() => {
     reset();
     setShowValidationErrors(false);
+    setEmailError(null);
     onClose();
   }, [reset, onClose]);
 
-  // Função para validar antes de submeter
   const handleFormSubmit = form.handleSubmit(onSubmit, handleValidationErrors);
 
   return (
@@ -254,7 +315,7 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
                         <span className="font-medium">
                           {getFieldError(key)}:
                         </span>{" "}
-                        {(val as any)?.message || "Campo inválido"}
+                        {val?.message || "Campo inválido"}
                       </li>
                     ))}
                   </ul>
@@ -276,8 +337,18 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
                   </FormLabel>
                   <FormControl>
                     <DiscreteImageUpload
-                      value={field.value || ""}
-                      onChange={field.onChange}
+                      onFileChange={(file) => {
+                        if (file) {
+                          // Aqui você precisaria implementar o upload do arquivo
+                          // Por enquanto, vamos usar um placeholder
+                          field.onChange(file.id || "");
+                        } else {
+                          field.onChange("");
+                        }
+                      }}
+                      defaultAvatar={field.value || ""}
+                      showInstructions={true}
+                      size="24"
                     />
                   </FormControl>
                   <FormDescription>
@@ -352,17 +423,54 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
                     <FormLabel className="flex items-center gap-2">
                       <Mail className="w-4 h-4" />
                       E-mail *
+                      {isCheckingEmail && (
+                        <span className="text-xs text-blue-600 animate-pulse">
+                          Verificando...
+                        </span>
+                      )}
                     </FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        type="email"
-                        placeholder="exemplo@email.com"
-                        className={cn(
-                          "h-12",
-                          errors.email && "border-red-500 focus:ring-red-500"
+                      <div className="relative">
+                        <Input
+                          {...field}
+                          type="email"
+                          placeholder="exemplo@email.com"
+                          onBlur={(e) => {
+                            field.onBlur();
+                            handleEmailCheck(e.target.value);
+                          }}
+                          className={cn(
+                            "h-12 pr-10",
+                            errors.email && "border-red-500 focus:ring-red-500",
+                            emailError && "border-red-500 focus:ring-red-500"
+                          )}
+                        />
+                        {isCheckingEmail && (
+                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                          </div>
                         )}
-                      />
+                        {field.value &&
+                          field.value.length >= 5 &&
+                          !isCheckingEmail &&
+                          !emailError && (
+                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                              <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                                <svg
+                                  className="w-2 h-2 text-white"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                              </div>
+                            </div>
+                          )}
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -558,7 +666,7 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
                 <FormItem>
                   <div className="flex items-start space-x-3">
                     <FormControl>
-                      <Checkbox
+                      <Switch
                         checked={field.value}
                         onCheckedChange={(checked) =>
                           field.onChange(checked === true)
@@ -567,7 +675,7 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
                     </FormControl>
                     <div className="space-y-1">
                       <FormLabel className="cursor-pointer">
-                        Receber notificações por e-mail
+                        Aceitar Receber notificações por e-mail
                       </FormLabel>
                       <FormDescription>
                         Atualizações sobre inscrição, evento e futuros festivais
@@ -582,25 +690,28 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
             {/* Termos e Condições */}
             <FormField
               control={form.control}
-              name="acceptsTerms"
+              name="sendTermsAndConditionsByEmail"
               render={({ field }) => (
                 <FormItem>
                   <div className="flex items-start space-x-3">
                     <FormControl>
-                      <Checkbox
+                      <Switch
                         checked={field.value}
                         onCheckedChange={(checked) =>
                           field.onChange(checked === true)
                         }
-                        className={cn(errors.acceptsTerms && "border-red-500")}
                       />
                     </FormControl>
                     <div className="space-y-1">
-                      <FormLabel className="cursor-pointer">
-                        Li e aceito os termos e condições *
+                      <FormLabel
+                        htmlFor="acceptsTerms"
+                        className="cursor-pointer"
+                      >
+                        Envia termos e condições por email para participante
                       </FormLabel>
                       <FormDescription>
-                        Você deve aceitar os termos para continuar
+                        O Cadastro só estará ativa se o participante aceitar os
+                        termos e condições enviado por email
                       </FormDescription>
                     </div>
                   </div>
@@ -625,7 +736,13 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
             <Button
               type="submit"
               variant="primary"
-              disabled={isSubmitting || isPending || !isDirty}
+              disabled={
+                isSubmitting ||
+                isPending ||
+                !isDirty ||
+                !!emailError ||
+                isCheckingEmail
+              }
               className="flex-1 bg-verde-suave hover:bg-verde-suave/90"
             >
               {isSubmitting || isPending ? (
@@ -640,6 +757,7 @@ const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
           </div>
         </form>
       </Form>
+      <ConfirmDialog />
     </Modal>
   );
 };

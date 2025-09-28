@@ -2,34 +2,22 @@
 
 import { and, eq, sql } from "drizzle-orm";
 
+import { REGISTRATION_STATUS_ENUM } from "@/constants/enum";
 import { db } from "@/infra/database";
 import {
   eventRegistrations,
   events,
   participants,
+  uploads,
 } from "@/infra/database/schema";
 import { sendEmail } from "@/lib/mailer/resend";
 import RegistrationEventTemplate from "@/lib/mailer/templates/registration-event";
+import { Event } from "@/types";
 
-export interface PublicEvent {
-  id: string;
-  name: string;
-  description: string | null;
-  type: string;
-  category: string;
-  location: string;
-  maxParticipants: number | null;
-  currentParticipants: number;
-  startDate: Date;
-  endDate: Date | null;
-  registrationStartDate: Date | null;
-  registrationEndDate: Date | null;
-  status: string;
-  rules: string | null;
-  prizes: string | null;
-  rulesFileUrl: string | null;
+export interface PublicEvent extends Event {
   registrationStatus: "not_open" | "open" | "closed" | "full";
   canRegister: boolean;
+  rulesFileUrl?: string | null;
 }
 
 export interface EventRegistrationData {
@@ -45,7 +33,6 @@ export interface EventRegistrationData {
   hasSpecialNeeds: boolean;
   specialNeedsDescription?: string;
   acceptsEmailNotifications: boolean;
-  avatar?: string;
 }
 
 /**
@@ -65,6 +52,7 @@ export async function getPublicEvents(): Promise<{
         id: events.id,
         name: events.name,
         description: events.description,
+        subtitle: events.subtitle,
         type: events.type,
         category: events.category,
         location: events.location,
@@ -75,11 +63,20 @@ export async function getPublicEvents(): Promise<{
         registrationStartDate: events.registrationStartDate,
         registrationEndDate: events.registrationEndDate,
         status: events.status,
-        rules: events.rules,
+        isPublic: events.isPublic,
+        requiresApproval: events.requiresApproval,
+        approvalMode: events.approvalMode,
+        rulesText: events.rulesText,
+        rulesFileId: events.rulesFileId,
         prizes: events.prizes,
-        rulesFileUrl: events.rulesFileUrl,
+        notes: events.notes,
+        createdBy: events.createdBy,
+        createdAt: events.createdAt,
+        updatedAt: events.updatedAt,
+        rulesFileUrl: uploads.publicUrl,
       })
       .from(events)
+      .leftJoin(uploads, eq(events.rulesFileId, uploads.id))
       .where(
         and(
           eq(events.isPublic, true),
@@ -159,6 +156,7 @@ export async function getPublicEventById(eventId: string): Promise<{
         id: events.id,
         name: events.name,
         description: events.description,
+        subtitle: events.subtitle,
         type: events.type,
         category: events.category,
         location: events.location,
@@ -169,11 +167,20 @@ export async function getPublicEventById(eventId: string): Promise<{
         registrationStartDate: events.registrationStartDate,
         registrationEndDate: events.registrationEndDate,
         status: events.status,
-        rules: events.rules,
+        isPublic: events.isPublic,
+        requiresApproval: events.requiresApproval,
+        approvalMode: events.approvalMode,
+        rulesText: events.rulesText,
+        rulesFileId: events.rulesFileId,
         prizes: events.prizes,
-        rulesFileUrl: events.rulesFileUrl,
+        notes: events.notes,
+        createdBy: events.createdBy,
+        createdAt: events.createdAt,
+        updatedAt: events.updatedAt,
+        rulesFileUrl: uploads.publicUrl,
       })
       .from(events)
+      .leftJoin(uploads, eq(events.rulesFileId, uploads.id))
       .where(
         and(
           eq(events.id, eventId),
@@ -233,7 +240,6 @@ export async function getPublicEventById(eventId: string): Promise<{
         ...event,
         registrationStatus,
         canRegister,
-        rulesFileUrl: event.rulesFileUrl,
       },
     };
   } catch (error) {
@@ -288,12 +294,20 @@ export async function registerForEvent(data: EventRegistrationData): Promise<{
         .update(participants)
         .set({
           name: data.name,
-          stageName: (data as any).stageName || (participants as any).stageName,
+          stageName: data.stageName,
           phone: data.phone,
-          avatar: data.avatar,
-          category: data.category || (participants as any).category,
-          experience: data.experience || (participants as any).experience,
-          age: data.age ?? (participants as any).age,
+          category: data.category as
+            | "vocal"
+            | "band"
+            | "duo"
+            | "individual"
+            | null,
+          experience: data.experience as
+            | "no-experience"
+            | "amateur"
+            | "professional"
+            | null,
+          age: data.age,
           additionalInfo: data.additionalInfo,
           hasSpecialNeeds: data.hasSpecialNeeds,
           specialNeedsDescription: data.specialNeedsDescription,
@@ -326,12 +340,15 @@ export async function registerForEvent(data: EventRegistrationData): Promise<{
         .insert(participants)
         .values({
           name: data.name,
-          stageName: (data as any).stageName || null,
+          stageName: data.stageName || null,
           email: data.email,
           phone: data.phone,
-          avatar: data.avatar,
-          category: data.category || "livre",
-          experience: data.experience || "nao-tem-experiencia",
+          category:
+            (data.category as "vocal" | "band" | "duo" | "individual") ||
+            "individual",
+          experience:
+            (data.experience as "no-experience" | "amateur" | "professional") ||
+            "no-experience",
           age: data.age ?? null,
           additionalInfo: data.additionalInfo,
           hasSpecialNeeds: data.hasSpecialNeeds,
@@ -350,7 +367,7 @@ export async function registerForEvent(data: EventRegistrationData): Promise<{
       .values({
         eventId: data.eventId,
         participantId: participantId,
-        status: "registered",
+        status: REGISTRATION_STATUS_ENUM.registered,
       })
       .returning({ id: eventRegistrations.id });
 
@@ -394,6 +411,7 @@ export async function getAvailableEventsForRegistration(): Promise<{
         id: events.id,
         name: events.name,
         description: events.description,
+        subtitle: events.subtitle,
         type: events.type,
         category: events.category,
         location: events.location,
@@ -404,11 +422,20 @@ export async function getAvailableEventsForRegistration(): Promise<{
         registrationStartDate: events.registrationStartDate,
         registrationEndDate: events.registrationEndDate,
         status: events.status,
-        rules: events.rules,
+        isPublic: events.isPublic,
+        requiresApproval: events.requiresApproval,
+        approvalMode: events.approvalMode,
+        rulesText: events.rulesText,
+        rulesFileId: events.rulesFileId,
         prizes: events.prizes,
-        rulesFileUrl: events.rulesFileUrl,
+        notes: events.notes,
+        createdBy: events.createdBy,
+        createdAt: events.createdAt,
+        updatedAt: events.updatedAt,
+        rulesFileUrl: uploads.publicUrl,
       })
       .from(events)
+      .leftJoin(uploads, eq(events.rulesFileId, uploads.id))
       .where(
         and(
           eq(events.isPublic, true),

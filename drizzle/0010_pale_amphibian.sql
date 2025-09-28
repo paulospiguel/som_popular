@@ -1,0 +1,1 @@
+ALTER TABLE "participants" ADD COLUMN "registration_method" integer DEFAULT 1 NOT NULL;

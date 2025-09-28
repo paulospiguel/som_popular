@@ -285,7 +285,7 @@ export function EventModalNew({
       title={creating ? "Criar Evento" : "Detalhes do Evento"}
       subtitle={formValues.name || event?.name || ""}
       icon={<Calendar className="w-6 h-6 text-verde-suave" />}
-      size="xl"
+      size="large"
       headerActions={headerActions}
     >
       <ModalForm onSubmit={handleSubmit(handleFormSubmit)}>

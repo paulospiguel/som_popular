@@ -34,7 +34,7 @@ import { JudgeDetailsModal } from "@/app/(protected)/dashboard/events/components
 import { ParticipantDetailsModal } from "@/app/(protected)/dashboard/events/components/ParticipantDetailsModal";
 import { EventFileUpload } from "@/components/file-upload/event-file-upload";
 import { Modal } from "@/components/Modal";
-import { AvatarGroup } from "@/components/ui/avatar-group";
+import AvatarGroup from "@/components/ui/avatar-group";
 import { DateTimePicker } from "@/components/ui/date-picker";
 import {
   DropdownMenu,

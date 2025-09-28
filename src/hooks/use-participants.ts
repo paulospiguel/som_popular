@@ -1,10 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import type { NewParticipant, Participant } from "@/infra/database/schema";
+import { experienceLevelEnum } from "@/infra/database/enums";
+import type {
+  NewParticipant,
+  Participant,
+  participantCategoryEnum,
+  participantStatusEnum,
+} from "@/infra/database/schema";
 import { invalidateParticipantQueries } from "@/lib/query-client";
 import {
   approveParticipant,
+  checkEmailExists,
   createParticipant,
+  createParticipantWithTermsEmail,
   deleteParticipant,
   getAllParticipants,
   getApprovedParticipants,
@@ -31,9 +39,9 @@ export const participantKeys = {
 
 // Hook para buscar todos os participantes
 export function useParticipants(filters?: {
-  status?: string;
-  category?: string;
-  experience?: string;
+  status?: (typeof participantStatusEnum.enumValues)[number];
+  category?: (typeof participantCategoryEnum.enumValues)[number];
+  experience?: (typeof experienceLevelEnum.enumValues)[number];
   eventId?: string;
   search?: string | undefined;
 }) {
@@ -89,6 +97,19 @@ export function useCreateParticipant() {
   });
 }
 
+// Hook para criar participante com envio de email de termos
+export function useCreateParticipantWithTermsEmail() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: NewParticipant) => createParticipantWithTermsEmail(data),
+    onSuccess: () => {
+      invalidateParticipantQueries();
+      queryClient.invalidateQueries({ queryKey: participantKeys.list({}) });
+    },
+  });
+}
+
 // Hook para atualizar participante
 export function useUpdateParticipant() {
   const queryClient = useQueryClient();
@@ -111,7 +132,7 @@ export function useDeleteParticipant() {
 
   return useMutation({
     mutationFn: (id: string) => deleteParticipant(id),
-    onSuccess: (result, id) => {
+    onSuccess: (_, id) => {
       invalidateParticipantQueries();
       queryClient.removeQueries({ queryKey: participantKeys.detail(id) });
     },
@@ -161,7 +182,7 @@ export function useRegisterParticipantInEvent() {
       eventId: string;
       participantId: string;
     }) => registerParticipantInEvent(eventId, participantId),
-    onSuccess: (result, { eventId }) => {
+    onSuccess: (_, { eventId }) => {
       invalidateParticipantQueries();
       // Invalidar também as queries de eventos
       queryClient.invalidateQueries({ queryKey: ["events"] });
@@ -178,19 +199,38 @@ export function useRemoveParticipantFromEvent() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       eventId,
       participantId,
     }: {
       eventId: string;
       participantId: string;
-    }) => removeParticipantFromEvent(eventId, participantId),
-    onSuccess: (result, { eventId }) => {
+    }) => {
+      console.log("Hook: Iniciando remoção de participante", {
+        eventId,
+        participantId,
+      });
+      const result = await removeParticipantFromEvent(eventId, participantId);
+      console.log("Hook: Resultado da remoção", result);
+      return result;
+    },
+    onSuccess: (_, { eventId }) => {
+      console.log("Hook: Remoção bem-sucedida, invalidando queries");
       invalidateParticipantQueries();
       queryClient.invalidateQueries({ queryKey: ["events"] });
       queryClient.invalidateQueries({
         queryKey: participantKeys.eventParticipants(eventId),
       });
     },
+    onError: (error) => {
+      console.error("Hook: Erro na remoção de participante", error);
+    },
+  });
+}
+
+// Hook para verificar se email já existe
+export function useCheckEmailExists() {
+  return useMutation({
+    mutationFn: checkEmailExists,
   });
 }

@@ -5,6 +5,7 @@ import RegistrationEventTemplate, {
   RegistrationEvent,
 } from "./templates/registration-event";
 import { ResetPasswordTemplate } from "./templates/reset-password";
+import { SendAcceptTermsTemplate } from "./templates/send-accept-terms";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -90,6 +91,38 @@ export async function sendRegistrationEventEmail({
     from,
     to,
     subject: "Confirmação de Inscrição - Festival Som Popular",
+    html,
+  });
+}
+
+type SendAcceptTermsEmailArgs = {
+  to: string;
+  name: string;
+  participantId: string;
+};
+
+export async function sendAcceptTermsEmail({
+  to,
+  name,
+  participantId,
+}: SendAcceptTermsEmailArgs) {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error("RESEND_API_KEY não configurado");
+  }
+
+  const from = process.env.RESEND_FROM_EMAIL || "no-reply@your-domain.com";
+
+  const termsAndConditionsUrl = `${process.env.NEXT_PUBLIC_APP_URL}/accept-terms-and-conditions?participantId=${participantId}`;
+
+  // Renderizar o template React para HTML
+  const html = await render(
+    SendAcceptTermsTemplate({ name, termsAndConditionsUrl })
+  );
+
+  return await resend.emails.send({
+    from,
+    to,
+    subject: "Termos e Condições - Festival Som Popular",
     html,
   });
 }

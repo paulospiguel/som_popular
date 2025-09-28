@@ -2,6 +2,11 @@
 
 import { z } from "zod";
 
+import {
+  experienceLevelEnum,
+  participantCategoryEnum,
+} from "@/infra/database/enums";
+
 export const participantFormSchema = z
   .object({
     name: z
@@ -105,23 +110,13 @@ export const participantRegistrationSchema = z
       .string()
       .max(100, "Nome artístico deve ter no máximo 100 caracteres")
       .optional(),
-    email: z
-      .string()
-      .min(1, "Email é obrigatório")
-      .email("Email inválido")
-      .max(255, "Email deve ter no máximo 255 caracteres"),
+    email: z.email("Email inválido"),
     phone: z
       .string()
       .max(20, "Telefone deve ter no máximo 20 caracteres")
       .optional(),
-    category: z
-      .string()
-      .max(50, "Categoria deve ter no máximo 50 caracteres")
-      .optional(),
-    experience: z
-      .string()
-      .max(50, "Experiência deve ter no máximo 50 caracteres")
-      .optional(),
+    category: z.enum(participantCategoryEnum.enumValues).optional(),
+    experience: z.enum(experienceLevelEnum.enumValues).optional(),
     additionalInfo: z
       .string()
       .max(500, "Informações adicionais devem ter no máximo 500 caracteres")

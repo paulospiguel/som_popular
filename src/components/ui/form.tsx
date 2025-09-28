@@ -1,4 +1,5 @@
 import { Slot } from "@radix-ui/react-slot";
+import { AlertCircle } from "lucide-react";
 import * as React from "react";
 import {
   Controller,
@@ -97,15 +98,20 @@ FormItem.displayName = "FormItem";
 
 const FormLabel = React.forwardRef<
   HTMLLabelElement,
-  React.LabelHTMLAttributes<HTMLLabelElement>
->(({ className, ...props }, ref) => {
+  React.LabelHTMLAttributes<HTMLLabelElement> & { isRequired?: boolean }
+>(({ className, isRequired, ...props }, ref) => {
   const { formItemId } = useFormField();
   return (
     <label
       ref={ref}
-      className={cn("block text-sm font-medium", className)}
+      className={cn(
+        "block text-sm font-medium",
+        className,
+        isRequired && "after:content-['*'] after:text-red-500 after:ml-1"
+      )}
       htmlFor={formItemId}
       {...props}
+      {...(isRequired && { "aria-required": true })}
     />
   );
 });
@@ -138,18 +144,24 @@ FormDescription.displayName = "FormDescription";
 
 const FormMessage = React.forwardRef<
   HTMLParagraphElement,
-  React.HTMLAttributes<HTMLParagraphElement>
+  React.HTMLAttributes<HTMLParagraphElement> & { icon?: React.ElementType }
 >(({ className, children, ...props }, ref) => {
   const { formMessageId, error } = useFormField();
   const body = error ? String(error.message) : children;
   if (!body) return null;
+
+  const Icon = props.icon || AlertCircle;
   return (
     <p
       ref={ref}
       id={formMessageId}
-      className={cn("text-sm font-medium text-red-500", className)}
+      className={cn(
+        "text-sm font-medium text-red-500 flex items-center gap-1",
+        className
+      )}
       {...props}
     >
+      {Icon && <Icon className="w-4 h-4" />}
       {body}
     </p>
   );

@@ -11,15 +11,15 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Modal } from "@/components/Modal";
+import { REGISTRATION_METHODS } from "@/constants";
 import { Participant } from "@/infra/database/schema";
+import { getCategoryText, getExperienceText } from "@/lib/utils";
 import {
   approveParticipant,
   deactivateParticipant,
   getParticipantDetails,
   rejectParticipant,
 } from "@/server/participants";
-
-import { getCategoryText, getExperienceText } from "@/lib/utils";
 
 interface ParticipantDetailsModalProps {
   participant: Participant;
@@ -307,14 +307,28 @@ export default function ParticipantDetailsModal({
                     Modalidade de Inscrição
                   </label>
                   <p className="font-semibold">
-                    {participant?.createdAt &&
-                    participant?.registrationDate &&
-                    Math.abs(
-                      new Date(participant.createdAt).getTime() -
-                        new Date(participant.registrationDate).getTime()
-                    ) < 60000
-                      ? "Automática"
-                      : "Online"}
+                    {(() => {
+                      if (participant?.registrationMethod) {
+                        const method = REGISTRATION_METHODS.find(
+                          (m) => m.value === participant.registrationMethod
+                        );
+                        return method?.label || "Desconhecido";
+                      }
+
+                      // Fallback para compatibilidade com registros antigos
+                      if (
+                        participant?.createdAt &&
+                        participant?.registrationDate &&
+                        Math.abs(
+                          new Date(participant.createdAt).getTime() -
+                            new Date(participant.registrationDate).getTime()
+                        ) < 60000
+                      ) {
+                        return "Automática";
+                      }
+
+                      return "Online";
+                    })()}
                   </p>
                 </div>
                 <div>

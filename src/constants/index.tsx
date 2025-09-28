@@ -65,9 +65,9 @@ export const EVENT_STATUSES = [
     color: "text-red-600 bg-red-100",
   },
   {
-    label: "Arquivado",
+    label: "Inativado",
     icon: Archive,
-    value: "archived",
+    value: "deactivated",
     color: "text-gray-600 bg-gray-100",
   },
   {
@@ -92,36 +92,60 @@ export const EVENT_STATUSES = [
 
 export const PARTICIPANT_CATEGORIES = [
   { label: "Vocal", value: "vocal" },
-  { label: "Banda", value: "banda" },
-  { label: "Dupla", value: "dupla" },
+  { label: "Banda", value: "band" },
+  { label: "Dupla", value: "duo" },
   { label: "Individual", value: "individual" },
 ] as const;
 
 export const EVENT_TYPES = [
   { label: "Festival", value: "festival" },
-  { label: "Classificatória", value: "classificatoria" },
+  { label: "Classificatória", value: "qualifying" },
   { label: "Semi-Final", value: "semi-final" },
   { label: "Final", value: "final" },
 ] as const;
 
 export const EXPERIENCE_LEVELS = [
-  { label: "Não tem experiência", value: "nao-tem-experiencia" },
-  { label: "Amador", value: "amador" },
-  { label: "Profissional", value: "profissional" },
+  { label: "Não tem experiência", value: "no-experience" },
+  { label: "Amador", value: "amateur" },
+  { label: "Profissional", value: "professional" },
 ] as const;
 
 export const EVENT_CATEGORIES = [
   { label: "Rock", value: "rock" },
   { label: "Pop", value: "pop" },
-  { label: "Sertanejo", value: "sertanejo" },
-  { label: "Música Popular", value: "musica-popular" },
-  { label: "Livre", value: "livre" },
+  { label: "Sertanejo", value: "country" },
+  { label: "Música Popular", value: "popular-music" },
+  { label: "Livre", value: "free" },
 ] as const;
 
 export enum APPROVAL_MODES_VALUES {
   AUTOMATIC = "automatic",
   MANUAL = "manual",
 }
+
+export enum REGISTRATION_METHOD {
+  AUTOMATIC,
+  ONLINE,
+  PLATFORM,
+}
+
+export const REGISTRATION_METHODS = [
+  {
+    label: "Online",
+    value: REGISTRATION_METHOD.ONLINE,
+    description: "Cadastro feito pelo próprio usuário",
+  },
+  {
+    label: "Via Plataforma",
+    value: REGISTRATION_METHOD.PLATFORM,
+    description: "Cadastro feito por operador na plataforma",
+  },
+  {
+    label: "Automática",
+    value: REGISTRATION_METHOD.AUTOMATIC,
+    description: "Cadastro automático do sistema",
+  },
+] as const;
 
 export const APPROVAL_MODES = [
   {

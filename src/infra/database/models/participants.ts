@@ -8,6 +8,13 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 
+import {
+  experienceLevelEnum,
+  participantCategoryEnum,
+  participantStatusEnum,
+  registrationMethodEnum,
+} from "../enums";
+
 import { uploads } from "./uploads";
 
 /**
@@ -29,14 +36,16 @@ export const participants = pgTable("participants", {
     }
   ),
   age: integer("age"),
-  category: varchar("category", { length: 100 }).notNull(),
-  experience: varchar("experience", { length: 100 }).notNull(),
+  category: participantCategoryEnum("category"),
+  experience: experienceLevelEnum("experience"),
   additionalInfo: text("additional_info"),
   hasSpecialNeeds: boolean("has_special_needs").notNull().default(false),
   specialNeedsDescription: text("special_needs_description"),
-  status: varchar("status", { length: 50 }).notNull().default("approved"),
+  status: participantStatusEnum("status")
+    .notNull()
+    .default(participantStatusEnum.enumValues[0]),
   rejectionReason: text("rejection_reason"),
-  archived: boolean("archived").notNull().default(false),
+  isActive: boolean("is_active").notNull().default(true),
   acceptsEmailNotifications: boolean("accepts_email_notifications")
     .notNull()
     .default(false),
@@ -48,6 +57,9 @@ export const participants = pgTable("participants", {
   rejectedAt: timestamp("rejected_at", { withTimezone: true }),
   rejectedBy: varchar("rejected_by", { length: 128 }),
   notes: text("notes"),
+  registrationMethod: registrationMethodEnum("registration_method")
+    .notNull()
+    .default(registrationMethodEnum.enumValues[0]),
   createdAt: timestamp("created_at", { withTimezone: true }).$defaultFn(
     () => new Date()
   ),

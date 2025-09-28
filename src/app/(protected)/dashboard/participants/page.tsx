@@ -17,7 +17,7 @@ import { useEffect, useState } from "react";
 import { DataTable } from "@/components/DataTable";
 import Loading from "@/components/loading";
 import { useParticipants } from "@/hooks/use-participants";
-import { Participant } from "@/infra/database/schema";
+import { Participant, participantStatusEnum } from "@/infra/database/schema";
 import { useSession } from "@/lib/auth-client";
 import {
   getCategoryText,
@@ -30,6 +30,11 @@ import {
 import AddParticipantModal from "./components/add-new";
 import ParticipantDetailsModal from "./components/participant-detail";
 
+const INACTIVATED_STATUS = participantStatusEnum.enumValues[2];
+const PENDING_STATUS = participantStatusEnum.enumValues[1];
+const APPROVED_STATUS = participantStatusEnum.enumValues[0];
+const REJECTED_STATUS = participantStatusEnum.enumValues[2];
+
 export default function ParticipantsManagement() {
   const searchParams = useSearchParams();
   const { isPending } = useSession();
@@ -41,7 +46,7 @@ export default function ParticipantsManagement() {
 
   const activeParticipants = participants?.data ?? [];
 
-  const handleArchiveParticipant = (id: string) => {
+  const handleInactivateParticipant = (id: string) => {
     // setParticipants((prev) =>
     //   prev.map((p) =>
     //     p.id === id ? { ...p, archived: true, updatedAt: new Date() } : p
@@ -167,10 +172,15 @@ export default function ParticipantsManagement() {
   const stats = {
     total: participants?.data?.length ?? 0,
     active: activeParticipants.length,
-    pending: activeParticipants.filter((p) => p.status === "pending").length,
-    approved: activeParticipants.filter((p) => p.status === "approved").length,
-    rejected: activeParticipants.filter((p) => p.status === "rejected").length,
-    archived: participants?.data?.filter((p) => p.archived).length ?? 0,
+    pending: activeParticipants.filter((p) => p.status === PENDING_STATUS)
+      .length,
+    approved: activeParticipants.filter((p) => p.status === APPROVED_STATUS)
+      .length,
+    rejected: activeParticipants.filter((p) => p.status === REJECTED_STATUS)
+      .length,
+    inactivated:
+      participants?.data?.filter((p) => p.status === INACTIVATED_STATUS)
+        .length ?? 0,
   };
 
   if (isPending || loading) {
@@ -233,7 +243,7 @@ export default function ParticipantsManagement() {
                     Participantes
                   </p>
                   <p className="text-lg font-bold text-cinza-chumbo">
-                    {stats.active + stats.archived}
+                    {stats.active + stats.inactivated}
                   </p>
                 </div>
                 <div className="p-2 bg-verde-suave/10 rounded-lg">
@@ -255,10 +265,10 @@ export default function ParticipantsManagement() {
                 <div className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-1">
                     <div className="w-2 h-2 rounded-full bg-gray-400"></div>
-                    <span className="text-cinza-chumbo/70">Arquivados</span>
+                    <span className="text-cinza-chumbo/70">Inativados</span>
                   </div>
                   <span className="font-medium text-gray-500">
-                    {stats.archived}
+                    {stats.inactivated}
                   </span>
                 </div>
               </div>
@@ -327,7 +337,7 @@ export default function ParticipantsManagement() {
             searchPlaceholder="Pesquisar por nº de inscrição, nome, email ou categoria..."
             emptyMessage="Nenhum participante encontrado."
             emptyIcon={<Users className="w-12 h-12 text-cinza-chumbo/30" />}
-            onArchive={handleArchiveParticipant}
+            onArchive={handleInactivateParticipant}
             orderBy={[
               { field: "registrationDate", direction: "desc" },
               { field: "name", direction: "asc" },

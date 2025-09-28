@@ -64,6 +64,20 @@
       "when": 1758563476601,
       "tag": "0008_fuzzy_outlaw_kid",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1758995181000,
+      "tag": "0009_freezing_banshee",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1759006623293,
+      "tag": "0010_pale_amphibian",
+      "breakpoints": true
     }
   ]
 }

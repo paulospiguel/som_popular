@@ -9,6 +9,15 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { user } from "../auth-schema";
+import {
+  approvalModeEnum,
+  evaluationSessionStatusEnum,
+  eventCategoryEnum,
+  eventStatusEnum,
+  eventTypeEnum,
+  logSeverityEnum,
+  registrationStatusEnum,
+} from "../enums";
 
 import { participants } from "./participants";
 import { uploads } from "./uploads";
@@ -23,8 +32,8 @@ export const events = pgTable("events", {
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   subtitle: varchar("subtitle", { length: 255 }),
-  type: varchar("type", { length: 100 }).notNull(),
-  category: varchar("category", { length: 100 }).notNull(),
+  type: eventTypeEnum("type").notNull(),
+  category: eventCategoryEnum("category").notNull(),
   location: varchar("location", { length: 255 }).notNull(),
   maxParticipants: integer("max_participants"),
   currentParticipants: integer("current_participants").notNull().default(0),
@@ -36,10 +45,10 @@ export const events = pgTable("events", {
   registrationEndDate: timestamp("registration_end_date", {
     withTimezone: true,
   }),
-  status: varchar("status", { length: 50 }).notNull().default("draft"),
+  status: eventStatusEnum("status").notNull().default("draft"),
   isPublic: boolean("is_public").notNull().default(true),
   requiresApproval: boolean("requires_approval").notNull().default(false),
-  approvalMode: varchar("approval_mode", { length: 50 })
+  approvalMode: approvalModeEnum("approval_mode")
     .notNull()
     .default("automatic"),
   rulesText: text("rules_text"),
@@ -77,7 +86,7 @@ export const eventRegistrations = pgTable("event_registrations", {
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
-  status: varchar("status", { length: 50 }).notNull().default("pending"),
+  status: registrationStatusEnum("status").notNull().default("pending"),
   registeredAt: timestamp("registered_at", { withTimezone: true }).$defaultFn(
     () => new Date()
   ),
@@ -108,7 +117,7 @@ export const eventLogs = pgTable("event_logs", {
   performedBy: varchar("performed_by", { length: 128 }),
   ipAddress: varchar("ip_address", { length: 45 }),
   userAgent: text("user_agent"),
-  severity: varchar("severity", { length: 50 }).notNull().default("info"),
+  severity: logSeverityEnum("severity").notNull().default("none"),
   createdAt: timestamp("created_at", { withTimezone: true }).$defaultFn(
     () => new Date()
   ),
@@ -131,7 +140,7 @@ export const evaluationSessions = pgTable("evaluation_sessions", {
       onUpdate: "cascade",
     }),
   sessionName: varchar("session_name", { length: 255 }).notNull(),
-  status: varchar("status", { length: 50 }).notNull().default("active"),
+  status: evaluationSessionStatusEnum("status").notNull().default("active"),
   startedAt: timestamp("started_at", { withTimezone: true }).$defaultFn(
     () => new Date()
   ),

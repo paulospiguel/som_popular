@@ -1,24 +1,33 @@
 "use server";
 
-import { and, eq, getTableColumns, ilike } from "drizzle-orm";
+import { and, eq, getTableColumns, ilike, SQL } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
+import {
+  PARTICIPANT_STATUS_ENUM,
+  REGISTRATION_METHOD_ENUM,
+  REGISTRATION_STATUS_ENUM,
+} from "@/constants/enum";
 import { db } from "@/infra/database";
 import {
   eventRegistrations,
   events,
+  experienceLevelEnum,
   NewParticipant,
   Participant,
+  participantCategoryEnum,
   participants,
+  participantStatusEnum,
   uploads,
 } from "@/infra/database/schema";
 import { requireAdmin } from "@/lib/action-guards";
 import { sendEmail } from "@/lib/mailer/resend";
+import { SendAcceptTermsTemplate } from "@/lib/mailer/templates/send-accept-terms";
 
-type filters = {
-  status?: string;
-  category?: string;
-  experience?: string;
+export type ParticipantFilters = {
+  status?: (typeof participantStatusEnum.enumValues)[number];
+  category?: (typeof participantCategoryEnum.enumValues)[number];
+  experience?: (typeof experienceLevelEnum.enumValues)[number];
   search?: string | undefined;
   eventId?: string;
 };
@@ -26,48 +35,9 @@ type filters = {
 /**
  * Buscar todos os participantes aprovados
  */
-export async function getApprovedParticipants(filters?: filters) {
+export async function getApprovedParticipants(filters?: ParticipantFilters) {
   try {
-    const whereClause: any = {};
-
-    if (filters?.status) {
-      whereClause.status = eq(participants.status, filters.status);
-    }
-
-    if (filters?.category) {
-      whereClause.category = eq(participants.category, filters.category);
-    }
-
-    if (filters?.experience) {
-      whereClause.experience = eq(participants.experience, filters.experience);
-    }
-
-    if (filters?.search) {
-      whereClause.search = ilike(participants.name, `%${filters.search}%`);
-    }
-
-    if (filters?.eventId) {
-      whereClause.eventId = eq(eventRegistrations.eventId, filters.eventId);
-    }
-
-    const approvedParticipants = await db
-      .select()
-      .from(participants)
-      .where(whereClause);
-
-    return { success: true, data: approvedParticipants };
-  } catch (error) {
-    console.error("Erro ao buscar participantes aprovados:", error);
-    return { success: false, error: "Erro ao buscar participantes" };
-  }
-}
-
-/**
- * Buscar todos os participantes (qualquer status)
- */
-export async function getAllParticipants(filters?: filters) {
-  try {
-    const whereClause: any[] = [];
+    const whereClause: SQL[] = [];
 
     if (filters?.status) {
       whereClause.push(eq(participants.status, filters.status));
@@ -89,18 +59,75 @@ export async function getAllParticipants(filters?: filters) {
       whereClause.push(eq(eventRegistrations.eventId, filters.eventId));
     }
 
+    const approvedParticipants = await db
+      .select()
+      .from(participants)
+      .where(whereClause.length > 0 ? and(...whereClause) : undefined);
+
+    return { success: true, data: approvedParticipants };
+  } catch (error) {
+    console.error("Erro ao buscar participantes aprovados:", error);
+    return { success: false, error: "Erro ao buscar participantes" };
+  }
+}
+
+/**
+ * Buscar todos os participantes (qualquer status)
+ */
+export async function getAllParticipants(filters?: ParticipantFilters) {
+  try {
+    const whereClause: SQL[] = [];
+
+    if (filters?.status) {
+      whereClause.push(eq(participants.status, filters.status));
+    }
+
+    if (filters?.category) {
+      whereClause.push(eq(participants.category, filters.category));
+    }
+
+    if (filters?.experience) {
+      whereClause.push(eq(participants.experience, filters.experience));
+    }
+
+    if (filters?.search) {
+      whereClause.push(ilike(participants.name, `%${filters.search}%`));
+    }
+
+    // Se há filtro por eventId, usar uma abordagem diferente para evitar duplicatas
+    if (filters?.eventId) {
+      const eventParticipants = await db
+        .select({
+          ...getTableColumns(participants),
+          photoImage: uploads,
+        })
+        .from(participants)
+        .leftJoin(uploads, eq(participants.photoImageId, uploads.id))
+        .innerJoin(
+          eventRegistrations,
+          eq(participants.id, eventRegistrations.participantId)
+        )
+        .where(
+          and(eq(eventRegistrations.eventId, filters.eventId), ...whereClause)
+        );
+
+      return {
+        success: true,
+        data: eventParticipants.map((item) => ({
+          ...item,
+          photoImage: item.photoImage,
+        })),
+      };
+    }
+
+    // Para outros filtros, usar a query original
     const allParticipants = await db
       .select({
         ...getTableColumns(participants),
         photoImage: uploads,
-        registration: eventRegistrations,
       })
       .from(participants)
       .leftJoin(uploads, eq(participants.photoImageId, uploads.id))
-      .leftJoin(
-        eventRegistrations,
-        eq(participants.id, eventRegistrations.participantId)
-      )
       .where(whereClause.length > 0 ? and(...whereClause) : undefined);
 
     return {
@@ -145,7 +172,6 @@ export async function approveParticipant(participantId: string) {
       });
     } catch (e) {
       console.error("Falha ao enviar email de aprovação:", e);
-      // não falhar a ação por causa do email
     }
 
     revalidatePath("/dashboard/participants");
@@ -210,7 +236,12 @@ export async function deactivateParticipant(
 
     const [updated] = await db
       .update(participants)
-      .set({ archived: true, notes: reason, updatedAt: new Date() })
+      .set({
+        isActive: false,
+        notes: reason,
+        updatedAt: new Date(),
+        status: PARTICIPANT_STATUS_ENUM.rejected,
+      })
       .where(eq(participants.id, participantId))
       .returning();
 
@@ -329,7 +360,7 @@ export async function registerParticipantInEvent(
       .values({
         eventId,
         participantId,
-        status: "registered",
+        status: REGISTRATION_STATUS_ENUM.registered,
         registeredAt: new Date(),
       })
       .returning();
@@ -356,10 +387,26 @@ export async function removeParticipantFromEvent(
   participantId: string
 ) {
   try {
-    // Verificar permissões de admin
     await requireAdmin();
 
-    await db
+    const existingRegistration = await db
+      .select()
+      .from(eventRegistrations)
+      .where(
+        and(
+          eq(eventRegistrations.eventId, eventId),
+          eq(eventRegistrations.participantId, participantId)
+        )
+      );
+
+    if (existingRegistration.length === 0) {
+      return {
+        success: false,
+        error: "Participante não está inscrito neste evento",
+      };
+    }
+
+    const result = await db
       .delete(eventRegistrations)
       .where(
         and(
@@ -367,6 +414,13 @@ export async function removeParticipantFromEvent(
           eq(eventRegistrations.participantId, participantId)
         )
       );
+
+    if (result.length === 0) {
+      return {
+        success: false,
+        error: "Participante não está inscrito neste evento",
+      };
+    }
 
     revalidatePath("/dashboard/events");
     return {
@@ -382,46 +436,124 @@ export async function removeParticipantFromEvent(
 }
 
 /**
+ * Verificar se email já existe
+ */
+export async function checkEmailExists(email: string) {
+  try {
+    const existingParticipant = await db
+      .select({ id: participants.id })
+      .from(participants)
+      .where(eq(participants.email, email))
+      .limit(1);
+
+    return { success: true, exists: existingParticipant.length > 0 };
+  } catch (error) {
+    console.error("Erro ao verificar email:", error);
+    return { success: false, error: "Erro ao verificar email" };
+  }
+}
+
+/**
  * Criar participante
  */
 export async function createParticipant(participant: NewParticipant) {
   try {
     await requireAdmin();
 
-    console.log("participant", participant);
+    // Verificar se email já existe
+    const emailCheck = await checkEmailExists(participant.email);
+    if (!emailCheck.success) {
+      return { success: false, error: emailCheck.error };
+    }
+    if (emailCheck.exists) {
+      return {
+        success: false,
+        error: "Este email já está cadastrado no sistema",
+      };
+    }
 
-    return { success: true, data: participant };
+    // Inserir participante no banco de dados marcando como cadastro via plataforma
+    const [newParticipant] = await db
+      .insert(participants)
+      .values({
+        ...participant,
+        registrationMethod: REGISTRATION_METHOD_ENUM.platform,
+      })
+      .returning();
+
+    revalidatePath("/dashboard/participants");
+    return { success: true, data: newParticipant };
   } catch (error) {
     console.error("Erro ao criar participante:", error);
     return { success: false, error: "Erro ao criar participante" };
   }
+}
 
-  //   // Validação segura (não lança)
-  //   const parsed = participantFormSchema.safeParse(participant);
-  //   if (!parsed.success) {
-  //     const fieldErrors = parsed.error.flatten().fieldErrors; // { campo?: ["mensagem"] }
-  //     return {
-  //       success: false as const,
-  //       error: "Dados inválidos",
-  //       errors: fieldErrors,
-  //       status: 400 as const,
-  //     };
-  //   }
+/**
+ * Criar participante com envio de email de termos e condições
+ */
+export async function createParticipantWithTermsEmail(
+  participant: NewParticipant
+) {
+  try {
+    await requireAdmin();
 
-  //   const [newParticipant] = await db
-  //     .insert(participants)
-  //     .values(parsed.data as NewParticipant)
-  //     .returning();
+    // Verificar se email já existe
+    const emailCheck = await checkEmailExists(participant.email);
+    if (!emailCheck.success) {
+      return { success: false, error: emailCheck.error };
+    }
+    if (emailCheck.exists) {
+      return {
+        success: false,
+        error: "Este email já está cadastrado no sistema",
+      };
+    }
 
-  //   return { success: true as const, data: newParticipant };
-  // } catch (error) {
-  //   console.error("Erro ao criar participante:", error);
-  //   return {
-  //     success: false as const,
-  //     error: "Erro ao criar participante",
-  //     status: 500 as const,
-  //   };
-  // }
+    // Inserir participante no banco de dados marcando como cadastro via plataforma
+    const [newParticipant] = await db
+      .insert(participants)
+      .values({
+        ...participant,
+        registrationMethod: REGISTRATION_METHOD_ENUM.platform,
+      })
+      .returning();
+
+    // Tentar enviar email de termos e condições
+    try {
+      await sendEmail({
+        to: newParticipant.email,
+        subject: "Termos e Condições - Festival Som Popular",
+        text: `Olá ${newParticipant.name}, para aceitar os termos e condições, acesse: ${process.env.NEXT_PUBLIC_APP_URL}/accept-terms-and-conditions?participantId=${newParticipant.id}`,
+        template: SendAcceptTermsTemplate({
+          name: newParticipant.name,
+          termsAndConditionsUrl: `${process.env.NEXT_PUBLIC_APP_URL}/accept-terms-and-conditions?participantId=${newParticipant.id}`,
+        }),
+      });
+
+      revalidatePath("/dashboard/participants");
+      return { success: true, data: newParticipant, emailSent: true };
+    } catch (emailError) {
+      console.error("Erro ao enviar email de termos:", emailError);
+
+      // Se o email falhar, deletar o participante criado
+      await db
+        .delete(participants)
+        .where(eq(participants.id, newParticipant.id));
+
+      return {
+        success: false,
+        error: "Erro ao enviar email de termos e condições",
+        emailError:
+          emailError instanceof Error
+            ? emailError.message
+            : "Erro desconhecido no envio de email",
+      };
+    }
+  } catch (error) {
+    console.error("Erro ao criar participante:", error);
+    return { success: false, error: "Erro ao criar participante" };
+  }
 }
 
 /**
