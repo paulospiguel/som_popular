@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatTimeAgo } from "@/lib/utils";
-import { getLogsStats, getSystemLogs } from "@/server/logs";
+import { getLogsStats, getSystemLogs } from "@/server/logs.actions";
 
 interface LogEntry {
   id: string;

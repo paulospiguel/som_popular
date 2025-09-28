@@ -16,7 +16,10 @@ import { useEffect, useState } from "react";
 
 import { ROLES } from "@/constants";
 import { useSession } from "@/lib/auth-client";
-import { getDashboardStats, type DashboardStats } from "@/server/dashboard";
+import {
+  getDashboardStats,
+  type DashboardStats,
+} from "@/server/dashboard.actions";
 
 const CARDS = [
   {

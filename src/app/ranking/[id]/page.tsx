@@ -20,7 +20,10 @@ import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { getEventRanking, type EventRankingData } from "@/server/rankings";
+import {
+  getEventRanking,
+  type EventRankingData,
+} from "@/server/rankings.actions";
 
 const PHASE_STATUS_COLORS = {
   draft: "bg-gray-100 text-gray-800",

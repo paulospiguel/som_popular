@@ -16,7 +16,10 @@ import { useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getPublicEvents, type PublicEvent } from "@/server/events-public";
+import {
+  getPublicEvents,
+  type PublicEvent,
+} from "@/server/events-public.actions";
 
 const EVENT_TYPE_LABELS = {
   classificatoria: "Classificatória",

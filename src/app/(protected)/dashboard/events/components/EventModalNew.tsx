@@ -13,7 +13,11 @@ import { Label } from "@/components/ui/label";
 import { APPROVAL_MODES_VALUES } from "@/constants";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useSonner } from "@/hooks/use-sonner";
-import { copyEvent, deleteEvent, updateEvent } from "@/server/events";
+import {
+  copyEvent,
+  deleteEvent,
+  updateEvent,
+} from "@/server/events/index.actions";
 import { Event } from "@/types";
 import { EventFormData, eventFormSchema } from "@/validators/events";
 

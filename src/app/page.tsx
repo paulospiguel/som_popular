@@ -6,7 +6,7 @@ import EventsSection from "@/components/EventsSection";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import { Ripple } from "@/components/magicui/ripple";
-import { getHomePageSettings } from "@/server/settings";
+import { getHomePageSettings } from "@/server/settings.actions";
 
 export default async function Home() {
   // Buscar configurações da página principal

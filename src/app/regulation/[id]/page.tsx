@@ -6,7 +6,10 @@ import { useEffect, useState } from "react";
 
 import PDFViewer from "@/components/PDFViewer";
 import { Button } from "@/components/ui/button";
-import { getPublicEventById, PublicEvent } from "@/server/events-public";
+import {
+  getPublicEventById,
+  PublicEvent,
+} from "@/server/events-public.actions";
 
 interface RegulationPageProps {
   params: Promise<{

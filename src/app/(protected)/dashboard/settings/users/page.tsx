@@ -25,7 +25,7 @@ import {
   setUserActiveAction,
   updateUserRoleAction,
   type AppUser,
-} from "@/server/users";
+} from "@/server/users.actions";
 
 export default function UsersSettingsPage() {
   const router = useRouter();

@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 
-import { generateContent } from "@/server/ai/generate";
+import { generateContent } from "@/server/ai/generate.actions";
 
 const useAIGenerate = () => {
   return useMutation({

@@ -1,4 +1,4 @@
-import { getUploadById } from "@/server/uploads";
+import { getUploadById } from "@/server/uploads.actions";
 
 /**
  * Busca informações de upload por ID

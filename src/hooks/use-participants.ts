@@ -22,7 +22,7 @@ import {
   rejectParticipant,
   removeParticipantFromEvent,
   updateParticipant,
-} from "@/server/participants";
+} from "@/server/participants.actions";
 
 // Query Keys
 export const participantKeys = {

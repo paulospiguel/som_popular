@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { requireMaster } from "@/lib/action-guards";
-import { getHomePageSettings, updateHomePageSettings } from "@/server/settings";
+import {
+  getHomePageSettings,
+  updateHomePageSettings,
+} from "@/server/settings.actions";
 
 export async function GET() {
   try {

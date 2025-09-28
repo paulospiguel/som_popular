@@ -39,14 +39,18 @@ import { ROLES } from "@/constants";
 import { Event as EventType, Judge } from "@/infra/database/schema";
 import { useSession } from "@/lib/auth-client";
 import { getStatusText } from "@/lib/utils";
-import { getEventById } from "@/server/events";
 import {
   createEvaluation,
   getEventEvaluationStats,
   getEventParticipantsWithEvaluations,
   publishEventResults,
-} from "@/server/events/evaluations";
-import { addJudgeToEvent, createJudge, getEventJudges } from "@/server/judges";
+} from "@/server/events/evaluations.actions";
+import { getEventById } from "@/server/events/index.actions";
+import {
+  addJudgeToEvent,
+  createJudge,
+  getEventJudges,
+} from "@/server/judges.actions";
 
 interface Participant {
   id: string;

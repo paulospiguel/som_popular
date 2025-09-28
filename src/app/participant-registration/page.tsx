@@ -43,11 +43,11 @@ import { FileWithPreview } from "@/hooks/use-file-upload";
 import {
   getAvailableEventsForRegistration,
   getRegistrationByEmail,
-} from "@/server/events-public";
+} from "@/server/events-public.actions";
 import {
   getParticipantByEmail,
   registerParticipant,
-} from "@/server/participants-public";
+} from "@/server/participants-public.actions";
 import {
   ParticipantRegistrationFormData,
   participantRegistrationSchema,

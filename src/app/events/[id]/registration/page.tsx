@@ -38,7 +38,7 @@ import {
   registerForEvent,
   type EventRegistrationData,
   type PublicEvent,
-} from "@/server/events-public";
+} from "@/server/events-public.actions";
 
 type FormValues = {
   name: string;

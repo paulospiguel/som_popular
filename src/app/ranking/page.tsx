@@ -13,13 +13,13 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getAllEventRankings } from "@/server/rankings";
+import { getAllEventRankings } from "@/server/rankings.actions";
 
 const EVENT_TYPE_LABELS = {
   classificatoria: "Classificatória",
@@ -68,7 +68,9 @@ export default function RankingPage() {
     // Primeiro, verificar se o modo único evento está ativo
     const checkSingleEventMode = async () => {
       try {
-        const res = await fetch("/api/settings/homepage", { cache: "no-store" });
+        const res = await fetch("/api/settings/homepage", {
+          cache: "no-store",
+        });
         if (res.ok) {
           const s = await res.json();
           if (s?.singleEventMode && s?.singleEventId) {
@@ -144,7 +146,9 @@ export default function RankingPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Redirecionando para o ranking do evento...</p>
+          <p className="text-gray-600">
+            Redirecionando para o ranking do evento...
+          </p>
         </div>
       </div>
     );

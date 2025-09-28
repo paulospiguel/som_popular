@@ -10,7 +10,7 @@ import {
   getJudges,
   removeJudgeFromEvent,
   updateJudge,
-} from "@/server/judges";
+} from "@/server/judges.actions";
 
 // Query Keys
 export const judgeKeys = {

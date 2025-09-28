@@ -15,7 +15,7 @@ import {
   changeMyPassword,
   getMyProfile,
   updateMyProfile,
-} from "@/server/profile";
+} from "@/server/profile.actions";
 
 export default function ProfilePage() {
   const router = useRouter();

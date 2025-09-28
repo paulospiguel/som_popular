@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 
-import { getPublicEvents } from "@/server/events-public";
+import { getPublicEvents } from "@/server/events-public.actions";
 
 export async function GET() {
   try {
     const result = await getPublicEvents();
-    
+
     if (!result.success || !result.events) {
       return NextResponse.json(
         { error: "Erro ao buscar eventos" },
@@ -14,7 +14,7 @@ export async function GET() {
     }
 
     // Formatar eventos para o dropdown
-    const eventsForDropdown = result.events.map(event => ({
+    const eventsForDropdown = result.events.map((event) => ({
       id: event.id,
       name: event.name,
       description: event.description,

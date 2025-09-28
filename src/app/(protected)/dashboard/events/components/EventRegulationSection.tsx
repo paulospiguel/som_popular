@@ -10,8 +10,8 @@ import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { useToast } from "@/components/ui/toast";
 import { FileMetadata } from "@/hooks/use-file-upload";
 import { useUploadById } from "@/hooks/use-uploads";
-import { addFileIdToEvent } from "@/server/events";
-import { uploadRegulationFile } from "@/server/upload-vercel";
+import { addFileIdToEvent } from "@/server/events/index.actions";
+import { uploadRegulationFile } from "@/server/upload-vercel.actions";
 import { EventFormData } from "@/validators/events";
 
 interface EventRegulationSectionProps {

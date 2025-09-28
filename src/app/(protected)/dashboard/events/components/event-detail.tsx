@@ -75,21 +75,21 @@ import {
   revertToDraft,
   startEvent,
   updateEvent,
-} from "@/server/events";
+} from "@/server/events/index.actions";
 import {
   addJudgeToEvent,
   createJudge,
   getEventJudges,
   getJudges,
   removeJudgeFromEvent,
-} from "@/server/judges";
+} from "@/server/judges.actions";
 import {
   getApprovedParticipants,
   getEventParticipants,
   registerParticipantInEvent,
   removeParticipantFromEvent,
-} from "@/server/participants";
-import { uploadRegulationFile } from "@/server/upload-vercel";
+} from "@/server/participants.actions";
+import { uploadRegulationFile } from "@/server/upload-vercel.actions";
 
 interface EventDetailsModalProps {
   isOpen: boolean;

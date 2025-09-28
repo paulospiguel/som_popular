@@ -15,7 +15,7 @@ import {
   getStatusColor,
   getStatusText,
 } from "@/lib/utils";
-import { getEvents } from "@/server/events";
+import { getEvents } from "@/server/events/index.actions";
 import { Event } from "@/types";
 
 export default function VotingsSelectionPage() {

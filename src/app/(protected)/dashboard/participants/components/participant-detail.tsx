@@ -19,7 +19,7 @@ import {
   deactivateParticipant,
   getParticipantDetails,
   rejectParticipant,
-} from "@/server/participants";
+} from "@/server/participants.actions";
 
 interface ParticipantDetailsModalProps {
   participant: Participant;

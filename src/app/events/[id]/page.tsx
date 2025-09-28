@@ -21,7 +21,7 @@ import { useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getPublicEventById } from "@/server/events-public";
+import { getPublicEventById } from "@/server/events-public.actions";
 
 const EVENT_TYPE_LABELS = {
   classificatoria: "Classificatória",
@@ -392,7 +392,10 @@ export default function EventPage() {
                     {event.prizes
                       .split(",")
                       .map((prize: string, index: number) => (
-                        <div key={index} className="text-sm text-cinza-chumbo/80">
+                        <div
+                          key={index}
+                          className="text-sm text-cinza-chumbo/80"
+                        >
                           • {prize.trim()}
                         </div>
                       ))}
@@ -435,7 +438,9 @@ export default function EventPage() {
               return (
                 <div key={phase.phase} className="flex items-start gap-4">
                   {/* Indicador de Fase */}
-                  <div className={`w-12 h-12 rounded-full ${phase.color} flex items-center justify-center flex-shrink-0`}>
+                  <div
+                    className={`w-12 h-12 rounded-full ${phase.color} flex items-center justify-center flex-shrink-0`}
+                  >
                     <PhaseIcon className="w-6 h-6" />
                   </div>
 
@@ -454,7 +459,9 @@ export default function EventPage() {
                       </Badge>
                     </div>
 
-                    <p className="text-cinza-chumbo/80 mb-3">{phase.description}</p>
+                    <p className="text-cinza-chumbo/80 mb-3">
+                      {phase.description}
+                    </p>
 
                     <div className="flex items-center gap-6 text-sm text-cinza-chumbo/70">
                       <div className="flex items-center gap-2">

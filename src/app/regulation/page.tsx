@@ -12,7 +12,10 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { getPublicEvents, type PublicEvent } from "@/server/events-public";
+import {
+  getPublicEvents,
+  type PublicEvent,
+} from "@/server/events-public.actions";
 
 export default function RegulationPage() {
   const [events, setEvents] = useState<PublicEvent[]>([]);

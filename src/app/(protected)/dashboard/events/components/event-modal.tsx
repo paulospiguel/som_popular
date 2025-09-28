@@ -30,8 +30,8 @@ import { TagsInput } from "@/components/ui/tags-input";
 import { useToast } from "@/components/ui/toast";
 import { EVENT_CATEGORIES, EVENT_TYPES } from "@/constants";
 import { Event } from "@/infra/database/schema";
-import { generateContent } from "@/server/ai/generate";
-import { createEvent, updateEvent } from "@/server/events";
+import { generateContent } from "@/server/ai/generate.actions";
+import { createEvent, updateEvent } from "@/server/events/index.actions";
 
 type Mode = "create" | "edit";
 

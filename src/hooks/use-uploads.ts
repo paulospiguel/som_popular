@@ -5,12 +5,12 @@ import {
   checkFileExists,
   getFileInfoFromUrl,
   removeFile,
-} from "@/server/upload-vercel";
+} from "@/server/upload-vercel.actions";
 import {
   getUploadById,
   getUploadsByEntity,
   getUploadsByFolder,
-} from "@/server/uploads";
+} from "@/server/uploads.actions";
 
 // Query Keys
 export const uploadKeys = {

@@ -6,8 +6,8 @@ import EventsSection from "@/components/EventsSection";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import { Ripple } from "@/components/magicui/ripple";
-import { getPublicEvents } from "@/server/events-public";
-import { getHomePageSettings } from "@/server/settings";
+import { getPublicEvents } from "@/server/events-public.actions";
+import { getHomePageSettings } from "@/server/settings.actions";
 
 interface SingleEventPageProps {
   params: Promise<{

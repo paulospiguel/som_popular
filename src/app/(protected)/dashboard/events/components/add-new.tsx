@@ -29,7 +29,7 @@ import { TagsInput } from "@/components/ui/tags-input";
 import { useToast } from "@/components/ui/toast";
 import { APPROVAL_MODES, EVENT_CATEGORIES, EVENT_TYPES } from "@/constants";
 import { Event } from "@/infra/database/schema";
-import { createEvent } from "@/server/events";
+import { createEvent } from "@/server/events/index.actions";
 import {
   eventCreationSchema,
   type EventCreationFormData,

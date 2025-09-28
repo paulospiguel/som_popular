@@ -19,7 +19,7 @@ import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatTimeAgo } from "@/lib/utils";
-import { getDashboardStats } from "@/server/dashboard";
+import { getDashboardStats } from "@/server/dashboard.actions";
 
 interface ActivityDetail {
   status?: string;

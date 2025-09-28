@@ -13,7 +13,7 @@ import {
   revertToDraft,
   startEvent,
   updateEvent,
-} from "@/server/events";
+} from "@/server/events/index.actions";
 
 // Query Keys
 export const eventKeys = {

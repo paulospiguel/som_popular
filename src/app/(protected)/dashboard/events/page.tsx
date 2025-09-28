@@ -44,7 +44,7 @@ import {
   getStatusText,
   getTypeText,
 } from "@/lib/utils";
-import { copyEvent, getEvents } from "@/server/events";
+import { copyEvent, getEvents } from "@/server/events/index.actions";
 
 import { EventModalNew } from "./components/EventModalNew";
 

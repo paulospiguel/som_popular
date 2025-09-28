@@ -2,7 +2,7 @@
 
 import z from "zod";
 
-import { generateWithLLM } from "@/server/llm";
+import { generateWithLLM } from "@/server/llm.actions";
 import { generateContentSchema } from "@/validators/ia-generate";
 
 export type GenerateContentSchema = z.infer<typeof generateContentSchema>;

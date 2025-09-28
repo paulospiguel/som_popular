@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import {
   getRegistrationByEmail,
   getRegistrationById,
-} from "@/server/events-public";
+} from "@/server/events-public.actions";
 
 const STATUS_ICONS = {
   pending: Clock,

@@ -15,7 +15,10 @@ import {
 import { useToast } from "@/components/ui/toast";
 import { useInvalidateUploads, useUploadsByEntity } from "@/hooks/use-uploads";
 import { getUploadInfoById } from "@/lib/upload-helpers";
-import { uploadDocument, uploadRegulationFile } from "@/server/upload-vercel";
+import {
+  uploadDocument,
+  uploadRegulationFile,
+} from "@/server/upload-vercel.actions";
 
 interface EventFileUploadProps {
   eventId: string;

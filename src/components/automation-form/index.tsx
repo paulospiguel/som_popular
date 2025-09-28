@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/popover";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
-import { generateContent } from "@/server/ai/generate";
+import { generateContent } from "@/server/ai/generate.actions";
 import { Metadata } from "@/validators/ia-generate";
 
 import { ShimmeringText } from "../ui/shimmering-text";

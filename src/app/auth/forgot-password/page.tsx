@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { requestPasswordReset } from "@/lib/auth-client";
-import { logPasswordReset } from "@/server/logs";
+import { logPasswordReset } from "@/server/logs.actions";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
